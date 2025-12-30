@@ -56,6 +56,20 @@ kubectl api-resource
 
 
 
+[root@ip-172-31-44-108 ~]# curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100   138  100   138    0     0   3262      0 --:--:-- --:--:-- --:--:--  3285
+100 55.8M  100 55.8M    0     0   316M      0 --:--:-- --:--:-- --:--:--  316M
+[root@ip-172-31-44-108 ~]# ll
+total 57228
+-rw-r--r--. 1 root root 58597560 Dec 30 13:31 kubectl
+[root@ip-172-31-44-108 ~]# 
+
+chmod +x kubectl
+
+mv kubectl /usr/local/bin/
+
 Todays class notes : https://mustafa-k8s.hashnode.dev/well-explained-kubernetes-architecture
 
 
