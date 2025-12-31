@@ -71,6 +71,102 @@ chmod +x kubectl
 mv kubectl /usr/local/bin/
 
 
+minikube status
+
+minikube start --driver=docker
+
+minikube start --driver=docker --force
+
+minikube status
+
+[root@ip-172-31-25-132 ~]# minikube status
+minikube
+type: Control Plane
+host: Running
+kubelet: Running
+apiserver: Running
+kubeconfig: Configured
+
+kubectl api-resources
+
+kubectl get pods
+
+[root@ip-172-31-25-132 ~]# kubectl run mypod --image=nginx
+pod/mypod created
+[root@ip-172-31-25-132 ~]#
+
+
+[root@ip-172-31-25-132 ~]# kubectl run newpod --image=httpd
+pod/newpod created
+[root@ip-172-31-25-132 ~]# 
+
+[root@ip-172-31-25-132 ~]# kubectl get pods
+NAME     READY   STATUS    RESTARTS   AGE
+mypod    1/1     Running   0          41s
+newpod   1/1     Running   0          17s
+[root@ip-172-31-25-132 ~]# 
+
+kubectl get pod
+
+kubectl get po
+
+[root@ip-172-31-25-132 ~]# kubectl get po
+NAME     READY   STATUS    RESTARTS   AGE
+mypod    1/1     Running   0          85s
+newpod   1/1     Running   0          61s
+[root@ip-172-31-25-132 ~]# 
+
+[root@ip-172-31-25-132 ~]# kubectl get po newpod
+NAME     READY   STATUS    RESTARTS   AGE
+newpod   1/1     Running   0          96s
+[root@ip-172-31-25-132 ~]#
+
+[root@ip-172-31-25-132 ~]# kubectl delete pod newpod
+pod "newpod" deleted from default namespace
+[root@ip-172-31-25-132 ~]
+
+we can star now declarative form by this below file
+
+vim flm.yml
+
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: flm-pod
+spec:
+  containers:
+    - name: mycont
+      image: shaikmustafa/dm
+      ports:
+        - containerPort: 80
+
+:wq
+
+here tip is if we learn this above file to write our own means 
+we can able to write 10 manifest files easily
+
+[root@ip-172-31-25-132 ~]# kubectl create -f flm.yml
+pod/flm-pod created
+[root@ip-172-31-25-132 ~]# 
+
+[root@ip-172-31-25-132 ~]# kubectl create -f flm.yml
+pod/flm-pod created
+[root@ip-172-31-25-132 ~]# kubectl get po
+NAME      READY   STATUS    RESTARTS   AGE
+flm-pod   1/1     Running   0          23s
+mypod     1/1     Running   0          10m
+[root@ip-172-31-25-132 ~]# 
+
+[root@ip-172-31-25-132 ~]# kubectl describe po flm-pod-----------> command to view full information of the created pod
+
+
+
+
+
+
+
+
 
 
 Todays class notes : https://mustafa-k8s.hashnode.dev/well-explained-kubernetes-architecture
