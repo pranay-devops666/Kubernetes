@@ -70,6 +70,9 @@ chmod +x kubectl
 
 mv kubectl /usr/local/bin/
 
+
+
+
 Todays class notes : https://mustafa-k8s.hashnode.dev/well-explained-kubernetes-architecture
 
 
