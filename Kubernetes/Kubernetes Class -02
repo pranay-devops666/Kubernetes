@@ -1,5 +1,11 @@
 Kubernetes Class -02
 
+
+Todays class notes-1 : https://mustafa-k8s.hashnode.dev/essential-kubernetes-pod-concepts-for-beginners-to-master
+Todays class notes-2 : https://mustafa-k8s.hashnode.dev/labels-selectors-and-node-selectors
+
+
+
 pods
 realated commands to pods
 labels
@@ -361,6 +367,155 @@ pod/mypod6 created
 pods, realated commands to pods, labels, selector, node selectors
 
 
+
+Todays commands:
+
+
+1  yum install docker -y && systemctl start docker
+
+    2  curl -LO https://github.com/kubernetes/minikube/releases/latest/download/minikube-linux-amd64
+
+    3  sudo install minikube-linux-amd64 /usr/local/bin/minikube && rm minikube-linux-amd64
+
+    4     curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+
+    5  chmod +x kubectl
+
+    6  mv kubectl /usr/local/bin/
+
+    7  minikube start --driver=docker --force
+
+    8  minikube status
+
+    9  docker ps
+
+   10  kubectl run pod-1 --image=nginx
+
+   11  kubectl get po
+
+   12  kubectl get pods
+
+   13  vim pod.yml
+
+   14  kubectl create -f pod.yml
+
+   15  kubectl get po
+
+   16  kubectl get po mypod
+
+   17  kubectl get po
+
+   18  kubectl describe pod mypod
+
+   19  kubectl get po -o wide
+
+   20  kubectl get po -o yaml
+
+   21  kubectl get po -o json
+
+   22  vim pod.yml
+
+   23  kubectl create -f pod.yml
+
+   24  kubectl get po
+
+   25  kubectl get po --show-labels
+
+   26  kubectl get po
+
+   27  vim pod.yml
+
+   28  kubectl get po --show-labels
+
+   29  kubectl label pod pod-1 "client=wipro"
+
+   30  kubectl get po --show-labels
+
+   31  kubectl label pod mypod "client=tcs,env=test"
+
+   32  kubectl label pod mypod "client=tcs env=test"
+
+   33  kubectl label pod mypod "client=tcs" "env=test"
+
+   34  kubectl get po --show-labels
+
+   35  kubectl get po -l client=tcs
+
+   36  kubectl get po -l client=wipro,env=test
+
+   37  kubectl get po -l client=wipro env=test
+
+   38   kubectl get po -l "client=wipro" "env=test"
+
+   39  kubectl get po
+
+   40  kubectl get po --show-labels
+
+   41* kubectl label pod pod-1
+
+   42  kubectl get po --show-labels
+
+   43  kubectl get po -l client!=tcs
+
+   44  kubectl get po --show-labels
+
+   45  kubectl delete pod -l client=tcs
+
+   46  vi pod.yml
+
+   47  kubectl create -f pod.yml
+
+   48  kubectl get po --show-labels
+
+   49  vim pod.yml
+
+   50  kubectl create -f pod.yml
+
+   51  kubectl get po --show-labels
+
+   52  kubectl get po -l env=dev,test
+
+   53  kubectl get po -l env=dev test
+
+   54  kubectl get po -l env=dev, env= test
+
+   55  kubectl get po -l env=dev, env=test
+
+   56  history
+
+   57  kubectl get po -l 'env in (dev, test)'
+
+   58  kubectl get po --show-labels
+
+   59  kubectl get po -l 'env in (dev)'
+
+   60  kubectl get po -l 'env ! in (dev)'
+
+   61  kubectl get po -l 'env not in (dev)'
+
+   62  kubectl get po -l 'env notin (dev)'
+
+   63  kubectl get po --show-labels
+
+   64  kubectl get nodes
+
+   65  kubectl get nodes --show-labels
+
+   66  kubectl label node minikube "year=2026"
+
+   67  kubectl get nodes --show-labels
+
+   68  vim pod.yml
+
+   69  kubectl create -f pod.yml
+
+   70  vim pod.yml
+
+   71  kubectl create -f pod.yml
+
+   72  kubectl get po -o wide
+
+   73  history
 
 
 
