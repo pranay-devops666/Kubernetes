@@ -1,5 +1,11 @@
 Kubernetes Class -02
 
+pods
+realated commands to pods
+labels
+selector
+node selectors
+
 install minikube-------> select https://minikube.sigs.k8s.io › docs › start------>start minikube--------->in here the details will be there
 
 What you’ll need
@@ -45,3 +51,317 @@ total 57228
 [root@ip-172-31-44-108 ~]# 
 
 mv kubectl /usr/local/bin/
+
+
+minikube status
+
+minikube start --driver=docker
+
+minikube start --driver=docker --force
+
+minikube status
+
+[root@ip-172-31-25-132 ~]# minikube status
+minikube
+type: Control Plane
+host: Running
+kubelet: Running
+apiserver: Running
+kubeconfig: Configured
+
+kubectl api-resources
+
+[root@ip-172-31-25-132 ~]# docker ps 
+CONTAINER ID   IMAGE                                 COMMAND                  CREATED          STATUS          PORTS                                                                                                                                  NAMES
+22b4d6f5662b   gcr.io/k8s-minikube/kicbase:v0.0.48   "/usr/local/bin/entr…"   22 minutes ago   Up 22 minutes   127.0.0.1:32772->22/tcp, 127.0.0.1:32771->2376/tcp, 127.0.0.1:32770->5000/tcp, 127.0.0.1:32769->8443/tcp, 127.0.0.1:32768->32443/tcp   minikube
+[root@ip-172-31-25-132 ~]#
+
+based on this above created container the minikube will be running 
+
+we  can create pods in 2 ways
+1. Inparative through commands
+2. Declarative trhough file
+
+[root@ip-172-31-25-132 ~]# kubectl run pod-1 --image=nginx
+pod/pod-1 created
+[root@ip-172-31-25-132 ~]# 
+
+[root@ip-172-31-25-132 ~]# kubectl run pod-1 --image=nginx
+pod/pod-1 created
+[root@ip-172-31-25-132 ~]# 
+
+now will declarative
+
+vim pod.yml
+
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: mypod1
+spec:
+  containers:
+    - name: cont-1
+      image: nginx
+      ports:
+        - containerPort: 80
+
+:wq
+
+[root@ip-172-31-25-132 ~]# kubectl create -f pod.yml
+pod/mypod1 created
+[root@ip-172-31-25-132 ~]#
+
+[root@ip-172-31-25-132 ~]# kubectl get po
+NAME      READY   STATUS    RESTARTS   AGE
+flm-pod   1/1     Running   0          15m
+mypod     1/1     Running   0          25m
+mypod1    1/1     Running   0          22s
+pod-1     1/1     Running   0          4m15s
+[root@ip-172-31-25-132 ~]# 
+
+[root@ip-172-31-25-132 ~]# kubectl get po mypod1
+NAME     READY   STATUS    RESTARTS   AGE
+mypod1   1/1     Running   0          39s
+[root@ip-172-31-25-132 ~]# 
+
+kubectl get po mypod1---------> command to view full information of created pod
+
+
+[root@ip-172-31-25-132 ~]# kubectl get po -o wide---------> command to view pod IP address & that pods in which worker has been created as well
+NAME      READY   STATUS    RESTARTS   AGE     IP           NODE       NOMINATED NODE   READINESS GATES
+flm-pod   1/1     Running   0          19m     10.244.0.5   minikube   <none>           <none>
+mypod     1/1     Running   0          29m     10.244.0.3   minikube   <none>           <none>
+mypod1    1/1     Running   0          3m44s   10.244.0.7   minikube   <none>           <none>
+pod-1     1/1     Running   0          7m37s   10.244.0.6   minikube   <none>           <none>
+[root@ip-172-31-25-132 ~]# 
+
+
+kubectl get po -o yaml---------> command to view pod IP address & that pods in which worker has been created as well in yaml formfat
+
+kubectl get po -o json---------> command to view pod IP address & that pods in which worker has been created as well in json formfat
+
+vim pod.yml
+
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: mypod2
+  labels:
+    env: dev
+    client: tcs
+spec:
+  containers:
+    - name: cont-1
+      image: nginx
+      ports:
+        - containerPort: 80
+
+:wq
+
+[root@ip-172-31-25-132 ~]# kubectl create -f pod.yml
+pod/mypod2 created
+[root@ip-172-31-25-132 ~]#
+
+[root@ip-172-31-25-132 ~]# kubectl get po
+NAME      READY   STATUS    RESTARTS   AGE
+flm-pod   1/1     Running   0          27m
+mypod     1/1     Running   0          37m
+mypod1    1/1     Running   0          12m
+mypod2    1/1     Running   0          26s
+pod-1     1/1     Running   0          16m
+[root@ip-172-31-25-132 ~]# 
+
+
+
+
+[root@ip-172-31-25-132 ~]# kubectl get po --show-labels----------->command to view along with labels
+NAME      READY   STATUS    RESTARTS   AGE   LABELS
+flm-pod   1/1     Running   0          28m   <none>
+mypod     1/1     Running   0          38m   run=mypod
+mypod1    1/1     Running   0          12m   <none>
+mypod2    1/1     Running   0          52s   client=tcs,env=dev
+pod-1     1/1     Running   0          16m   run=pod-1
+[root@ip-172-31-25-132 ~]# 
+
+
+[root@ip-172-31-25-132 ~]# kubectl label pod mypod1 "client=wipro"-----------------> command to give labels for already existing pods
+pod/mypod1 labeled
+[root@ip-172-31-25-132 ~]#
+
+ofcouse we can give multiple labels for the pods
+
+[root@ip-172-31-25-132 ~]# kubectl label pod mypod2 client=infy env=deloitee ----------------> command to give multiple labels at a time
+pod/mypod2 labeled
+[root@ip-172-31-25-132 ~]#
+
+[root@ip-172-31-25-132 ~]# kubectl label pod mypod2 client=infy env=deloitee --overwrite----------------> command to give multiple labels at a time if above command didn't works means
+pod/mypod2 labeled
+[root@ip-172-31-25-132 ~]#
+
+
+[root@ip-172-31-25-132 ~]# kubectl get po --show-labels
+NAME      READY   STATUS    RESTARTS   AGE   LABELS
+flm-pod   1/1     Running   0          38m   <none>
+mypod     1/1     Running   0          48m   run=mypod
+mypod1    1/1     Running   0          22m   client=wipro
+mypod2    1/1     Running   0          10m   client=infy,env=deloitee
+pod-1     1/1     Running   0          26m   run=pod-1
+[root@ip-172-31-25-132 ~]#
+
+
+now hoe to do filetring means technically called it as selector is nothing but selcting the label
+
+now specifically want  kubectl get po -l client=infy means we can get this only
+
+[root@ip-172-31-25-132 ~]# kubectl get po -l client=infy
+NAME     READY   STATUS    RESTARTS   AGE
+mypod2   1/1     Running   0          13m
+[root@ip-172-31-25-132 ~]#
+
+
+but we want to specific env=delotiee means
+
+wnat those tag env=delotiee only means
+
+in general we have 2 types of selectors in kubernetes
+
+1. equalitybased selector
+2. set based selector
+
+it will work only set based selector to view but we want to specific env=delotiee means
+
+
+kubectl label pod mypod1 run-      --------------->command to remove the label
+
+[root@ip-172-31-25-132 ~]# kubectl get po --show-labels
+NAME      READY   STATUS    RESTARTS   AGE   LABELS
+flm-pod   1/1     Running   0          48m   <none>
+mypod     1/1     Running   0          58m   run=mypod
+mypod1    1/1     Running   0          32m   client=wipro
+mypod2    1/1     Running   0          20m   client=infy,env=deloitee
+pod-1     1/1     Running   0          36m   run=pod-1
+[root@ip-172-31-25-132 ~]# kubectl label pod mypod run-
+pod/mypod unlabeled
+[root@ip-172-31-25-132 ~]# kubectl label pod mypod1 client-
+pod/mypod1 unlabeled
+[root@ip-172-31-25-132 ~]# kubectl label pod mypod2 client-
+pod/mypod2 unlabeled
+[root@ip-172-31-25-132 ~]# 
+
+
+
+
+now i wnat to get all the pods where client=tcs
+
+kubectl label pod mypod2 env=deloitee----------> command to get get all the pods where env=deloitee
+
+
+now we need to delete a specific pod based on label
+
+[root@ip-172-31-25-132 ~]# kubectl delete pod -l env=deloitee
+pod "mypod2" deleted from default namespace
+[root@ip-172-31-25-132 ~]# 
+
+lets create one another pod
+
+[root@ip-172-31-25-132 ~]# kubectl create -f pod.yml
+pod/mypod4 created
+[root@ip-172-31-25-132 ~]#
+
+lets create one another pod with different labels
+
+vim pod.ym---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: mypod5
+  labels:
+    env: test
+    client: tcs
+spec:
+  containers:
+    - name: cont-1
+      image: nginx
+      ports:
+        - containerPort: 80
+
+:wq
+
+kubectl create -f pod.yml
+
+
+[root@ip-172-31-25-132 ~]# kubectl create -f pod.yml
+pod/mypod5 created
+[root@ip-172-31-25-132 ~]# 
+
+now we have different pods
+
+[root@ip-172-31-25-132 ~]# kubectl get po --show-labels
+NAME      READY   STATUS    RESTARTS   AGE     LABELS
+flm-pod   1/1     Running   0          58m     <none>
+mypod     1/1     Running   0          68m     <none>
+mypod1    1/1     Running   0          43m     <none>
+mypod4    1/1     Running   0          2m55s   client=tcs,env=dev
+mypod5    1/1     Running   0          36s     client=tcs,env=test
+pod-1     1/1     Running   0          47m     <none>
+[root@ip-172-31-25-132 ~]# 
+
+now our requirement is we want env=dev env=test 
+
+selector types 2 types
+
+1. EBS (Equality Based Selector)
+in this selctor we can able to select single based label at a time
+2. SBS (Select Based Selector)
+in this selctor we can able to select set of labels at a time
+
+
+[root@ip-172-31-25-132 ~]# kubectl get po -l 'env in (dev, test)'----------------> command to know now our requirement is we want env=dev env=test 
+
+NAME     READY   STATUS    RESTARTS   AGE
+mypod4   1/1     Running   0          9m49s
+mypod5   1/1     Running   0          7m30s
+[root@ip-172-31-25-132 ~]# 
+
+
+[root@ip-172-31-25-132 ~]# kubectl get po -l 'env notin (dev, test)'----------------> command to know env notin (dev, test)
+NAME      READY   STATUS    RESTARTS   AGE
+flm-pod   1/1     Running   0          66m
+mypod     1/1     Running   0          76m
+mypod1    1/1     Running   0          50m
+pod-1     1/1     Running   0          54m
+[root@ip-172-31-25-132 ~]# 
+
+vim pod.yml
+
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: mypod6
+  labels:
+    env: prod
+    client: tcs
+spec:
+  containers:
+    - name: cont-1
+      image: nginx
+      ports:
+        - containerPort: 80
+  nodeSelector:
+    year: "2026"
+
+:wq
+
+[root@ip-172-31-25-132 ~]# kubectl create -f pod.yml
+pod/mypod6 created
+
+pods, realated commands to pods, labels, selector, node selectors
+
+
+
+
+
+
