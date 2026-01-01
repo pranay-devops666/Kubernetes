@@ -1,0 +1,265 @@
+Kubernetes Class -3
+
+In previous class we discussed about the kubernetes pods, labels, selectors and node selectors
+
+on today's session
+
+we are going to discuss about the Kops cluster setups
+
+as of now we done setup minikube only but we are going to do mutlti node cluster setup
+
+mutlti node cluster setup means it has two types
+
+1. Self managed
+2. Cloud managed
+
+now we can do discuss of Self Managed cluster which is nothing but Kops(nothing but called as Kubernetes operation)
+
+advantages of Kops is we can do create multi node cluster in cloud
+
+into the cloud we are going to create it
+
+how to do setup and what requiremsnts need?
+
+before going to do this
+
+we can revise once how minikube setup has been done
+
+minikube setup
+=============
+
+1. take one ec2-instance
+2. instlled docker
+3. installed kubectl
+4. installed minikube
+
+same similar process to Kops as well but no need of Docker here
+
+Kops setup
+===============
+1. take one ec2-instance-------->name:Kops------>t3.micro---->keypair---->my-sg---->28ebs-------->launch instance
+2. installed kubectl
+3. installed Kops
+
+
+lets do now here
+
+take one ec2-instance-------->name:Kops------>t3.micro---->keypair---->my-sg---->28ebs-------->launch instance
+
+connect the instance
+
+first install kubectl
+
+curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+
+
+[root@ip-172-31-6-4 ~]# curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+   
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100   138  100   138    0     0   3118      0 --:--:-- --:--:-- --:--:--  3136
+100 55.8M  100 55.8M    0     0   294M      0 --:--:-- --:--:-- --:--:--  294M
+[root@ip-172-31-6-4 ~]# ll
+total 57228
+-rw-r--r--. 1 root root 58597560 Jan  1 01:32 kubectl
+[root@ip-172-31-6-4 ~]# chmod +x kubectl 
+[root@ip-172-31-6-4 ~]# ll
+total 57228
+-rwxr-xr-x. 1 root root 58597560 Jan  1 01:32 kubectl
+[root@ip-172-31-6-4 ~]# kubectl version
+-bash: kubectl: command not found
+[root@ip-172-31-6-4 ~]# mv kubectl /usr/local/bin/
+[root@ip-172-31-6-4 ~]# kubectl version
+Client Version: v1.35.0
+Kustomize Version: v5.7.1
+The connection to the server localhost:8080 was refused - did you specify the right host or port?
+[root@ip-172-31-6-4 ~]# 
+
+next install kops 
+
+go to this webside ------>install kops---->https://kops.sigs.k8s.io › getting_started › install------->select it------->
+
+
+curl -Lo kops https://github.com/kubernetes/kops/releases/download/$(curl -s https://api.github.com/repos/kubernetes/kops/releases/latest | grep tag_name | cut -d '"' -f 4)/kops-linux-amd64
+chmod +x kops
+sudo mv kops /usr/local/bin/kops
+
+[root@ip-172-31-6-4 ~]# curl -Lo kops https://github.com/kubernetes/kops/releases/download/$(curl -s https://api.github.com/repos/kubernetes/kops/releases/latest | grep tag_name | cut -d '"' -f 4)/kops-linux-amd64
+chmod +x kops
+sudo mv kops /usr/local/bin/kops
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+100  263M  100  263M    0     0   301M      0 --:--:-- --:--:-- --:--:--  301M
+[root@ip-172-31-6-4 ~]# ll
+total 0
+[root@ip-172-31-6-4 ~]# kops version
+Client version: 1.34.1 (git-v1.34.1)
+[root@ip-172-31-6-4 ~]# 
+
+
+now need to do install cluster
+
+cluster------> is nothing but group of servers
+
+in this cluster servers contains manager server, worker servers as well present in cloud we are using aws cloud
+
+In aws cloud "IAM" will provide the permissions to create clusters in aws
+
+IAM -------> Identity Access Management
+
+now do create IAM
+
+search IAM in aws dashboard--------> select roles-----> select create role------>select EC2------> next------->https://kops.sigs.k8s.io/getting_started/aws/-------> 
+go to this website over there details will be availble which permissions should we selct for Kops like below----------->AmazonEC2FullAccess, AmazonRoute53FullAccess,
+AmazonS3FullAccess, IAMFullAccess, AmazonVPCFullAccess, AmazonSQSFullAccess, AmazonEventBridgeFullAccess---------->keep optional instead of giving all those permisisos
+------> give AdministrationAccess--->next------->role name:kops-role--->role has been created
+
+
+
+The kops user will require the following IAM permissions to function properly:
+
+AmazonEC2FullAccess
+AmazonRoute53FullAccess
+AmazonS3FullAccess
+IAMFullAccess
+AmazonVPCFullAccess
+AmazonSQSFullAccess
+AmazonEventBridgeFullAccess
+
+
+role has been created now this created role need to attach the kops instance 
+
+select created kops instance------>select actions---->security------>modify IAM role------>select kops role------->update IAM role------>Successfully attached kops-role to instance
+
+now permissions has been assigned 
+
+for cluster information need to copy store in cloud why because cluster information is much needed and important how many servers we installed, and which versions we selected
+etc........
+
+the best sevice is S3 to store the data in cloud the data is what ever it is the data type we can use S3 service
+
+S3(Simple Storage Data)
+
+difference between ebs & S3
+
+ebs we will do attach this ebs to server what the data store in the server that data only will be store in ebs
+
+in S3 its ike a google drive we ca store any kind of data here
+
+now i need S3 inside buckets will be existto store the cluster information
+
+we can able to do through command and cli method to create S3
+
+now we are doing through command
+
+make sure S3 name should be globally unique
+
+aws s3 ls ----------> command to view list of buckets
+
+[root@ip-172-31-6-4 ~]# aws s3 mb s3://pranay.2026.babu
+make_bucket: pranay.2026.babu
+[root@ip-172-31-6-4 ~]# 
+
+mb ---------> means make bucket
+
+searh S3 in aws dashboard----> select buckets-----> select created this bucket (pranay.2026.babu) -------->select properties---->in here bucket versioning by default
+it will be disabled state------> make it as enable-----> select enable--->svae changes
+
+why this should be enable means the best feature in versioning is if incase the file get deleted means also we can able to get restore
+
+in S3 buckets we can able to store the data upto 5GB for free
+
+now i have one bucket 
+
+lets assume that in real time there are 100 buckets in S3 
+
+now i need to store my cluster information in a specific particular bucket means 
+
+we can do here
+
+export KOPS_STATE_STORE=s3://pranay.2026.babu---------> command to store my cluster information in a specific particular bucket
+
+now need to create cluster here
+
+kops create cluster --name pranay.k8s.local --zones=us-east-1a,us-east-1b --master-size c7i-flex.large -- master-count 1 --master-volume-size 30 --node-size t3.micro --node-count 2 --node-volume-size 20 --image=ami-0ecb62995f68bb549
+
+abaove total big whole command to create cluster
+
+how to take ami id is -------> launch instance -------->select ubuntu instance-----> take ami id here copy and paste in above command
+
+
+kops create cluster babu.k8s.local \
+--zones=us-east-1a,us-east-1b \
+--control-plane-size=c7i-flex.large \
+--control-plane-count=1 \
+--control-plane-volume-size=30 \
+--node-size=t3.micro \
+--node-count=2 \
+--node-volume-size=20 \
+--image=ami-0ecb62995f68bb549 \
+--yes
+
+
+kops update cluster --name babu.k8s.local --yes --admin
+
+
+[root@ip-172-31-6-4 ~]# kubectl get nodes
+NAME                  STATUS   ROLES           AGE     VERSION
+i-01dde7cd5d09e30b3   Ready    control-plane   4m32s   v1.34.3
+i-0287de7791c1ada7d   Ready    node            2m23s   v1.34.3
+i-085c4599c324fa64d   Ready    node            2m20s   v1.34.3
+[root@ip-172-31-6-4 ~]# 
+
+
+now we need to create pods here
+this is manifest file
+
+vim pod.yml
+
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-1
+  labels:
+    app: swiggy
+    client: tcs
+spec:
+  containers:
+    - name: cont-1
+      image: nginx
+      ports:
+        - containerPort: 80
+
+
+:wq
+
+[root@ip-172-31-6-4 ~]# kubectl create -f pod.yml 
+pod/pod-1 created
+[root@ip-172-31-6-4 ~]# 
+
+[root@ip-172-31-6-4 ~]# kubectl get po
+NAME    READY   STATUS    RESTARTS   AGE
+pod-1   1/1     Running   0          16s
+[root@ip-172-31-6-4 ~]# kubectl get po -o wide
+NAME    READY   STATUS    RESTARTS   AGE   IP             NODE                  NOMINATED NODE   READINESS GATES
+pod-1   1/1     Running   0          24s   100.96.1.144   i-0287de7791c1ada7d   <none>           <none>
+[root@ip-172-31-6-4 ~]#
+
+
+
+export KOPS_STATE_STORE=s3://pranay.2026.babu
+
+
+kops delete cluster --name babu.k8s.local --yes
+
+kops delete cluster --name babu.k8s.local --yes
+
+
+
+
+
+
+
+
