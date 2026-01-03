@@ -200,6 +200,33 @@ spec:
 :wq
 
 
+now we need to create Load Balancer
+
+vim service.yml
+
+---
+apiVersion: v1------------> to view which version we need to give here the command was ----->kubectl api-resources | grep -i "services"
+kind: Service
+metadata:
+  name: secondservice
+spec:
+  type: LoadBalancer
+  selector:
+    app: swiggy
+  ports:
+    - port: 80
+      targetPort: 80
+
+
+:wq
+
+note: For CLUSTER-IP we can get only stable IP Address
+
+for Node IP we can get only stable IP Address & Node Port as well
+
+for Load Balancer we can get only stable IP Address, Node POrt & DNS Name as well
+
+
 
 
 
