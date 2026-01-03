@@ -1,1 +1,90 @@
 KOPS CLUSTER SETUP & K8s SERVICES
+
+
+installe kubectl
+
+curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+
+
+chmod +x kubectl
+
+mv kubectl /usr/local/bin/
+
+install kops now
+
+curl -Lo kops https://github.com/kubernetes/kops/releases/download/$(curl -s https://api.github.com/repos/kubernetes/kops/releases/latest | grep tag_name | cut -d '"' -f 4)/kops-linux-amd64
+
+chmod +x kops
+
+sudo mv kops /usr/local/bin/kops
+
+attach IAM role previously created IAM role to insatance
+
+aws s3 ls ----------> command to view list of buckets
+
+[root@ip-172-31-6-4 ~]# aws s3 mb s3://pranay.2026.babu---------> command to store my cluster information in a specific particular bucket
+
+make_bucket: pranay.2026.babu
+[root@ip-172-31-6-4 ~]# 
+
+pranay.2026.babu-------> this is the bucket we created previously
+
+export KOPS_STATE_STORE=s3://pranay.2026.babu
+
+now need to create CLUSTER
+
+kops create cluster --name babu.k8s.local --zones us-east-2a,us-east-2b --master-size c7i-flex.large --master-volume-size 30 --node-count 2 --node-volume-size 20 --node-size t3.micro --image=ami-0f5fcdfbd140e4ab7
+
+-------------> above full command to create cluster
+
+if this above command didn't work means the below command will work 
+
+kops create cluster babu.k8s.local \
+--zones=us-east-1a,us-east-1b \
+--control-plane-size=c7i-flex.large \
+--control-plane-count=1 \
+--control-plane-volume-size=30 \
+--node-size=t3.micro \
+--node-count=2 \
+--node-volume-size=20 \
+--image=ami-0ecb62995f68bb549 \
+--yes
+
+
+
+-------------> above full command to create cluster
+
+
+as of now we created we created pods, cluster but we didn't tried to access the application which present in inside the pod-----> no we can't able to access that
+why because we should need to be expose those
+
+
+we use k8s service todo EXPOSE & access the application
+
+
+
+KUBERNETES SERVICES
+Service is a method for exposing Pods in your cluster.
+Each Pod gets its own IP address But we need to access from IP of the Node..
+If you want to access pod from inside we use Cluster-IP.
+If the service is of type NodePort or LoadBalancer, it can also be accessed. from outside the cluster.
+It enables the pods to be decoupled from the network topology, which makes it easier to manage and scale applications
+
+TYPES:
+CLUSTER-IP
+NODE PORT
+LOAD BALANCER
+
+
+
+
+
+
+
+
+
+
+
+
+
+
