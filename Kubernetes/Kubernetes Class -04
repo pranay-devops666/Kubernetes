@@ -131,6 +131,59 @@ spec:
 
 kubectl create -f service.yml 
 
+kubectl get svc-------> command to see services of pods cluster
+
+curl IP Address------->we can able to access application internal
+
+if we want to access external means we can create node port
+
+for this no need to write seperate manifest file
+
+we need to chnage type in above file
+
+
+vim service.yml
+
+---
+apiVersion: v1------------> to view which version we need to give here the command was ----->kubectl api-resources | grep -i "services"
+kind: Service
+metadata:
+  name: secondservice
+spec:
+  type: NodePort
+  selector:
+    app: swiggy
+  ports:
+    - port: 80
+      targetPort: 80
+
+
+:wq
+
+
+kubectl create -f service.yml 
+
+secondservice has been created
+
+kubectl get svc-------> command to see services of pods cluster
+
+
+after created this seconsdervice we will get stable IP Adress with node also within range as well
+
+the range is 30k to 32767
+
+now we can able to do access the application internal & external as well
+
+curl IP Adress
+
+node server Public IP Adress with node port 32669
+
+
+
+
+
+
+
 
 
 
