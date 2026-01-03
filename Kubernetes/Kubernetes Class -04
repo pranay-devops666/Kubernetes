@@ -54,6 +54,8 @@ kops create cluster babu.k8s.local \
 
 -------------> above full command to create cluster
 
+kops update cluster --name babu.k8s.local --yes --admin
+
 
 as of now we created we created pods, cluster but we didn't tried to access the application which present in inside the pod-----> no we can't able to access that
 why because we should need to be expose those
@@ -74,6 +76,60 @@ TYPES:
 CLUSTER-IP
 NODE PORT
 LOAD BALANCER
+
+kubectl get nodes
+
+now we will create one pod here
+
+vim pod.yml
+
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-1
+  labels:
+    app: swiggy
+    client: tcs
+spec:
+  containers:
+    - name: cont-1
+      image: shaikmustafa/dm------> here we are giving the image which present in dockerhub
+      ports:
+        - containerPort: 80
+
+
+:wq
+
+kubectl create -f pod.yml---------> command to create pod
+
+kubectl get po----->command to view created pods
+
+now if we want to access the application which present in inside the pod means we need to do EXPOSE here
+
+we are using k8s services EXPOSE to it
+
+for that to create service we need to write manifest file for it
+
+vim service.yml
+
+---
+apiVersion: v1------------> to view which version we need to give here the command was ----->kubectl api-resources | grep -i "services"
+kind: Service
+metadata:
+  name: firstservice
+spec:
+  type: ClusterIP
+  selector:
+    app: swiggy
+  ports:
+    - port: 80
+      targetPort: 80
+
+
+:wq
+
+kubectl create -f service.yml 
 
 
 
