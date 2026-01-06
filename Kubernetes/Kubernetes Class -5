@@ -1,6 +1,6 @@
 Kubernetes Class -5
 
-kubernetes Replication Controller & RS(Replica Set)
+kubernetes ReplicationController & RS(ReplicaSet)
 
 
 First Launch one instance 
@@ -429,11 +429,138 @@ replicationcontroller "myrc" deleted from default namespace
 replicationcontroller/myrc created
 [root@ip-172-31-29-255 ~]# 
 
+Disadvantages of Rc's
+=======================
+
+1. There is no auto-scaling
+2. Downtime while updating an image
+3. RC will work on equality-based selector
+4. RC has the old version of the kubernetes option
+
+Advatages of RC's 
+====================
+
+1. ReplicaSet will be the new version in kubernetes i is a new option
+2. RS will work on Set-based selector
 
 
+go to replication-controller.yml file and do changes as image over there
+
+vim replication-controller.yml
 
 
-kops delete cluster --name babu.k8s.local --yes
+---
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: myrc
+spec:
+  replicas: 3
+  selector:
+    app: zomato
+  template:
+    metadata:
+      name: flm
+      labels:
+        app: zomato
+    spec:
+      containers:
+        - name: cont-1
+          image: shaikmustafa/cycle
+          ports:
+            - containerPort: 80
+
+:wq
+
+now if we give kubectl apply means need to be changes done
+
+kubectl apply --f vim replication-controller.yml---------------> command to update replication-controller.yml file
+
+if changes not done means need to delete the RC and create new RC with that same manifest configuraton file like below 
+
+kubectl delete rc myrc----------------> command to delete RC
+
+Now update will done changes will happen in application
+
+suppose again i wnat to release new version means 
+
+delete the current RC and do changes in  replication-controller.yml as change and update image over there
+
+RC will work on equality-based selector -------> this is one of the drawback on RC
+
+Selector has two types
+1.Equaity Based Selector
+2.Set Based Selector
+
+now we are going to create ReplicaSet
+
+cp replication-controler.yml rs.yml--------------> command to copy the data from replication-controler.yml to rs.yml
+
+vim rs.yml
+
+---
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: myrc
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: zomato
+  template:
+    metadata:
+      name: flm
+      labels:
+        app: zomato
+    spec:
+      containers:
+        - name: cont-1
+          image: shaikmustafa/cycle
+          ports:
+            - containerPort: 80
+
+
+:wq
+
+we will do delete current to get rid of confusion form it
+
+kubectl delete rc myrc------------> command to delete rc
+
+kubectl apply -f rs.yml----------> command to update rs
+
+kubectl scale rs myrs --replicas=4------------> command to do scaling-in for created RS which means increasing the replicas to RS
+
+kubectl scale rs myrs --replicas=2------------> command to do scaling-out for created RS which means decreasing the replicas to RS
+
+
+kubectl get pods
+
+
+How RC will work the same way RS also will work
+
+but the difference is selecting the Label is different
+
+RC has downtime, no autoscaling
+RS has downtime, no autoscaling
+
+these both we will not use in Real Time
+
+In real time we will use Deployment
+
+Deployment will has 
+1. Auto-scaling
+2. Rollback to any version
+3. No downtime
+
+when we create pods means pods will create containers (PODS-------> CONTAINERS)
+when we create RC/RS means RC will create PODS, PODS will create Containers (RC/RS----->PODS------>CONTAINERS)
+but now
+when we create Deployment means Deployment will create RS, RS will create PODS, PODS will create CONTAINERS (Deployment------>RS----->PODS------>CONTAINERS)
+why here RS only get created after creating the DEployment means RC will work on Equality-based selector it will not take to Deployment
+In RS we can able to create multiple Lables so it will select RS after created the DEployment
+
+kops delete cluster --name babu.k8s.local --yes--------------> command to created Cluster
 
 
 
