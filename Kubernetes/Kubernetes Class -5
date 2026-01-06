@@ -1,11 +1,442 @@
 Kubernetes Class -5
 
-kubernetes Replication Controller & RS(Replication
+kubernetes Replication Controller & RS(Replica Set)
 
 
 First Launch one instance 
 
 Launch Instance------------>name:RC & RS---------->t3.micro------>key pair ------>Jenkins security group-------->25 ebs volume --------> launch instance
 
-lets connect
+lets connect & give IAM permissions as well select instance-----> select actions--------> select IAM modify---------> launch instance
+
+
+installe kubectl
+
+curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+
+
+chmod +x kubectl
+
+mv kubectl /usr/local/bin/
+
+install kops now
+
+curl -Lo kops https://github.com/kubernetes/kops/releases/download/$(curl -s https://api.github.com/repos/kubernetes/kops/releases/latest | grep tag_name | cut -d '"' -f 4)/kops-linux-amd64
+
+chmod +x kops
+
+sudo mv kops /usr/local/bin/kops
+
+
+chekc list of buckets
+
+aws s3 ls----------> command to view list of buckets
+
+export KOPS_STATE_STORE=s3://pranay.2026.babu---------> command to store my cluster information in a specific particular bucket
+
+now need to create CLUSTER
+
+kops create cluster --name babu.k8s.local --zones us-east-2a,us-east-2b --master-size c7i-flex.large --master-volume-size 30 --node-count 2 --node-volume-size 20 --node-size t3.micro --image=ami-0f5fcdfbd140e4ab7
+
+-------------> above full command to create cluster
+
+giving the above command output will come like below 
+
+cluster creation output
+===========================
+Must specify --yes to apply changes
+
+Cluster configuration has been created.
+
+Suggestions:
+ * list clusters with: kops get cluster
+ * edit this cluster with: kops edit cluster babu.k8s.local
+ * edit your node instance group: kops edit ig --name=babu.k8s.local nodes-us-east-2a
+ * edit your control-plane instance group: kops edit ig --name=babu.k8s.local control-plane-us-east-2a
+
+Finally configure your cluster with: kops update cluster --name babu.k8s.local --yes --admin
+
+at last output line we need to take for kops update like below
+
+
+next kops update 
+
+
+kops update cluster --name babu.k8s.local --yes --admin----------------> command to update created cluster
+
+RC (Replication Controller) will take care of the Pods
+
+
+Replicas in Kubernetes
+=========================
+
+
+REPLICATION CONTROLLER:
+===========================
+Replication controller can run specific number of pods as per our requirement.
+It is the responsible for managing the pod lifecycle
+It will make sure that always pods are up and running.
+If there are too many pods, RC will terminates the extra pods.
+If there are too less RC will create new pods.
+This Replication controller will have slef-healing capability, that means automatically it will creates.
+If a pod is failed, terminated or deleted then new pod will get created automatically. Replication Controllers use labels to identify the pods that they are managing.
+We need to specifies the desired number of replicas in YAML file.
+
+
+Scaling-----> means 
+desired no of Pods:3 should always be running state
+
+if suppose the Load got increased means at that time we can put no.of Pods :6
+technically this process called it as Scale-in
+
+for suppose Load is not comming to my Application means 
+at that time we can put no.of Pods :2
+technically this process called it as Scale-out
+
+Replication:
+
+Replication will maintain & take care of desired no of Pods:3 should always be running state
+if suppose 1 Pod got deleted means automatically one new Pod will create this Process will called as Replication
+
+Scale-in -------> Increasing the no.of Pods
+
+Scale-out -------> Decreasing the no.of Pods
+
+these features are will have in this Kubernetes 
+
+* Replication Controller:
+============================
+
+It is an object in Kubernetes that was introduced in v1 of Kubernetes which helps to meet the desired state of kubernetes cluster from the current state.
+ReplicationController works on equality-based controllers only.
+
+*ReplicaSet:
+==============
+
+ReplicaSet is an object in Kubernetes and it is an advanced version of ReplicationController. ReplicaSet works on both equality-based controllers and set-based controllers.
+
+if we create Pods means containers will present inside the POds
+
+POds---->Containers
+
+RC---------> Pods------->Cotainers
+
+if we create RC----> RC will create Pods----->Pods will create Containers
+
+So, Pods sepecificatins will be containers means then RC specifications will be PODS & PODS specifications will be containers
+
+how many specification will be there in the manifest file
+1. Pod specification
+2. container details
+
+there first specicication will be ReplicationController
+
+vim replication-controller.yml
+
+---
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: myrc
+spec:
+  replicas: 3
+  selector:
+    app: zomato
+  template:
+    metadata:
+      name: flm
+      labels:
+        app: zomato
+    spec:
+      containers:
+        - name: cont-1
+          image: shaikmustafa/dm
+          ports:
+            - containerPort: 80
+
+---
+apiVersion: v1------------> to view which version we need to give here the command was ----->kubectl api-resources | grep -i "services"
+kind: ReplicationController
+metadata:
+  name: myrc
+spec:
+  replicas: 3
+  selector:
+    app: zomato
+  template:
+    metadata:
+      name: flm
+      labesls:
+        app: zomato
+      spec:
+        containers:
+          - name: cont-1
+            image: shaikmustafa/dm
+            ports:
+              - containerPort: 80
+
+
+:wq
+
+kubectl create -f replication-controller.yml
+
+RC ha sbeen created here
+
+how to remember this file is like below
+
+sigma rule is
+
+RC--->PODS---->CONTAINERS
+
+when we create the RC, RC creates the PODS, PODS will create the containers
+
+then we will divide 3 parts for above manifets file
+
+part-1--------> will be creating of RC specifications
+=======
+---
+apiVersion: v1------------> to view which version we need to give here the command was ----->kubectl api-resources | grep -i "services"
+kind: ReplicationController------------> what kind of service we are creating here means ReplicationController
+metadata:----------->here we need to give RC name like below in metadata
+  name: myrc
+
+Part-2--------> will be creating of PODS specifications
+========
+spec:
+  replicas: 3
+  selector:
+    app: zomato
+  template:
+    metadata:
+      name: flm
+      labesls:
+        app: zomato
+
+
+Part-3--------> will be creating of Containers specification
+=======
+     spec:
+        containers:
+          - name: cont-1-----------------------> giving the container name to create in inside of the pod
+            image: shaikmustafa/dm-------------> this is the image which present in dockerhub
+            ports:
+              - containerPort: 80
+
+:wq
+
+kubectl create -f replication-controller.yml
+
+RC ha sbeen created here
+
+
+[root@ip-172-31-29-255 ~]# kubectl get rc---------------> command to get list of rc's
+NAME   DESIRED   CURRENT   READY   AGE
+myrc   3         3         3       48s
+[root@ip-172-31-29-255 ~]# 
+
+[root@ip-172-31-29-255 ~]# kubectl get pods
+NAME         READY   STATUS    RESTARTS   AGE
+myrc-qt8cs   1/1     Running   0          89s
+myrc-vn55d   1/1     Running   0          89s
+myrc-w2s7c   1/1     Running   0          89s
+[root@ip-172-31-29-255 ~]# 
+
+
+[root@ip-172-31-29-255 ~]# kubectl get pods --show-labels---------> command to view labesl for a created rcs
+NAME         READY   STATUS    RESTARTS   AGE    LABELS
+myrc-qt8cs   1/1     Running   0          2m1s   app=zomato
+myrc-vn55d   1/1     Running   0          2m1s   app=zomato
+myrc-w2s7c   1/1     Running   0          2m1s   app=zomato
+[root@ip-172-31-29-255 ~]# 
+
+
+
+now we need to access the application which present in pods means 
+we need to create service
+and need to write manifest file for it like below
+
+vim service.yml
+
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pranay
+spec:
+  type: LoadBalancer
+  selector:
+    app: zomato
+  ports:
+    - port: 80
+      targetPort: 80
+
+:wq
+
+
+[root@ip-172-31-29-255 ~]# vim service.yml
+[root@ip-172-31-29-255 ~]# kubectl create -f service.yml 
+service/pranay created
+[root@ip-172-31-29-255 ~]#
+
+service has been created
+
+[root@ip-172-31-29-255 ~]# kubectl get svc
+NAME         TYPE           CLUSTER-IP      EXTERNAL-IP                                                              PORT(S)        AGE
+kubernetes   ClusterIP      100.64.0.1      <none>                                                                   443/TCP        52m
+pranay       LoadBalancer   100.70.80.114   a6961525519a143088771402a866909b-448175565.us-east-2.elb.amazonaws.com   80:31653/TCP   30s
+[root@ip-172-31-29-255 ~]# 
+
+
+it will take some time to access from this DNS name
+
+a6961525519a143088771402a866909b-448175565.us-east-2.elb.amazonaws.com------> eneter in new tab
+
+[root@ip-172-31-29-255 ~]# kubectl get svc--------------> command to get list of services 
+NAME         TYPE           CLUSTER-IP      EXTERNAL-IP                                                              PORT(S)        AGE
+kubernetes   ClusterIP      100.64.0.1      <none>                                                                   443/TCP        52m
+pranay       LoadBalancer   100.70.80.114   a6961525519a143088771402a866909b-448175565.us-east-2.elb.amazonaws.com   80:31653/TCP   30s
+[root@ip-172-31-29-255 ~]# kubectl get rc-----------> command to get list of created rcs
+NAME   DESIRED   CURRENT   READY   AGE
+myrc   3         3         3       8m27s
+[root@ip-172-31-29-255 ~]# kubectl describe rc myrc----------> command to view full details of the created rc
+Name:         myrc
+Namespace:    default
+Selector:     app=zomato
+Labels:       app=zomato
+Annotations:  <none>
+Replicas:     3 current / 3 desired
+Pods Status:  3 Running / 0 Waiting / 0 Succeeded / 0 Failed
+Pod Template:
+  Labels:  app=zomato
+  Containers:
+   cont-1:
+    Image:         shaikmustafa/dm
+    Port:          80/TCP
+    Host Port:     0/TCP
+    Environment:   <none>
+    Mounts:        <none>
+  Volumes:         <none>
+  Node-Selectors:  <none>
+  Tolerations:     <none>
+Events:
+  Type    Reason            Age    From                    Message
+  ----    ------            ----   ----                    -------
+  Normal  SuccessfulCreate  8m39s  replication-controller  Created pod: myrc-w2s7c
+  Normal  SuccessfulCreate  8m39s  replication-controller  Created pod: myrc-vn55d
+  Normal  SuccessfulCreate  8m39s  replication-controller  Created pod: myrc-qt8cs
+[root@ip-172-31-29-255 ~]# 
+
+the main purpose of we are using RCs is if one POd get deleted means another POD wil be get create automatically
+
+lets check in practical first delete pods and see
+
+[root@ip-172-31-29-255 ~]# kubectl get po
+NAME         READY   STATUS    RESTARTS   AGE
+myrc-qt8cs   1/1     Running   0          11m
+myrc-vn55d   1/1     Running   0          11m
+myrc-w2s7c   1/1     Running   0          11m
+[root@ip-172-31-29-255 ~]# kubectl delete pod myrc-qt8cs myrc-qt8cs
+pod "myrc-qt8cs" deleted from default namespace
+pod "myrc-qt8cs" deleted from default namespace
+[root@ip-172-31-29-255 ~]# kubectl get po
+NAME         READY   STATUS    RESTARTS   AGE
+myrc-njd9g   1/1     Running   0          11s
+myrc-vn55d   1/1     Running   0          12m
+myrc-w2s7c   1/1     Running   0          12m
+[root@ip-172-31-29-255 ~]# 
+
+
+in first command we deleted and second command it has been created automatically after deleting the pods
+
+[root@ip-172-31-29-255 ~]# kubectl delete pod --all
+pod "myrc-njd9g" deleted from default namespace
+pod "myrc-vn55d" deleted from default namespace
+pod "myrc-w2s7c" deleted from default namespace
+[root@ip-172-31-29-255 ~]# kubectl get po
+NAME         READY   STATUS    RESTARTS   AGE
+myrc-fgxps   1/1     Running   0          6s
+myrc-tqcdr   1/1     Running   0          6s
+myrc-vc9tv   1/1     Running   0          6s
+[root@ip-172-31-29-255 ~]#
+
+
+still i am able to access the application
+
+
+http://a6961525519a143088771402a866909b-448175565.us-east-2.elb.amazonaws.com/
+
+
+lets do he scaling
+
+3 pods is sufficient for me need more no.of pods then we will the count od pods
+
+open RC manifest fil and keept no.of replication as 5 like below
+
+vim replication-controller.yml
+
+---
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: myrc
+spec:
+  replicas: 3
+  selector:
+    app: zomato
+  template:
+    metadata:
+      name: flm
+      labels:
+        app: zomato
+    spec:
+      containers:
+        - name: cont-1
+          image: shaikmustafa/dm
+          ports:
+            - containerPort: 80
+
+:wq
+
+
+kubectl apply -f replication-controller.yml------------> command to update replication-controller.yml file after modifing the date inside in it
+
+
+difference between kubectl create & kubectl apply
+
+kubectl create------> check wheather the object is present or not
+if present: already exist
+if not: then it will create
+
+kubectl apply--------> chekc it will create object is present or not
+if present: it will apply the changes for those manifest file
+if not: then it will create the object
+
+as of now we done with manifest file
+
+now we will do through command like below
+
+kubectl scale rc myrc --replicas=4-------------> command to give no.of replicas as scale-in
+kubectl scale rc myrc --replicas=2-------------> command to give no.of replicas as scale-out
+
+those 2 commands called as manual scaling
+
+for RCs there is no auto scaling feature for this replicationcontrollers
+
+[root@ip-172-31-29-255 ~]# kubectl delete rc myrc
+replicationcontroller "myrc" deleted from default namespace
+[root@ip-172-31-29-255 ~]# kubectl apply -f replication-controller.yml 
+replicationcontroller/myrc created
+[root@ip-172-31-29-255 ~]# 
+
+
+
+
+
+kops delete cluster --name babu.k8s.local --yes
+
+
+
+
+
 
