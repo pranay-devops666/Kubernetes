@@ -606,6 +606,15 @@ kubectl get pods ---------> command to view Pods
 kops delete cluster --name babu.k8s.local --yes--------------> command to created Cluster
 
 
+POD = SERVICE
+POD = RC (50%)
+RC = RS (90%)
+RS = DEPLOYMENT (100%)
+DEPLOYMENT = DAEMONSET (100%)
+DAEMONSET = STATEFULSET (100%)
+DAEMONSET = HPA (80%)
+
+
 
 
 
