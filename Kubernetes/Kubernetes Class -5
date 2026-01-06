@@ -560,6 +560,49 @@ when we create Deployment means Deployment will create RS, RS will create PODS, 
 why here RS only get created after creating the DEployment means RC will work on Equality-based selector it will not take to Deployment
 In RS we can able to create multiple Lables so it will select RS after created the DEployment
 
+Now we will do Deployment
+
+Deployment in kubernetes
+===========================
+
+cp rs.yml deploy.yml
+
+vim deploy.yml
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: Pranydeployment
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: zomato
+  template:
+    metadata:
+      name: flm
+      labels:
+        app: zomato
+    spec:
+      containers:
+        - name: cont-1
+          image: shaikmustafa/cycle
+          ports:
+            - containerPort: 80
+
+
+:wq
+
+kubectl create -f deploy.yml----------->command to create deployment through deploy.yml file
+
+kubectl get deploy---------> command to view deploy
+
+kubectl get rs ---------> command to view RS
+
+kubectl get pods ---------> command to view Pods
+
+
 kops delete cluster --name babu.k8s.local --yes--------------> command to created Cluster
 
 
