@@ -1,0 +1,11 @@
+Kubernetes Class -5
+
+kubernetes Replication Controller & RS(Replication
+
+
+First Launch one instance 
+
+Launch Instance------------>name:RC & RS---------->t3.micro------>key pair ------>Jenkins security group-------->25 ebs volume --------> launch instance
+
+lets connect
+
