@@ -372,6 +372,12 @@ mypod1    1/1     Running   0          50m
 pod-1     1/1     Running   0          54m
 [root@ip-172-31-25-132 ~]# 
 
+
+kubectl get nodes --show-labels--------------> command to view labels
+
+kubectl label node minikube "year=2026"-------------> command to give label for already existing pod
+here minikube------> pod name, "year=2026"-------> here we gave label for minikube pod
+
 vim pod.yml
 
 ---
