@@ -12,6 +12,8 @@ labels
 selector
 node selectors
 
+pods, realated commands to pods, labels, selector, node selectors
+
 install minikube-------> select https://minikube.sigs.k8s.io › docs › start------>start minikube--------->in here the details will be there
 
 What you’ll need
@@ -192,7 +194,7 @@ pod-1     1/1     Running   0          16m   run=pod-1
 [root@ip-172-31-25-132 ~]# 
 
 
-[root@ip-172-31-25-132 ~]# kubectl label pod mypod1 "client=wipro"-----------------> command to give labels for already existing pods
+[root@ip-172-31-25-132 ~]# kubectl label pod mypod1 "client=wipro"-----------------> command to give labels for already existing pods through command 
 pod/mypod1 labeled
 [root@ip-172-31-25-132 ~]#
 
