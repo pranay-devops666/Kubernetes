@@ -196,6 +196,9 @@ as of now we created one deployment
 through that Deployment 2 ReplicaSet will be created this is we need to know
 
 
+kubectl rollback deployment pranay --to-revision=2----------------->command to rollback
+
+
 
 
 
