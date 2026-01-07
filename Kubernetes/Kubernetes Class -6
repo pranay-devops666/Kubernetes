@@ -201,6 +201,132 @@ kubectl rollback deployment pranay --to-revision=2----------------->command to r
 kubectl rollout history deployment pranay-------------> command to view history of name created deployment pranay
 
 
+kubectl rollback deployment pranay --to-revision=1----------------->command to rollback at version 1
+
+next feature is Scaling
+
+Scaling has two types
+
+1. Manual Scaling
+2. Auto Scaling
+
+first we will do Manual
+
+open deployment.yml file and made changes here like below
+
+vim deployment.yml
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pranay
+spec:
+  replicas: 4 ---------------> (Deployment specifications which is releated to POD details we will mention here)
+  selector:
+    matchLabels:
+      app: swiggy
+  template:
+    metadata:
+      name: mytemplate
+      labels:
+        app: swiggy
+    spec:
+      containers:
+        - name: cont1
+          image: shaikmustafa/paytm:movie
+          ports:
+            - containerPort: 80
+
+
+:wq
+
+
+kubectl apply -f deployment.yml---------------> command to execute and update deployment.yml file
+
+kubectl get po---------------------> command to view list of pods
+
+kubectl scale deploy pranay --replicas=6--------------> command to do scale-in through command as manual
+
+now we will do Auto Scaling
+
+two types of Auto Scaling
+
+1. Vertical Auto Scaling
+2.Horizontal Auto Scaling
+
+go to this website----------> install metrics server kubernetes---------------->https://github.com › kubernetes-sigs › metrics-server-------------->
+kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/high-availability-1.21+.yaml---------->ll
+
+
+now we need to write HPA for a manifest file like below
+
+
+vim hpa.yml
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscalar
+metada:
+  name: myhpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: Pranay
+  minReplicas: 2
+  maxReplicas: 6
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageutilization: 60
+
+
+:wq
+
+
+kubectl get pods
+
+kubectl apply -f hpa.yml
+
+kubectl get hpa-----------> command to view hpa pod
+
+
+
+we can apply dummy load to application like how below
+
+do connect ec2-instance again in new tab
+
+kubectl exec -it Podname --bash ---------------------> command to enter into a POD
+
+we need to update here
+
+apt update -y------------> command to update
+
+now we need to install stress 
+
+apt install stress -y-------------> command to install stress
+
+stress -c 4 -t 300 -v--------------> command to give dummy cpu's  
+
+here 4 -----> means no.of CPU's, -t-------> means time, 300 seconds, -v-----> varbos means live data
+
+kubectl top pods podname-----------> command to view how much cpu utilization for the pod
+
+now we will stop load
+
+ctrl+c
+
+ctrl+d
+
+
+
+
+
+
+
 
 
 
