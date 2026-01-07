@@ -149,6 +149,35 @@ kubectl get po -o yaml---------> command to view pod IP address & that pods in w
 
 kubectl get po -o json---------> command to view pod IP address & that pods in which worker has been created as well in json formfat
 
+as of now we created PODS without LABELS 
+
+why should we need to give LABELS means under below
+
+identification for we are using lables
+
+for doing filter we are giving TAGS means LABELS
+
+for example we have 100 of servers
+some are dev environments -------> in this some are dev environments also will have some db-pods, app-pods, some like payment-gateways for suppose we need a test env pods
+how we get means how? i wnat a specific database-pods means how should i get ? in that case LABELS will do help
+LABELS is nothing but tags in ec-2 instance
+some are test environments
+some are production environments
+
+LABELS, SELECTORS, AND NODE SELECTORS:
+========================================
+Labels:
+=========
+* Labels are used to organize kubernetes Objects such as pods, nodes, etc
+* You can add multiple labels over the kubernetes objects.
+* Labels are defined in key-value pairs.
+* Labels are similar to tags in AWS or AZURE where you give a name to filter the resources quickly.
+* you can add Labels like environment, depertment or anything else according to you.
+
+lets see how to give Labels while creating the pod like under below
+
+Now we will do create PODS with LABELS
+
 vim pod.yml
 
 ---
