@@ -257,10 +257,11 @@ NAME     READY   STATUS    RESTARTS   AGE
 mypod2   1/1     Running   0          13m
 [root@ip-172-31-25-132 ~]#
 
+SELECTOR is nothing but selecting the LABEL in specific gaa want means 
 
 but we want to specific env=delotiee means
 
-wnat those tag env=delotiee only means
+want those tag env=delotiee only means
 
 in general we have 2 types of selectors in kubernetes
 
