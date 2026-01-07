@@ -393,6 +393,20 @@ spec:
 
 :wq
 
+
+why we used nodeSelector in above file is when it will work means is
+
+for example i have manager technically called it as control plane and i have some worker nodes as well
+
+who will decide the pod where should need to be create is who?
+it will be decided by the scheduler
+i would like to take the chance to decide to create pod 
+now i want to create a pod without any having relation to requirements & parameters the pod should be to gonna create in worker node 
+in that such cases we will use (nodeSelector)
+
+how to select this node is ? through Label
+like that way we will do select Label
+
 [root@ip-172-31-25-132 ~]# kubectl create -f pod.yml
 pod/mypod6 created
 
