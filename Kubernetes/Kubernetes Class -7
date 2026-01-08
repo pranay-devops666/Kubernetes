@@ -1,0 +1,204 @@
+Kubernetes Class -7
+
+TOPIC: STALESSLESS, STATEFULSET, DAEMONSET
+
+
+
+lets setup cluster first
+
+First Launch one instance 
+
+Launch Instance------------>name:RC & RS---------->t3.micro------>key pair ------>Jenkins security group-------->25 ebs volume --------> select Advance settings 
+below----->Select IAM Role over there------>launch instance
+
+lets connect & give IAM permissions as well select instance-----> select actions--------> select IAM modify---------> launch instance
+
+
+installe kubectl
+
+curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+
+
+chmod +x kubectl
+
+mv kubectl /usr/local/bin/
+
+install kops now
+
+curl -Lo kops https://github.com/kubernetes/kops/releases/download/$(curl -s https://api.github.com/repos/kubernetes/kops/releases/latest | grep tag_name | cut -d '"' -f 4)/kops-linux-amd64
+
+chmod +x kops
+
+sudo mv kops /usr/local/bin/kops
+
+
+chekc list of buckets
+
+aws s3 ls----------> command to view list of buckets
+
+export KOPS_STATE_STORE=s3://pranay.2026.babu---------> command to store my cluster information in a specific particular bucket
+
+now need to create CLUSTER
+
+kops create cluster --name babu.k8s.local --zones us-east-2a,us-east-2b --master-size c7i-flex.large --master-volume-size 30 --node-count 2 --node-volume-size 20 --node-size t3.micro --image=ami-0f5fcdfbd140e4ab7
+
+-------------> above full command to create cluster
+
+giving the above command output will come like below 
+
+cluster creation output
+===========================
+Must specify --yes to apply changes
+
+Cluster configuration has been created.
+
+Suggestions:
+ * list clusters with: kops get cluster
+ * edit this cluster with: kops edit cluster babu.k8s.local
+ * edit your node instance group: kops edit ig --name=babu.k8s.local nodes-us-east-2a
+ * edit your control-plane instance group: kops edit ig --name=babu.k8s.local control-plane-us-east-2a
+
+Finally configure your cluster with: kops update cluster --name babu.k8s.local --yes --admin
+
+at last output line we need to take for kops update like below
+
+
+next kops update 
+
+
+kops update cluster --name babu.k8s.local --yes --admin----------------> command to update created cluster
+
+lets talk about STATEFULSET
+
+Statefulset
+==============
+
+lets assume having one application need to be deploy in kubernetes means we will use DEPLOYMENT Object  
+
+its ok while using DEPLOYMENT object and to do deployment to the application in kubernetes 
+
+after deployment done the application will gonna access well, then what about DataBase ?
+
+incase we need to do deploy database means we should not use DEPLOYMENT Onject for Database
+
+we are using STAETEFULSET For database
+
+application will be seperate & database will be seperate
+
+for application purpose we will use DEPLOYMENT Object in kubernetes
+
+for Database purpose we will use STATEFULSET object in kubernetes
+
+what is Statefulset why we should not use deployment ?
+
+in kubernetes we will have 2 types of application
+
+1. STATELESS Application--------------> it means no past data previous data will not be present
+Real time example is
+lets assueme you deployed your stateless application as a Deployment with 10 Pod replicas running in multiple worker nodes like below
+
+----------------------------------------------->CLUSTER<--------------------------------------------
+
+Node                                    Node                                              Node                            Node
+
+pod  pod                              pod   pod                                        pod   pod                        pod   pod
+container container                 container container                               container container              container container
+
+lets assueme you deployed your stateless application as a Deployment with 10 Pod replicas running in multiple worker nodes like above
+then, mightbe suddenly mightbedue to network issue or heavy load one pod got deleted, if the pod got deleted means there is no problem again new pod will be get 
+created with help of Replicaset
+
+The ReplicaSet controller takes care of replacing the bad Pod with a new healthy Pod either on the same node or on a different node.
+
+Here ReplicaSet's will only take care of those 10 pods are running in the cluster.
+
+It doesn't take care of in which worker node they are running!
+
+HERE IS THE MAIN POINT WE NEED TO BE OBSERVERD IS IN WHICH NODE POD GOT DELETED AND IN WHICH NODE AGAIN NEW POD GET CREATED
+=============================================================================================================================
+
+If the pod 1 got terminated from node, then new pod will gets running either node 2 or node1 or anywhere in the cluster
+
+This is possible because, the STATELESS application Pod1 hasn't stored any data on worker node1, hence can be easliy replaced by new pod running on a different 
+worker node 2
+
+If the pod is not storing the data then we called it as STATELESS.
+
+we can do this in practical in deployment object way
+
+vim deployment.yml
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pranay
+spec:
+  replicas: 3 ---------------> (Deployment specifications which is releated to POD details we will mention here)
+  selector:
+    matchLabels:
+      app: swiggy
+  template:
+    metadata:
+      name: mytemplate
+      labels:
+        app: swiggy
+    spec:
+      containers:
+        - name: cont1
+          image: shaikmustafa/paytm:movie
+          ports:
+            - containerPort: 80
+
+:wq
+
+DEPLOYMENT has created
+
+[root@ip-172-31-78-180 ~]# vim deployment.yml
+[root@ip-172-31-78-180 ~]# kubectl create -f deployment.yml
+deployment.apps/pranay created
+[root@ip-172-31-78-180 ~]#
+
+now we need to see the pods in which servers they have been created means command is below
+
+[root@ip-172-31-78-180 ~]# vim deployment.yml
+[root@ip-172-31-78-180 ~]# kubectl create -f deployment.yml
+deployment.apps/pranay created
+[root@ip-172-31-78-180 ~]# kubectl get po -o wide------------> command to see the pods in which servers they have been created
+NAME                      READY   STATUS    RESTARTS   AGE   IP             NODE                  NOMINATED NODE   READINESS GATES
+pranay-7b7cbb56ff-6vq7f   1/1     Running   0          69s   100.96.1.9     i-07317c30124cb5b64   <none>           <none>
+pranay-7b7cbb56ff-8clx8   1/1     Running   0          69s   100.96.2.205   i-0b8932f3fa18a88f0   <none>           <none>
+pranay-7b7cbb56ff-zxvmq   1/1     Running   0          69s   100.96.2.24    i-0b8932f3fa18a88f0   <none>           <none>
+[root@ip-172-31-78-180 ~]# 
+
+if we delete one pod here means again new pod will get created but we cant give gaurantee where it will be get created lets see in practical like below
+
+[root@ip-172-31-78-180 ~]# kubectl get po -o wide
+NAME                      READY   STATUS    RESTARTS   AGE    IP             NODE                  NOMINATED NODE   READINESS GATES
+pranay-7b7cbb56ff-6vq7f   1/1     Running   0          4m8s   100.96.1.9     i-07317c30124cb5b64   <none>           <none>
+pranay-7b7cbb56ff-8clx8   1/1     Running   0          4m8s   100.96.2.205   i-0b8932f3fa18a88f0   <none>           <none>
+pranay-7b7cbb56ff-zxvmq   1/1     Running   0          4m8s   100.96.2.24    i-0b8932f3fa18a88f0   <none>           <none>
+[root@ip-172-31-78-180 ~]# kubectl delete pod pranay-7b7cbb56ff-zxvmq------------>command to delete pod
+pod "pranay-7b7cbb56ff-zxvmq" deleted from default namespace
+[root@ip-172-31-78-180 ~]# kubectl get po -o wide
+NAME                      READY   STATUS    RESTARTS   AGE     IP             NODE                  NOMINATED NODE   READINESS GATES
+pranay-7b7cbb56ff-6vq7f   1/1     Running   0          4m31s   100.96.1.9     i-07317c30124cb5b64   <none>           <none>
+pranay-7b7cbb56ff-8clx8   1/1     Running   0          4m31s   100.96.2.205   i-0b8932f3fa18a88f0   <none>           <none>
+pranay-7b7cbb56ff-bpkf5   1/1     Running   0          6s      100.96.1.121   i-07317c30124cb5b64   <none>           <none>
+[root@ip-172-31-78-180 ~]# 
+
+see in above step we done deleted one pod and again new pod has got created but in different node because of STATELESS we can see output in above
+
+STATELESS
+
+2. STATEFUL Application---------------> it means 
+
+
+
+
+
+
+
+
+
+
