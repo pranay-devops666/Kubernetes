@@ -164,7 +164,7 @@ now we need to see the pods in which servers they have been created means comman
 [root@ip-172-31-78-180 ~]# vim deployment.yml
 [root@ip-172-31-78-180 ~]# kubectl create -f deployment.yml
 deployment.apps/pranay created
-[root@ip-172-31-78-180 ~]# kubectl get po -o wide------------> command to see the pods in which servers they have been created
+[root@ip-172-31-78-180 ~]# kubectl get po -o wide ------------> command to see the pods in which servers they have been created
 NAME                      READY   STATUS    RESTARTS   AGE   IP             NODE                  NOMINATED NODE   READINESS GATES
 pranay-7b7cbb56ff-6vq7f   1/1     Running   0          69s   100.96.1.9     i-07317c30124cb5b64   <none>           <none>
 pranay-7b7cbb56ff-8clx8   1/1     Running   0          69s   100.96.2.205   i-0b8932f3fa18a88f0   <none>           <none>
@@ -173,7 +173,7 @@ pranay-7b7cbb56ff-zxvmq   1/1     Running   0          69s   100.96.2.24    i-0b
 
 if we delete one pod here means again new pod will get created but we cant give gaurantee where it will be get created lets see in practical like below
 
-[root@ip-172-31-78-180 ~]# kubectl get po -o wide
+[root@ip-172-31-78-180 ~]# kubectl get po -o wide ------------> command to see the pods in which servers they have been created
 NAME                      READY   STATUS    RESTARTS   AGE    IP             NODE                  NOMINATED NODE   READINESS GATES
 pranay-7b7cbb56ff-6vq7f   1/1     Running   0          4m8s   100.96.1.9     i-07317c30124cb5b64   <none>           <none>
 pranay-7b7cbb56ff-8clx8   1/1     Running   0          4m8s   100.96.2.205   i-0b8932f3fa18a88f0   <none>           <none>
@@ -189,9 +189,344 @@ pranay-7b7cbb56ff-bpkf5   1/1     Running   0          6s      100.96.1.121   i-
 
 see in above step we done deleted one pod and again new pod has got created but in different node because of STATELESS we can see output in above
 
-STATELESS
+STATELESS APPLICATION
+=========================
 
-2. STATEFUL Application---------------> it means 
+* It can't store the data permanently.
+* The word STATELESS means no past data.
+* It depends on non-persistent data means data is removed when Pod, Node or Cluster is stopped.
+* Non-persistant mainly used for logging info (ex: system log, container log etc).
+* In order to avoid this problem, we are using STATEFUL application.
+* A stateless application can be deployed as a set of identical replicas, and each replica ca handle incoming requests independently without the need to coordinate
+with other replicas.
+
+
+
+2. STATEFUL Application---------------> it means data is persits that means data will be always available
+
+even though if the pod, node got deleted means the data will be still available
+
+for that data available purpose we will use STATEFUL APPLICATION
+
+for this STATEFULSET APPLICATION we will use STATEFULSET Object to create the 
+
+
+
+STATESLESS APPLICATION                                                                          STATEFUL APPLICATION
+======================                                                                          =======================
+
+here we will use Deployment                                                                      here we will use Statefulset
+
+for the purpose to run application we will use                                                   for the purpose to run databses we will use        
+
+here no pas data                                                                                  past data will be exist present
+
+
+
+
+Difference b/w Stateless & statefulset will ask in interview
+
+
+Stateful set
+=============
+here i will put 3 replicas and 3 pods will be get created
+
+poding naming will be create like this below 
+
+flm-0
+flm-1
+flm-2
+
+in Deployment it will not be created like above series wise it will get create random way
+
+but in Statefulset it will get create sequential way
+
+we we do scaling means in statfulset
+
+the next pods will come like below
+
+flm-3
+flm-4
+flm-5
+
+we we do scaling means in deployment means the pods will create at a time
+
+but in statefulset it will not be created like that 
+
+it will get created by cloning the previous data pod and get create new pod at a time like below
+
+flm-6
+flm-7
+flm-8
+
+lets do in practical way below
+
+kubectl get po-----------> command to get list of pods
+
+
+[root@ip-172-31-78-180 ~]# kubectl get po
+NAME                      READY   STATUS    RESTARTS   AGE
+pranay-7b7cbb56ff-6vq7f   1/1     Running   0          30m
+pranay-7b7cbb56ff-8clx8   1/1     Running   0          30m
+pranay-7b7cbb56ff-bpkf5   1/1     Running   0          26m
+[root@ip-172-31-78-180 ~]#
+
+now we will do scale-in for this above pods like belwo
+
+by going to deployment manifest file and do increase replicas a 6 like below
+
+vim deployment.yml
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pranay
+spec:
+  replicas: 6 ---------------> (Deployment specifications which is releated to POD details we will mention here)
+  selector:
+    matchLabels:
+      app: swiggy
+  template:
+    metadata:
+      name: mytemplate
+      labels:
+        app: swiggy
+    spec:
+      containers:
+        - name: cont1
+          image: shaikmustafa/paytm:movie
+          ports:
+            - containerPort: 80
+
+:wq
+
+[root@ip-172-31-78-180 ~]# vim deployment.yml 
+[root@ip-172-31-78-180 ~]# kubectl apply -f deployment.yml 
+Warning: resource deployments/pranay is missing the kubectl.kubernetes.io/last-applied-configuration annotation which is required by kubectl apply. kubectl apply should only be used on resources created declaratively by either kubectl create --save-config or kubectl apply. The missing annotation will be patched automatically.
+deployment.apps/pranay configured
+[root@ip-172-31-78-180 ~]#
+
+configured done successfully output below
+
+[root@ip-172-31-78-180 ~]# kubectl get po
+NAME                      READY   STATUS    RESTARTS   AGE
+pranay-7b7cbb56ff-6vq7f   1/1     Running   0          42m
+pranay-7b7cbb56ff-8clx8   1/1     Running   0          42m
+pranay-7b7cbb56ff-98g9v   1/1     Running   0          40s
+pranay-7b7cbb56ff-bpkf5   1/1     Running   0          38m
+pranay-7b7cbb56ff-kfllk   1/1     Running   0          40s
+pranay-7b7cbb56ff-p9f7g   1/1     Running   0          40s
+[root@ip-172-31-78-180 ~]# 
+
+but statefulset it will get create one pod will get create get running state get clone the data form the pod and create new pod
+
+why because ? we need to know in real time
+
+in real time 
+
+lets assume one related to databse statefulset
+
+in that pods will have what we created 
+pod1                                                         pod               pod             pod
+
+pod1 this is primary pod                                     remaining all secondary pods
+
+the difference between primary & secondary pods is
+
+for primary pod will have read & write all permissions will be have
+but secondary pods will have only read only permissions
+
+if we insert data into the pod we can retrive the data anywhere
+
+but if we inserted the data in a primary pod means the data will goes to other pods to retrive means how ?
+
+how the data will get transfer from one data to anothere pod is through volume
+
+if we do scale-in here means it will get create a new pod by cloning the data from previous pod to new pod
+
+now we will do scale-out
+
+[root@ip-172-31-78-180 ~]# vim deployment.yml
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pranay
+spec:
+  replicas: 3 ---------------> (Deployment specifications which is releated to POD details we will mention here)
+  selector:
+    matchLabels:
+      app: swiggy
+  template:
+    metadata:
+      name: mytemplate
+      labels:
+        app: swiggy
+    spec:
+      containers:
+        - name: cont1
+          image: shaikmustafa/paytm:movie
+          ports:
+            - containerPort: 80
+
+:wq
+
+[root@ip-172-31-78-180 ~]# kubectl apply -f deployment.yml 
+deployment.apps/pranay configured
+[root@ip-172-31-78-180 ~]# 
+
+
+[root@ip-172-31-78-180 ~]# kubectl get po
+NAME                      READY   STATUS    RESTARTS   AGE
+pranay-7b7cbb56ff-6vq7f   1/1     Running   0          56m
+pranay-7b7cbb56ff-8clx8   1/1     Running   0          56m
+pranay-7b7cbb56ff-bpkf5   1/1     Running   0          52m
+[root@ip-172-31-78-180 ~]# 
+
+
+
+In Statefulset if we done Scale-out means the Pods will get delete LIFO way means Last In First Out
+
+there will be no scope to delete a primary pod
+
+this is the way process will happen Scale-in & Scale-out
+
+
+
+
+difference between Deployment & Statefulset
+=============================================
+
+Deploymeny                                                                              Statefulset
+
+we use thisis for stateless application                                                 we use thisis for stateless application                                              
+pods will create at a time                                                              pods will create by cloning old data to new pod                     
+pods will delete at a time                                                              pods will delete sequential order there will be no scope to delete a primary pod
+pod names will come randomly                                                            pod names will come sequential order
+                  
+                        
+lets write manifets file for statefulset like below
+
+[root@ip-172-31-78-180 ~]# ll
+total 4
+-rw-r--r--. 1 root root 357 Jan  8 07:23 deployment.yml
+[root@ip-172-31-78-180 ~]# cp deployment.yml statefulset.yml
+[root@ip-172-31-78-180 ~]# ll
+total 8
+-rw-r--r--. 1 root root 357 Jan  8 07:23 deployment.yml
+-rw-r--r--. 1 root root 357 Jan  8 07:31 statefulset.yml
+[root@ip-172-31-78-180 ~]# vim statefulset.yml 
+
+vim statefulset.yml 
+
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mydb
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      tier: db
+  template:
+    metadata:
+      name: mytemplate
+      labels:
+        app: db
+    spec:
+      containers:
+        - name: cont1
+          image: shaikmustafa/paytm:movie
+          ports:
+            - containerPort: 80
+
+
+:wq
+
+
+
+kubectl create -f statefulset.yml
+
+
+[root@ip-172-31-78-180 ~]# kubectl create -f statefulset.yml
+statefulset.apps/mydb created
+[root@ip-172-31-78-180 ~]# 
+
+
+[root@ip-172-31-78-180 ~]# kubectl get statefulset-----------> command to view statefulset db
+NAME   READY   AGE
+mydb   3/3     33s
+[root@ip-172-31-78-180 ~]# 
+
+
+[root@ip-172-31-78-180 ~]# kubectl get po
+NAME                      READY   STATUS    RESTARTS   AGE
+mydb-0                    1/1     Running   0          70s
+mydb-1                    1/1     Running   0          68s
+mydb-2                    1/1     Running   0          67s
+pranay-7b7cbb56ff-6vq7f   1/1     Running   0          76m
+pranay-7b7cbb56ff-8clx8   1/1     Running   0          76m
+pranay-7b7cbb56ff-bpkf5   1/1     Running   0          71m
+[root@ip-172-31-78-180 ~]#
+
+
+SCALE-IN
+
+[root@ip-172-31-78-180 ~]# kubectl scale statefulset mydb --replicas=5
+statefulset.apps/mydb scaled
+[root@ip-172-31-78-180 ~]# kubectl get po
+NAME                      READY   STATUS              RESTARTS   AGE
+mydb-0                    1/1     Running             0          114s
+mydb-1                    1/1     Running             0          112s
+mydb-2                    1/1     Running             0          111s
+mydb-3                    1/1     Running             0          3s
+mydb-4                    0/1     ContainerCreating   0          2s
+pranay-7b7cbb56ff-6vq7f   1/1     Running             0          76m
+pranay-7b7cbb56ff-8clx8   1/1     Running             0          76m
+pranay-7b7cbb56ff-bpkf5   1/1     Running             0          72m
+[root@ip-172-31-78-180 ~]# 
+
+
+Now SCALE-OUT
+
+[root@ip-172-31-78-180 ~]# kubectl scale statefulset mydb --replicas=2
+statefulset.apps/mydb scaled
+[root@ip-172-31-78-180 ~]# kubectl get po
+NAME                      READY   STATUS    RESTARTS   AGE
+mydb-0                    1/1     Running   0          2m25s
+mydb-1                    1/1     Running   0          2m23s
+pranay-7b7cbb56ff-6vq7f   1/1     Running   0          77m
+pranay-7b7cbb56ff-8clx8   1/1     Running   0          77m
+pranay-7b7cbb56ff-bpkf5   1/1     Running   0          72m
+[root@ip-172-31-78-180 ~]# 
+
+Now we will discuss DAEMONSET
+=============================
+
+DAEMONSET
+==========
+
+let us assume in my created cluster have different pods like app pods db pods & payment gateways pods, security related pods
+
+now incase any pod got down means how we know ?
+
+how do we know pod got down means like which pod got down, which pod is running state, which pod has pendig state, which pod has consuming high cpu
+
+is when we do monitoring we will get to know with the help of monitoring tools
+
+like datadog, grafana, promethesus metric servers etc
+
+
+
+
+
+
+
+
+
+
 
 
 
