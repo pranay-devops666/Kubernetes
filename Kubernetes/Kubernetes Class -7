@@ -519,6 +519,172 @@ is when we do monitoring we will get to know with the help of monitoring tools
 like datadog, grafana, promethesus metric servers etc
 
 
+In workers nodes will may have different kinds of pods like app pods, db pods ect
+
+so in every worker node how many pods are running and hoow much cpu & memory utilising all these information i need to know is we will create DAEMONSET 
+
+what this DAEMONSET will do is install agent in cluster which present in each & every servers 
+
+DAEMAN is going to install agent like cluster loppala unna prati servers ki like workers nodes
+
+like it will create a pod in servers 
+
+this daemon will give all information releted to pod to monitoring dashboard
+
+Mainly monitoring purpose we will do use DAEMANSET 
+
+there will be no replicas to DAEMANSET
+
+
+lets do in practical way
+
+
+[root@ip-172-31-78-180 ~]# ll
+total 8
+-rw-r--r--. 1 root root 357 Jan  8 07:23 deployment.yml
+-rw-r--r--. 1 root root 350 Jan  8 07:42 statefulset.yml
+[root@ip-172-31-78-180 ~]# cp statefulset.yml daemonset.yml
+[root@ip-172-31-78-180 ~]# vim daemonset.yml 
+[root@ip-172-31-78-180 ~]#
+
+vim daemonset.yml 
+
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: monitor
+spec:
+  selector:
+    matchLabels:
+      app: spy
+  template:
+    metadata:
+      name: mytemplate
+      labels:
+        app: spy
+    spec:
+      containers:
+        - name: cont1
+          image: shaikmustafa/paytm:movie
+          ports:
+            - containerPort: 80
+
+
+:wq
+
+
+[root@ip-172-31-78-180 ~]# kubectl create -f daemonset.yml 
+daemonset.apps/monitor created
+[root@ip-172-31-78-180 ~]# 
+
+
+in above file we didn't mention replicas
+
+now see
+
+[root@ip-172-31-78-180 ~]# kubectl get daemonset
+NAME      DESIRED   CURRENT   READY   UP-TO-DATE   AVAILABLE   NODE SELECTOR   AGE
+monitor   2         2         2       2            2           <none>          50s
+[root@ip-172-31-78-180 ~]# 
+
+it has been created replicas
+
+
+now we will see where where it has been created
+
+to avoid confusion deleting remaining
+
+kubectl delete statefulset mydb
+
+kubectl delete deploy pranay
+
+
+
+now we will have daemonset related pods only like below
+
+[root@ip-172-31-78-180 ~]# kubectl get po
+NAME            READY   STATUS    RESTARTS   AGE
+monitor-clncb   1/1     Running   0          4m14s
+monitor-x77lp   1/1     Running   0          4m14s
+[root@ip-172-31-78-180 ~]# 
+
+now we will see where where it has been created
+
+
+[root@ip-172-31-78-180 ~]# kubectl get po -o wide
+NAME            READY   STATUS    RESTARTS   AGE     IP            NODE                  NOMINATED NODE   READINESS GATES
+monitor-clncb   1/1     Running   0          4m52s   100.96.2.55   i-0b8932f3fa18a88f0   <none>           <none>
+monitor-x77lp   1/1     Running   0          4m52s   100.96.1.84   i-07317c30124cb5b64   <none>           <none>
+[root@ip-172-31-78-180 ~]
+
+now let me increase no.of nodes
+
+
+giving the above command output will come like below 
+
+cluster creation output
+===========================
+Must specify --yes to apply changes
+
+Cluster configuration has been created.
+
+Suggestions:
+ * list clusters with: kops get cluster
+ * edit this cluster with: kops edit cluster babu.k8s.local
+ * edit your node instance group: kops edit ig --name=babu.k8s.local nodes-us-east-2a
+ * edit your control-plane instance group: kops edit ig --name=babu.k8s.local control-plane-us-east-2a
+
+
+we need to use below this command this will come from after we gave cluster creation it will come suggestions output over there we need to take this command like below
+
+kops edit ig --name=babu.k8s.local nodes-us-east-2a------------> command to increase no.of worker nodes
+ig-------> instance group
+
+here give numbers in minSize line
+
+# Please edit the object below. Lines beginning with a '#' will be ignored,
+# and an empty file will abort the edit. If an error occurs while saving this file will be
+# reopened with the relevant failures.
+#
+apiVersion: kops.k8s.io/v1alpha2
+kind: InstanceGroup
+metadata:
+  creationTimestamp: "2026-01-08T05:55:13Z"
+  labels:
+    kops.k8s.io/cluster: babu.k8s.local
+  name: nodes-us-east-2a
+spec:
+  image: ami-0f5fcdfbd140e4ab7
+  machineType: t3.micro
+  maxSize: 1
+  minSize: 2--------->
+  role: Node
+  rootVolumeSize: 20
+  subnets:
+  - us-east-2a
+
+:wq
+
+
+kops update cluster --name babu.k8s.local --yes --admin
+
+now extra 1 will be create
+
+[root@ip-172-31-78-180 ~]# kops rolling-update cluster
+Using cluster from kubectl context: babu.k8s.local
+
+NAME                            STATUS  NEEDUPDATE      READY   MIN     TARGET  MAX     NODES
+control-plane-us-east-2a        Ready   0               1       1       1       1       1
+nodes-us-east-2a                Ready   0               1       1       1       1       1
+nodes-us-east-2b                Ready   0               1       1       1       1       1
+
+No rolling-update required.
+[root@ip-172-31-78-180 ~]# kubectl get po
+NAME            READY   STATUS    RESTARTS   AGE
+monitor-clncb   1/1     Running   0          12m
+monitor-x77lp   1/1     Running   0          12m
+[root@ip-172-31-78-180 ~]# 
 
 
 
