@@ -686,6 +686,14 @@ monitor-clncb   1/1     Running   0          12m
 monitor-x77lp   1/1     Running   0          12m
 [root@ip-172-31-78-180 ~]# 
 
+[root@ip-172-31-78-180 ~]# kubectl get no
+NAME                  STATUS   ROLES           AGE    VERSION
+i-03a0f79a86efb7a73   Ready    control-plane   144m   v1.34.3
+i-07317c30124cb5b64   Ready    node            141m   v1.34.3
+i-0b8932f3fa18a88f0   Ready    node            141m   v1.34.3
+[root@ip-172-31-78-180 ~]# 
+
+
 
 
 
