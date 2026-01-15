@@ -66,3 +66,108 @@ next kops update
 
 kops update cluster --name babu.k8s.local --yes --admin----------------> command to update created cluster
 
+NAMESPACES
+============
+
+IF we create any pod any it will get created on default namespaces
+
+kubectl get namespace --------------> command to get list of name spaces
+
+kubectl get ns --------------> command to get list of name spaces
+
+
+
+kubectl describe pod podname --------------> command to view in which namespaces it will be present
+
+kubectl get po -n kube-system --------------> command to view in namespaces which present in the name of kube-system
+
+kubectl get deploy -n kube-system --------------> command to view deployments which present in the name of kube-system
+
+kubectl get svc -n kube-system --------------> command to view services which present in the name of kube-system
+
+kubectl get all -n kube-system --------------> command to view all resources present in the name of kube-system
+
+
+lets discuss about kube-public
+===============================
+
+will be able to see the pod which present in one particular namespace and also the same with another namespace -------> NO
+
+it should be available for everyone on every namespace -----------> here we will use kube-public
+
+kubectl create ns namespacename ------------> command to create name space(ns means name space)
+
+kubectl get ns -----------> command to get list of name spaces
+
+vim namespace.yml
+
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: test
+  labels:
+    env: testenv
+
+:wq
+
+
+kubectl create -f namespace.yml ------------------> command to execute above manifest file
+
+kubectl get ns ----------------> command to get list of name spaces
+
+kubectl describe ns namespace name -----------> command to view full information of one particular name space
+
+kubectl run pod-1 --image=nginx test --------------> command to create pod in test name space
+
+pod-1 ------> means pod name,     test --------> name space name
+
+kubectl delete ns dev ----------------> command to delete name space in dev namespace name
+
+in real time we should not do this 
+
+
+vim svc.yml
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysvc
+  namespace: test
+spec:
+  type: LoadBalancer
+  selector:
+    app: swiggy
+ports:
+  - port: 80
+    targetPort: 80
+
+:wq
+
+before going to execute this above file kindly check is there any services present in test namespaces
+
+kubectl get svc -n test----------------> command to check list of services in test namespace
+
+
+kubectl create -f svc.yml -------------> Command to create service for above manifest file
+
+kubectl create -f svc.yml -n test ----------------> command to create service in test namespace if we forgot giving in file means in that cases we will use this
+
+
+kubectl config set-context --current --namespace=test ------------> command to switch to another namespace
+
+kubectl config view -----------------------> command to view in which namespace we are in present
+
+kubectl config set-context --current --namespace=default ----------> command to view default
+  
+kubectl config view | grep "namespace" -----------------> command to view default namespace
+
+
+COFIG MAPS
+===============
+
+
+
+
+
