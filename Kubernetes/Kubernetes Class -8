@@ -2,4 +2,67 @@ Kubernetes Class -8
 
 Topic: NAMESPACES, CONGIG MAPS & SECRETS
 
+lets setup cluster first
+
+First Launch one instance 
+
+Launch Instance------------>name:RC & RS---------->t3.micro------>key pair ------>Jenkins security group-------->25 ebs volume --------> select Advance settings 
+below----->Select IAM Role over there------>launch instance
+
+lets connect & give IAM permissions as well select instance-----> select actions--------> select IAM modify---------> launch instance
+
+
+installe kubectl
+
+curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+
+
+chmod +x kubectl
+
+mv kubectl /usr/local/bin/
+
+install kops now
+
+curl -Lo kops https://github.com/kubernetes/kops/releases/download/$(curl -s https://api.github.com/repos/kubernetes/kops/releases/latest | grep tag_name | cut -d '"' -f 4)/kops-linux-amd64
+
+chmod +x kops
+
+sudo mv kops /usr/local/bin/kops
+
+
+chekc list of buckets
+
+aws s3 ls----------> command to view list of buckets
+
+export KOPS_STATE_STORE=s3://pranay.2026.babu---------> command to store my cluster information in a specific particular bucket
+
+now need to create CLUSTER
+
+kops create cluster --name babu.k8s.local --zones us-east-2a,us-east-2b --master-size c7i-flex.large --master-volume-size 30 --node-count 2 --node-volume-size 20 --node-size t3.micro --image=ami-0f5fcdfbd140e4ab7
+
+-------------> above full command to create cluster
+
+giving the above command output will come like below 
+
+cluster creation output
+===========================
+Must specify --yes to apply changes
+
+Cluster configuration has been created.
+
+Suggestions:
+ * list clusters with: kops get cluster
+ * edit this cluster with: kops edit cluster babu.k8s.local
+ * edit your node instance group: kops edit ig --name=babu.k8s.local nodes-us-east-2a
+ * edit your control-plane instance group: kops edit ig --name=babu.k8s.local control-plane-us-east-2a
+
+Finally configure your cluster with: kops update cluster --name babu.k8s.local --yes --admin
+
+at last output line we need to take for kops update like below
+
+
+next kops update 
+
+
+kops update cluster --name babu.k8s.local --yes --admin----------------> command to update created cluster
 
