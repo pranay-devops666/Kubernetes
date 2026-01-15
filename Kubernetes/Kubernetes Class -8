@@ -167,7 +167,189 @@ kubectl config view | grep "namespace" -----------------> command to view defaul
 COFIG MAPS
 ===============
 
+to create config maps 
+
+we have 4 types under below
+
+1. literal (values -------> command)
+2. file (data)
+3. env file (values) ------->cm create
+4. declarative --------> means manifest file
+
+lets do how to create 
 
 
+kubectl cm cm1 --from-literal=name=mustafa --from-literal=company=babu --from-place-literal=place=hyderabad ---------------> command to create config map
+
+cm --------> config map, cm1 -------> comfig map name
+
+kubectl get cm -----------> command to view list of congig map
+
+kubectl describe cm babu(configmap name) -----------> command to view full info & data of config map
+
+2. through file
+
+vim mydata
+
+welcome to cm file
+we are adding some values here
+this is going to inside of the pod
+
+:wq
+
+kubectl create cm cm2 --from-file=mydata -----------> command to execute above file
+
+
+kubectl get cm -----------> command to view list of cm
+
+kubectl describe cm cm2 ------------> command to see the data in cm
+
+
+3. through env file
+
+vim values.env
+
+.env must & should
+
+person=pranay
+age=29
+workspace=infosys
+area=hyderabad
+
+:wq
+
+kubectl create cm cm3 --from-env-file=values.env -------------> command to execute above file
+
+
+4. through manifest file
+
+vim config.yml
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name:
+data:
+  DB_PORT: "3306"
+  DB_USER: "admin"
+  APP_ENV: "dev"
+
+:wq
+
+kubectl create -f configmap.yml -----------> command to execute above file
+
+kubectl get cm -----------> command to view list of cm
+
+kubectl describe cm cm3 -------------> command to view the data in cm3
+
+
+upto now we hve been created config map now how to attach this config map to one particular pod
+
+
+lets do now 
+
+vim pod.yml
+
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod1
+spec:
+  containers:
+    - name: cont1
+      image: nginx
+      ports: 
+        - containers: 80
+      envFrom:
+        - configMapRef:
+            name: cm4
+
+:wq
+
+
+kubectl create -f pod.yml ----------------> command to execute above file
+
+kubectl get po ----------> command to get list of pods
+
+kubectl exec -it pod1 -- bash -------> command to enter into a pod
+
+printenv -------> command to list of no of variables (give this command in inside a pod)
+
+
+
+how to attach multiple configmap to multiple pods like below
+
+vim pod.yml
+
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod2
+spec:
+  containers:
+    - name: cont1
+      image: nginx
+      ports: 
+        - containers: 80
+      env:
+        - name: env1
+          valueFrom:
+            configMapkeyRef:
+              name: cm1
+              key: company
+        - name: env2
+          valueFrom:
+            configMapkeyRef:
+              name: cm3
+              key: area
+
+
+:wq
+
+kubectl create -f pod.yml -------------> command to execute above file
+
+kubectl exec -it pod2 -- bash ----------> command to enter into a bash
+
+printenv ------>  command to list of no of variables (give this command in inside a pod)
+
+
+ctrl+d
+
+SECRETS:
+============
+
+kubectl get secrets -----------> command to view list of secrets
+
+kubectl create secret generic mysecret --from-literal=username=pranay --from-literal=password=pranay@1409 ------------> command to create secret
+
+kubectl get secrets -------> command to view list of secrets
+
+kubectl describe secret mysecrte ---------------> command to view data of secrets
+
+kubectl get secret mysecret -o yaml -------------> command to encrypt data in yaml
+
+vim pod.yml
+
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name:
+spec:
+  containers:
+    - name: cont1
+      image: nginx
+      ports: 
+        - containers: 80
+      envFrom:
+        secretRef:
+          name: mysecret
+
+:wq
+
+kubectl create -f pod.yml ------------> command to exeute above file
 
 
