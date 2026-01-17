@@ -7,3 +7,162 @@ launch one instance-------> name:minikube-->c7i-flex-large--------> key pair----
 
 yum install docker -y systemctl start docker------------> command to install docker
 
+install kubectl
+
+installe kubectl
+
+curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+
+
+chmod +x kubectl
+
+mv kubectl /usr/local/bin/
+
+
+install minikube as well
+
+install minikube-------> select https://minikube.sigs.k8s.io › docs › start------>start minikube--------->in here the details will be there
+
+What you’ll need
+2 CPUs or more
+2GB of free memory
+20GB of free disk space
+Internet connection
+
+curl -LO https://github.com/kubernetes/minikube/releases/latest/download/minikube-linux-amd64
+sudo install minikube-linux-amd64 /usr/local/bin/minikube && rm minikube-linux-amd64
+
+minikube version
+
+minikube status
+
+minikube start --driver=docker
+
+minikube start --driver=docker --force
+
+minikube status
+
+[root@ip-172-31-25-132 ~]# minikube status
+minikube
+type: Control Plane
+host: Running
+kubelet: Running
+apiserver: Running
+kubeconfig: Configure
+
+here we are using the CONTEXT method to switch the user in kubernetes
+
+process is 
+
+1. need to create user------> need to keep context to that user--------> need to do role binding for the created user
+2. need to create one role for that user role nothing but permissions which & what kind of permissions should need for that user
+3. after the role need to do role binding means we need to attach the role to the user called as role binding we can do attach any no.of users also
+
+no we will do in practical way
+
+mkdir pranay
+
+cd pranay
+
+openssl genrsa -out pranay.key 2048 ------------> command to generate a key (Generate a key using openssl)
+pranay.key (it means need to be create in that format way), 2048 ----> means 2048 bytes
+
+openssl req -new -key pranay.key-out pranay.csr -subj "/CN=mustafa/O=group1" --------------> Command to generate CSR (Generate a client sign request (CSR)) 
+
+openssl -req x509 -req -in pranay.csr -CA ~/.minikube/ca.crt -CAkey ~/.minikube/ca.key -CAcreateserial -out pranay.crt -days 500 -----------> command to Generate the certificate (CRT)
+
+
+lets create user
+
+kubectl config set-credentials pranay --client-certificate=mustafa.crt--client.key=mustafa.key ---------------> command to create user
+
+lets check the context
+
+kubectl config view ------------> command to view context
+
+now need to create the context
+
+kubectl config set-context devops --cluster=minikube --user=pranay -------------> command to create context
+devops---------> context name, minikube------ cluster name, pranay-------> user
+
+kubectl config view ------------> command to view context
+
+kubectl config use-context devops ------------> command to switch the context name devops
+
+kubectl config use-context minikube ------------> command to switch to minikube
+
+kubectl create ns dev -------------> command to create namespace with name dev
+
+kubectl create ns test -------------> command to create namespace with name test
+
+will create some services here
+
+kubectl run pod-1 --image=nginx -n dev -------------> command to create namespace with  pod 
+
+
+kubectl run pod-1 --image=nginx -n test -------------> command to create namespace with pod 
+
+as of what we done give clarity below
+===========================================
+
+
+having 1 cluster and inside having 2 name spaces names called dev & test in dev have one pod, in test have one pod and have user also with name pranay
+then for this user pranay need to give permissions for which present in inside the dev of pod only name space 
+here we use role role-binding
+
+vim role.yml
+
+---
+apiVersionrbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: dev-role
+  namespace: dev
+rules:
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "watch", "list", "create"]
+
+  - apiGroups: [""]
+    resources: ["services"]
+    verbs: ["get", "watch", "list"]
+
+:wq
+
+
+
+kubectl create -f role.yml --------------> command to execute above file
+
+now we need to do role-binding
+
+vim rolebinding.yml
+
+
+---
+apiVersionrbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: myrb1
+  namespace: dev
+
+subjects:
+  - kind: User
+    name: pranay
+    apiGroup: rbac.authorization.k8s.io
+
+roleRef:
+  kind: Role
+  name: dev-role
+  apiGroup: rbac.autgorization.k8s.io
+
+
+:wq
+
+
+kubectl create -f rolebinding.yml -------------> commad to execute above manifest file
+
+kubectl get rolebinding -n dev ---------------> command to view rolebinding 
+
+kubectl config use-context devops -------------> command to switch user
+
+NEET TO BE PRACTICE VERY WELL
