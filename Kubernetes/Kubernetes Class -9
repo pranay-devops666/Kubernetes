@@ -1,0 +1,9 @@
+Kubernetes Class -9
+
+
+TOPIC RBAC(ROLE BASED ACCESS CONTROL)
+
+launch one instance-------> name:minikube-->c7i-flex-large--------> key pair--------> jenkins security group------->28gb ebs volume---------> launch instance
+
+yum install docker -y systemctl start docker------------> command to install docker
+
