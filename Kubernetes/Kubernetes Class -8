@@ -337,7 +337,7 @@ vim pod.yml
 apiVersion: v1
 kind: Pod
 metadata:
-  name:
+  name:pod3
 spec:
   containers:
     - name: cont1
@@ -352,4 +352,11 @@ spec:
 
 kubectl create -f pod.yml ------------> command to exeute above file
 
+kubectl get po -----------> command to view list of pods
 
+kubectl exec -it pod3 -- bash -------------> command to enter into a bash
+
+Here TASK is 
+================
+
+watch recording video
