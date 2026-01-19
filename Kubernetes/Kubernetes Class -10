@@ -1,0 +1,15 @@
+Kubernetes Class -10
+
+
+TOPIC: RESOURCE QUOTA
+=======================
+
+Launch one Instance --------> name: minikube------> c7i-flex-large---------> jenkins security group ---------> 28 ebs volume ---------> launch instance
+
+Minikube is enough for this class session
+
+first launch & connect the instance
+
+yum install docker -y & systemctl start docker ------------> command to install & start docker
+
+
