@@ -1,0 +1,56 @@
+Kubernetes Class -11
+
+TOPIC: Kubernetes VOLUMES
+
+
+if i want to see all the clusters  that means i wnat to see all the pods inside the namespace command is
+
+kubectl get po -A ------------> command to get all pods inside the namespace 
+
+VOLUMES we used docker to store the data, data replication this means the data inside the one container to another container to get replicate 
+
+in kubernetes 
+
+
+
+vim Deployment.yml
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flm
+spec:
+  replicas:
+  selector:
+    matchLabels:
+      app: swiggy
+  template:
+    metadate:
+      name: mytemplate
+      labels:
+        app: swiggy
+    spec:
+      containers:
+        - name: cont1
+          image: nginx
+
+        - name: cont1
+          image: nginx
+
+:wq
+
+kubectl create -f deployment.yml -------------> command to execute above manifest file
+
+kubectl get po -----------> command to get list of pods
+
+kubectl logs podname ------------> command to see logs of a pod
+
+kubectl describe pod podname --------------> command to view full details of pod
+
+kubectl get po ------------->command to see list of pods
+
+comming back to trouble shoot
+
+
+
