@@ -62,5 +62,89 @@ why we used this is RBAC (ROLE BASED ACCESS CONTROL) for assigining a permission
 
 now we will learn about RESOURCE QUOTA
 
+There are two types of restrictions that need to be mentioned while using ResourceQuota
+
+1. LIMIT: Represents the maximum amount of CPU or memory the pod can use.
+
+2. REQUEST: Represents the minimum amount of CPU or memory that the pod is guaranteed to have.
+
+lets do in practical way
+
+kubectl create ns dev -------------> command to create namespace with name dev
+
+now we need to allocate resources to that created namespace
+
+lets write resource-quota manifest file
+
+note for to know cpu:
+=======================
+
+1 cpu = 1 core
+1 cpu = 1000m
+1/2 cpu = 500m
+1/4 cpu = 250m
+
+Mi --------> means mega byte
+m ---------> memory
+
+vim resource-quota.yml
+
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: dev-rq
+spec:
+  hard:
+    limits.cpu: "400m"
+    request.cpu: "200m"
+    limits.memory: "100Mi"
+    requests.memory: "50Mi"
+
+:wq
 
 
+before going to execute will see namespace once
+
+kubectl describe ns dev ---------> command to view full information of created namespace with name dev
+
+kubectl create -f resource-quota.yml ------------> command to execute above manifest file
+
+lets create pod 
+
+vim pod.yml
+
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: mypod
+  namespace: dev
+spec:
+containers:
+  - name: cont1
+    image: nginx
+    ports:
+      - containerPort: 80
+    resources:
+      requests:
+        memory: "5Mi"
+        cpu: "50m"
+      limits:
+        memory: "10Mi"
+        cpu: "100m"
+
+:wq
+
+kubectl create -f pod.yml ----------------> command to execute above manifest file
+
+need to see the details of pod
+
+kubectl describe pod mypod-n dev ------------> command to view details of pod
+
+
+:wq
+
+whole class is to increase limits for namespaceand set 
+
+oka vidanga namespace ki limits set chesi ehh vidanga pods anevi ela create cheyadam
