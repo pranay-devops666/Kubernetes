@@ -50,7 +50,143 @@ kubectl describe pod podname --------------> command to view full details of pod
 
 kubectl get po ------------->command to see list of pods
 
+
+
 comming back to trouble shoot
 
+
+
+vim Deployment.yml
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flm
+spec:
+  replicas:
+  selector:
+    matchLabels:
+      app: swiggy
+  template:
+    metadate:
+      name: mytemplate
+      labels:
+        app: swiggy
+    spec:
+      containers:
+        - name: cont1
+          image: nginx
+
+        - name: cont2
+          image: nginx
+          command: ["/bin/bash", "while true; do echo Happy Pongal; sleep 10; done"]
+
+
+:wq
+
+
+kubectl delete deploy flm
+
+kubectl create -f deployment.yml -----------------> command to create deployment file
+
+
+vim Deployment.yml
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flm
+spec:
+  replicas:
+  selector:
+    matchLabels:
+      app: swiggy
+  template:
+    metadate:
+      name: mytemplate
+      labels:
+        app: swiggy
+    spec:
+      containers:
+        - name: cont1
+          image: nginx
+          volumeMounts:
+            - mountPath: /opt/cont1/
+              name: devops
+
+
+        - name: cont2
+          image: httpd
+          command: ["/bin/bash", "while true; do echo Happy Pongal; sleep 10; done"]
+          volumeMounts:
+            - mountPath: /opt/cont1/
+              name: devops
+
+      volumes:
+        - name: devops
+          emptyDir: {}
+
+:wq
+
+kubectl delete deploy flm -----------------> command to delete deploy file
+
+
+kubectl create -f deploy flm -----------------> command to create deploy file
+
+kubectl get deploy -------> command to view deploy 
+
+kubectl get po -----------> command to view list of pods
+
+kubectl exec -it podname -c containername1 -- bash ----------------> command to enter into a container inside of a pod
+
+printenv ----------> command to print environment in container
+
+cd /opt/
+
+ll
+
+cd cont1/
+
+touch file{1..3}.flm
+
+ctrl+d
+
+lets go to cont2 now
+
+kubectl exec -it podname -c containername2 -- bash ----------------> command to enter into a container inside of a pod
+
+
+cd /opt/cont2
+
+touch pranay{1..4}.devops
+
+ctrl+d 
+
+lets go to cont1 again
+
+kubectl exec -it podname -c containername1 -- bash ----------------> command to enter into a container inside of a pod
+
+cd /opt/cont1/
+
+data replication is happening here
+
+ctrl+d
+
+
+
+data replication is happening here but we don't use in real time
+
+pod delete ayna data delete avvakudadhu
+
+kubectl delete pod podname ----------------> command to delete pod name
+
+kubectl exec -it pod name -c cont1 -- bash ------------> command to enter into a container inside a pod
+
+cd /opt/cont1/ 
+
+
+data still remains
 
 
