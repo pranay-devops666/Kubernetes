@@ -1,0 +1,1 @@
+Todays class notes :  https://mustafa-k8s.hashnode.dev/understanding-rbac-a-pillar-of-kubernetes-security
