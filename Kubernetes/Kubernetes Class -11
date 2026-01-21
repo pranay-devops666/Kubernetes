@@ -305,7 +305,6 @@ kind: PersistentVolume
 metadata:
   name: pv-1
 spec:
-  storageClassName: manual
   capacity:
     storage: 2Gi
   accessModes:
@@ -334,7 +333,6 @@ kind: PersistanceVolumeClaim
 metadata:
   name: pvc-1
 spec:
-  storageClassName: manual
   accessModes:
     - ReadWriteOnce
   resources:
@@ -400,5 +398,41 @@ kubectl delete deployment.yml ---------------> command to delete old deployment
 kubectl create -f deployment.yml -------------> command to execute above manifets file
 
 
+kubectl create -f pv.yml -------------> command to create pv.yml manifets file
 
-    
+kubectl create -f pvc.yml ------------> command to create pvc.yml manifets file
+
+kubetcl create -f deployment.yml ------------> command to create deployment.yml manifets file
+
+
+kubectl get pod ------------->command to view list of pods 
+
+
+kubectl exec -it podname -c cont1 -- bash ---------------> command to eneter into a container inside of pod
+
+
+cd /opt/cont1
+
+touch file{1..3}.txt
+
+
+ctrl+d
+
+
+kubectl exec -it podname -c cont2 -- bash ---------------> command to eneter into a container inside of pod
+
+
+cd /opt/cont1
+
+ctrl+d
+
+In real time we will use PV & PVC
+
+PV -----------> Persistance Volume
+PVC ----------> Persistance Volume Claim
+
+
+
+
+
+
