@@ -1,0 +1,5 @@
+Todays Notes:
+
+
+link-1: https://mustafa-k8s.hashnode.dev/mastering-helm-simplify-kubernetes-deployments-with-ease
+link-2 : https://mustafa-k8s.hashnode.dev/host-your-first-helm-chart
