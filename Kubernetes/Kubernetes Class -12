@@ -4,3 +4,149 @@ TOPIC: Kubernetes HELM
 
 we need kops cluster setup for this HELM
 
+First Launch one instance 
+
+Launch Instance------------>name:RC & RS---------->t3.micro------>key pair ------>Jenkins security group-------->25 ebs volume --------> launch instance
+
+lets connect & give IAM permissions as well select instance-----> select actions--------> select IAM modify---------> launch instance
+
+
+installe kubectl
+
+curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+
+
+chmod +x kubectl
+
+mv kubectl /usr/local/bin/
+
+install kops now
+
+curl -Lo kops https://github.com/kubernetes/kops/releases/download/$(curl -s https://api.github.com/repos/kubernetes/kops/releases/latest | grep tag_name | cut -d '"' -f 4)/kops-linux-amd64
+
+chmod +x kops
+
+sudo mv kops /usr/local/bin/kops
+
+
+chekc list of buckets
+
+aws s3 ls----------> command to view list of buckets
+
+export KOPS_STATE_STORE=s3://pranay.2026.babu---------> command to store my cluster information in a specific particular bucket
+
+now need to create CLUSTER
+
+kops create cluster --name babu.k8s.local --zones us-east-2a,us-east-2b --master-size c7i-flex.large --master-volume-size 30 --node-count 2 --node-volume-size 20 --node-size t3.micro --image=ami-0f5fcdfbd140e4ab7
+
+-------------> above full command to create cluster
+
+giving the above command output will come like below 
+
+cluster creation output
+===========================
+Must specify --yes to apply changes
+
+Cluster configuration has been created.
+
+Suggestions:
+ * list clusters with: kops get cluster
+ * edit this cluster with: kops edit cluster babu.k8s.local
+ * edit your node instance group: kops edit ig --name=babu.k8s.local nodes-us-east-2a
+ * edit your control-plane instance group: kops edit ig --name=babu.k8s.local control-plane-us-east-2a
+
+Finally configure your cluster with: kops update cluster --name babu.k8s.local --yes --admin
+
+at last output line we need to take for kops update like below
+
+
+next kops update 
+
+
+kops update cluster --name babu.k8s.local --yes --admin----------------> command to update created cluster
+
+Main purpose of HELM is to maintain 100 number of manifest files
+
+
+HELM
+======
+
+Helm is a kubernetes package manager in which the multiple number of YAML files such as the backend, and frontend come under one roof(helm) and deploy using helm.
+
+HELM = Frontend + Backend + Database
+
+helm.sh ------------> this is the official document for HELM (https://helm.sh/)
+
+https://artifacthub.io/ --------> here we can search official documents of what we need like jenkins, promethus, grafana etc
+
+curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-4 --------> command to install helm 1st command 
+chmod 700 get_helm.sh -------> command to install helm 2nd command 
+./get_helm.sh -------> command to install helm 3rd command 
+
+helm version ----------> command to view helm version
+
+
+helm repo add repository name what we wish https://charts.jenkins.io -----------> command to add repository in helm with name what we want 
+https://artifacthub.io/packages/helm/jenkinsci/jenkins(in this website above command will get found)
+
+helm repo ls -----> command to view list of repositoriesin helm
+
+
+helm repo add grafana https://grafana.github.io/helm-charts ----------> command to add add repository in helm with name grafana
+
+helm repo update ------------> command to update helm repos
+
+helm repo update reponame -------------> command to update a particular helm repo
+
+helm repo rm reponame -----------> command to delete helm repo
+
+lets do how to create our own repos in helm like below
+
+first lets create the helm chart
+
+helm create babu(helm name ) -------> command to create helm 
+
+when we create one helm one folder also will get create here
+
+cd babu/
+
+ll
+
+vim values.yml
+
+
+here we need to give repository name 
+
+repository: pranay
+
+
+:wq
+
+
+helm install release-1 .  ------------> command to install helm release
+
+helm install release-1 . -n dev ------------> command to install helm release in particular namespace with name dev
+
+kubectl get deploy --------> command to view deploy 
+
+kubectl get rs -------> command to view rs
+
+kubectl get po ---------> command to view pods 
+
+kubectl get svc -------> command to view svc svc means service
+
+helm ls -----------> command to view list of helm
+
+helm uninstall releae-1 -------------> command to uninstall 
+
+
+
+
+
+
+
+
+
+
+
+
