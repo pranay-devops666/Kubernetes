@@ -190,3 +190,215 @@ cd /opt/cont1/
 data still remains
 
 
+vim Deployment.yml
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flm
+spec:
+  replicas:
+  selector:
+    matchLabels:
+      app: swiggy
+  template:
+    metadate:
+      name: mytemplate
+      labels:
+        app: swiggy
+    spec:
+      containers:
+        - name: cont1
+          image: nginx
+          volumeMounts:
+            - mountPath: /opt/cont1/
+              name: devops
+
+
+        - name: cont2
+          image: httpd
+          command: ["/bin/bash", "while true; do echo Happy Pongal; sleep 10; done"]
+          volumeMounts:
+            - mountPath: /opt/cont1/
+              name: devops
+
+      volumes:
+        - name: devops
+          hostPath:
+            path: /etc/myvolume/
+
+
+:wq
+
+
+kubectl delete deploy flm -----------> command to delete old deployment file
+
+kubectl create -f deployment.yml ------------> command to create deployment file
+
+kubectl get po ----------> command to view list of pods
+
+kubectl exec -it podname -c cont1 -- bash ---------------> command to enter into a container inside of the pod 
+
+cd /opt/cont1
+
+touch aws azure gcp ibm 
+
+ctrl+d
+
+now lets go to cont2 and check here
+
+
+kubectl exec -it podname -c cont2 -- bash ---------------> command to enter into a container inside of the pod 
+
+cd /opt/cont2/
+
+replication is happening 
+
+now here pod delete  ayna data delete avvadhu
+
+kubectl get po -------------> command to get list of pods
+
+kubectl delete pod podname --------------> command to delete pod
+
+
+kubectl get po -----------> command to view list of pods
+
+kubectl exec -it podname -c cont1 -- bash ---------------> command to eneter into a container inside of pod
+
+cd /opt/cont1/
+
+check cont2 also
+
+kubectl exec -it podname -c cont2 -- bash ---------------> command to eneter into a container inside of pod
+
+cd /opt/cont1/
+
+Data still remains here
+
+
+there are two problems here
+
+1. pod got deleted and volume as well 
+2. we dont use host path in real time
+
+
+In Real time time we are going to use is PV & PVC
+
+what is meant by PV & PVC ?
+
+PV ----------> Persistance Volume
+PVC ---------> Persistance Volume Claim
+
+we can't attach PV to a POd directly
+
+go to aws Dashboard ---------> select volumes------> create volume ----> 10 gb ----> add tags ------> name:k8's-data --------> create volume
+
+select created volume & copy the volume ID
+
+
+vim pv.yml
+
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-1
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 2Gi
+  accessModes:
+    - ReadwriteOnce:
+  persistancevolumeReclaimPolicy: Recycle
+  awsElasticBlockStore:
+    volumeID: vol-(copy & paste here volume ID)
+    fsType: ext4
+
+:wq
+
+kubectl create -f pv.yml ----------------> command to execute above manifets file
+
+here one PV has been created here
+
+kubectl get pv ---------------> command to view list of pv
+
+now we are going to create PVC with this created PV
+
+
+vim pvc.yml
+
+---
+apiVersion: v1
+kind: PersistanceVolumeClaim
+metadata:
+  name: pvc-1
+spec:
+  storageClassName: manual
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+
+:wq
+
+
+kubectl create -f pvc.yml -----------------> command to execute above manifest file
+
+kubectl get pvc ----------------> command to view list of pvc
+
+here one pvc has been created here
+
+now we will do attach to a pod
+
+
+
+vim Deployment.yml
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flm
+spec:
+  replicas:
+  selector:
+    matchLabels:
+      app: swiggy
+  template:
+    metadate:
+      name: mytemplate
+      labels:
+        app: swiggy
+    spec:
+      containers:
+        - name: cont1
+          image: nginx
+          volumeMounts:
+            - mountPath: /opt/cont1/
+              name: devops
+
+
+        - name: cont2
+          image: httpd
+          command: ["/bin/bash", "while true; do echo Happy Pongal; sleep 10; done"]
+          volumeMounts:
+            - mountPath: /opt/cont1/
+              name: devops
+
+      volumes:
+        - name: devops
+          persistanceVolumeClaim:
+            claimName: pvc-1
+
+:wq
+
+
+kubectl delete deployment.yml ---------------> command to delete old deployment
+
+kubectl create -f deployment.yml -------------> command to execute above manifets file
+
+
+
+    
