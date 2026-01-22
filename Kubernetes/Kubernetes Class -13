@@ -77,3 +77,33 @@ CD --------> Continous Deployment we used previously for Jenkins
 
 we can also do Gitops & ArgoCD as well
 
+install argocd website
+
+kubectl create namespace argocd -------------> command to create namespace with name argocd
+
+kubectl apply -n argocd -f https://raw.githubusercontent.com/argo-cd/stable/manifests/install.yml -------------> command to install argocd
+
+kubectl get all -n argocd ---------> command to view list namespace with name argocd
+
+kubectl patch svc argocd-server -n argocd -p '{"spec": {"type: "LoadBalancer"}}' ------------> command to patch argocd
+
+username: admin
+password:
+
+argocd admin initial-passwd -n argocd --------------> command to get password
+
+kubectl get secret -n argocd --------------> command to get password
+
+go to this website install argocd cli
+
+copy and paste all commands
+
+next
+
+argocd admin initial-passwd -n argocd --------------> command to get password
+
+
+now we got argocd password
+
+Argocd dashboard has been launched
+
