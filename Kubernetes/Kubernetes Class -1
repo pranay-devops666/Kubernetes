@@ -1,4 +1,353 @@
-Kubernetes
+Kubernetes Class -01 
+
+
+Docker vs Kubernetes K8's Architecture, Types of Clusters,  Installing minikube, Installing kubectl, minikube cluster setup creating pods through Imperative way
+Decarative way
+
+Kubernetes can be officially called as k8's
+
+Docker logo looks like its a ship that contains the containers
+
+In Docker we craetd the containers and we deployed the applications but we didn't used the auto-scaling
+
+       ##         .                            
+ ## ## ##        ==
+## ## ## ## ##    ===
+ /""""""""""""\___/ ===
+{              /  ===-
+ \______ O           /
+   \    \         /
+    \____\_______/          
+
+
+Kubernetes  logo looks like a controlling the ship with wheel
+
+Technically called as ship wheel 
+
+Technically it can be called as to control the containers which can we created the in Docker
+
+To manage the contaianers which are in Docker we will use Kubernetes
+
+In kubernetes we will use auto-scaling in real time also
+
+Reasons to use kubernetes
+1. Having Auto-scaling
+2. we can rollack to any version
+3. No Downtime
+
+
+        _________
+     .-'         '-.
+   .'               '.
+  /    .-"""""-.      \
+ |    /  ☸ ☸ ☸  \      |
+ |   |   ☸ ☸ ☸   |     |
+ |    \  ☸ ☸ ☸  /      |
+  \    '-.___.-'      /
+   '.               .'
+     '-._________.-'
+
+
+        🐳 Docker        →        ☸ Kubernetes
+     Container Build            Container Orchestration
+
+
+      ┌───────────┐        ┌───────────────┐
+      │   Docker  │  --->  │  Kubernetes   │
+      │ Containers│        │ Orchestration │
+      └───────────┘        └───────────────┘
+
+
+Kubernetes Architecture
+=========================
+
+Kubernetes Architecture detailed links below 
+
+https://aws.plainenglish.io/kubernetes-architecture-c93cb9c798d8
+https://kubernetes.io/docs/concepts/overview/components/
+
+                         +----------------------+
+                         |   Cloud Provider API |
+                         +----------+-----------+
+                                    |
+                                    v
+                =========================================
+                |           KUBERNETES CLUSTER           |
+                =========================================
+
+        -------------------- CONTROL PLANE --------------------
+
+                     +------------------+
+                     |    API Server    |
+                     |      (api)       |
+                     +----+---+----+----+
+                          |   |    |
+            +-------------+   |    +-------------+
+            |                 |                  |
+            v                 v                  v
+
+      +-----------+     +-------------+     +------------+
+      |   etcd    |     |  Scheduler  |     | Controller |
+      | (storage) |     |   (sched)   |     |  Manager   |
+      +-----------+     +-------------+     |   (c-m)    |
+                                            +------------+
+                                                  |
+                                                  v
+                                      +----------------------+
+                                      | Cloud Controller Mgr |
+                                      |       (c-c-m)        |
+                                      +----------------------+
+
+        ---------------------- WORKER NODES ----------------------
+
+                 +------------------+      +------------------+
+                 |       Node       |      |       Node       |
+                 |------------------|      |------------------|
+                 |     kubelet      |      |     kubelet      |
+                 |     kube-proxy   |      |     kube-proxy   |
+                 +------------------+      +------------------+
+
+                         ^                       ^
+                         |                       |
+                         +-----------+-----------+
+                                     |
+                               API Server
+
+
+Simple Flow Explanation (matching the diagram)
+
+1.API Server – Central communication hub for the cluster.
+
+2.etcd – Stores cluster state and configuration.
+
+3.Scheduler – Assigns pods to nodes.
+
+4.Controller Manager – Ensures desired state is maintained.
+
+5.Cloud Controller Manager – Communicates with cloud provider APIs.
+
+6.Worker Nodes
+
+kubelet – Runs containers on nodes.
+
+kube-proxy – Handles networking and service routing.
+
+Developer → Git → Jenkins → Docker → Kubernetes → AWS
+
+
+
+In Docker swarm we created the cluster same as in kubernetes also we will create a cluster
+
+cluster means group of servers or nodes
+
+                         Developer / Operator
+                                 |
+                                 v
+                         +----------------+
+                         |   API Server   |
+                         +--------+-------+
+                                  |
+           +----------------------+----------------------+
+           |                                             |
+           v                                             v
+   +--------------------+                        +----------------+
+   |  Controller Manager|                        |    Scheduler   |
+   +--------------------+                        +----------------+
+                                  |
+                                  v
+                              +-------+
+                              |  etcd |
+                              +-------+
+
+======================================================================
+                         KUBERNETES CLUSTER
+======================================================================
+
+
+                 +--------------------------------------+
+                 |           Kubernetes Node            |
+                 |--------------------------------------|
+                 |  Kubelet |  cAdvisor |  Kube-Proxy   |
+                 |--------------------------------------|
+                 |     Pod     Pod      ...      Pod    |
+                 +--------------------------------------+
+
+                               ||  Plugin Network
+                               || (Flannel / WeaveNet)
+                               \/
+
+                 +--------------------------------------+
+                 |           Kubernetes Node            |
+                 |--------------------------------------|
+                 |  Kubelet |  cAdvisor |  Kube-Proxy   |
+                 |--------------------------------------|
+                 |     Pod     Pod      ...      Pod    |
+                 +--------------------------------------+
+
+======================================================================
+
+                                   ^
+                                   |
+                                 Users
+
+
+
+
+
+==============================================================================================================================================================================================
+
+
+
+
+
+                           +----------------------+
+                           |   Developer / DevOps |
+                           +----------+-----------+
+                                      |
+                                      | kubectl / API calls
+                                      v
+                        +------------------------------+
+                        |          API SERVER          |
+                        |   (Cluster Entry Point)      |
+                        +--------------+---------------+
+                                       |
+               +-----------------------+-----------------------+
+               |                                               |
+               v                                               v
+
+        +--------------+                               +--------------+
+        |  Scheduler   |                               | Controller   |
+        |              |                               |  Manager     |
+        +------+-------+                               +------+-------+
+               |                                              |
+               +--------------------+-------------------------+
+                                    |
+                                    v
+                               +---------+
+                               |  etcd   |
+                               | Cluster |
+                               |  State  |
+                               +----+----+
+                                    |
+                                    |
+            =========================================================
+                          KUBERNETES WORKER NODES
+            =========================================================
+
+
+     +---------------------------+       +---------------------------+
+     |        WORKER NODE 1      |       |        WORKER NODE 2      |
+     |---------------------------|       |---------------------------|
+     |        kubelet            |       |        kubelet            |
+     |        kube-proxy         |       |        kube-proxy         |
+     |        cAdvisor           |       |        cAdvisor           |
+     |---------------------------|       |---------------------------|
+     |      Pod (Container)      |       |      Pod (Container)      |
+     |      Pod (Container)      |       |      Pod (Container)      |
+     |      Pod (Container)      |       |      Pod (Container)      |
+     +-------------+-------------+       +-------------+-------------+
+                   |                                   |
+                   +----------- Cluster Network -------+
+                        (Flannel / Calico / Weave)
+
+                                |
+                                v
+                        +------------------+
+                        |     Service /    |
+                        |   Load Balancer  |
+                        +---------+--------+
+                                  |
+                                  v
+                             +---------+
+                             |  Users  |
+                             +---------+
+Simple Flow (matching the diagram)
+
+1. Developer/Operator interacts with the cluster using kubectl → reaches API Server.
+
+2. API Server communicates with:
+
+* Controller Manager (maintains desired state)
+
+* Scheduler (assigns pods to nodes)
+
+* etcd (stores cluster data).
+
+3. Worker Nodes contain:
+
+* Kubelet → runs containers/pods
+
+* cAdvisor → collects container metrics
+
+* Kube-Proxy → networking and service routing
+
+4. Pods run inside nodes.
+
+5. Plugin Network (Flannel, WeaveNet, etc.) connects pods across nodes.
+
+6. Users access applications running in pods.
+
+
+here two types of nodes are there 1. MASTER NODE (Control Plane)  & 2. WORKER NODE (Node)
+
+In Control Plane we have some components called 
+
+API Server (Application Programmer Interface)
+
+the operator(the person who works on kubernetes cluster) first it will take the request from the user
+
+In kubernetes we will don't touch container
+
+if we want to do anything in kubernetes we will do with pods in kubernetes
+
+
+Types of clusters in Kubernetes
+================================
+
+1. Self-Managed cluster
+2. Cloud-Managed cluster
+
+In 1. Self-Managed cluster example tools are                      In 2. Cloud-Managed cluster example tools are
+
+1. kops (kubernetes operation)                                      1. AWS:EKS
+2. kubeadm                                                          2. Azure:AKS
+3. k3d                                                              3. GCP:GKE
+4. Minikube                                                        
+
+
+In real time companies used are 1. AWS:EKS 2. Azure:AKS
+
+lets talk about the MiniKube -------------> it is a self managed
+
+* It is a tool used to setup a single node cluster
+* It contains API servers, ETCD database and container runtime
+* It helps you to containerized applications
+* It is used for development, testing, and experimentation purpose on local
+* Here master and worker runs on same machine
+* It is a platform Independent
+* By default it will create one node only
+* Installing Minikube is simple compared to other tools
+
+NOTE: But we don't implement in real-time
+
+
+
+KUBECTL
+=============
+
+* kubectl is the CLI which is used to interact with a kubernetes cluster
+* we an create, manage pods, service, deployments, and other resources
+* we an also monitoring troubleshooting, scaling and updating the pods.
+* To perform these tasks it communicates with the kubernetes API server
+* It has many options and commands to work on
+* The configuration of kubectl is in the $HOME/.kube directory
+* The latest version is 1.33
+
+syntax:
+kubectl [command] [Type] [Name] [flage]
+kubectlapi-resources: to list all api resources
+
+
 
 in this class we discussed
 Docker vs k8s
@@ -11,7 +360,9 @@ pods
 
 first search this webside
 
-install minikube-------> select https://minikube.sigs.k8s.io › docs › start------>start minikube--------->in here the details will be there
+install minikube---------> go to this website https://minikube.sigs.k8s.io/docs/start/?arch=%2Fwindows%2Fx86-64%2Fstable%2F.exe+download
+
+------> select https://minikube.sigs.k8s.io › docs › start------>start minikube--------->in here the details will be there
 
 What you’ll need
 2 CPUs or more
@@ -24,70 +375,119 @@ launch instance
 
 launch ---------->name:minikube--------->c7i-flex-large----->keypair-------->jenkins security group--------> 20ebs volume----> launch
 
-yum install docker -y && systemctl start docker
+install docker 
 
-curl -LO https://github.com/kubernetes/minikube/releases/latest/download/minikube-linux-amd64
-sudo install minikube-linux-amd64 /usr/local/bin/minikube && rm minikube-linux-amd64
-
-minikube version
-
-
-install kubectl
-
-https://kubernetes.io › docs › tasks › tools------->install tools
+[root@MINIKUBE ~]# yum install docker -y && systemctl start docker
 
 Install kubectl on Linux
 
-curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-
-
-ll
-
-[root@ip-172-31-44-108 ~]# ll
-total 57228
--rw-r--r--. 1 root root 58597560 Dec 30 13:24 kubectl
-
-for this file need to give full permissions
-
-[root@ip-172-31-44-108 ~]# chmod +x kubectl
-[root@ip-172-31-44-108 ~]# ll
-total 57228
--rwxr-xr-x. 1 root root 58597560 Dec 30 13:24 kubectl
-[root@ip-172-31-44-108 ~]# 
-
-mv kubectl /usr/local/bin/
-
-
-kubectl version
-
-kubectl api-resource
-
-
-
-[root@ip-172-31-44-108 ~]# curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+[root@MINIKUBE ~]# curl -LO https://github.com/kubernetes/minikube/releases/latest/download/minikube-linux-amd64
+sudo install minikube-linux-amd64 /usr/local/bin/minikube && rm minikube-linux-amd64
   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
                                  Dload  Upload   Total   Spent    Left  Speed
-100   138  100   138    0     0   3262      0 --:--:-- --:--:-- --:--:--  3285
-100 55.8M  100 55.8M    0     0   316M      0 --:--:-- --:--:-- --:--:--  316M
-[root@ip-172-31-44-108 ~]# ll
-total 57228
--rw-r--r--. 1 root root 58597560 Dec 30 13:31 kubectl
-[root@ip-172-31-44-108 ~]# 
+  0     0   0     0   0     0     0     0  --:--:-- --:--:-- --:--:--     0
+  0     0   0     0   0     0     0     0  --:--:-- --:--:-- --:--:--     0
+100 128.6M 100 128.6M   0     0 267.5M     0  --:--:-- --:--:-- --:--:-- 267.5M
+rm: remove regular file 'minikube-linux-amd64'? y
+[root@MINIKUBE ~]# minikube version
+minikube version: v1.38.1
+commit: c93a4cb9311efc66b90d33ea03f75f2c4120e9b0
+[root@MINIKUBE ~]# 
 
-chmod +x kubectl
+Install CLI tool kubectl form official dockeument  -----------> https://kubernetes.io/docs/tasks/tools/
 
-mv kubectl /usr/local/bin/
+[root@MINIKUBE ~]# curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100 57228k 100 57228k   0     0 497.6M     0  --:--:-- --:--:-- --:--:-- 498.9M
+[root@MINIKUBE ~]# ll
+total 57232
+-rw-r--r--. 1 root root 58601656 Mar 16 06:50 kubectl
+[root@MINIKUBE ~]# 
+
+now for this kubectl file need to give x full permissions
+
+[root@MINIKUBE ~]# chmod +x kubectl
+[root@MINIKUBE ~]# ll
+total 57232
+-rwxr-xr-x. 1 root root 58601656 Mar 16 06:50 kubectl
+[root@MINIKUBE ~]#
+
+now we need to move bin path like elow
+
+[root@MINIKUBE ~]# mv kubectl /usr/local/bin/
+[root@MINIKUBE ~]# ll
+total 0
+[root@MINIKUBE ~]# kubectl version
+Client Version: v1.35.2
+Kustomize Version: v5.7.1
+The connection to the server localhost:8080 was refused - did you specify the right host or port?
+[root@MINIKUBE ~]# 
+
+As of now what we done are installed docker, installed minikube, installed kubectl and gave x full permissions to it and moved to default path as well
+
+whole this process called as minikube cluster setup are done
+
+why we are doing all these are to deploy an application in  inside a pod in kubernetes
+
+what is meant by POD ?
+
+POD 
+========
 
 
-minikube status
+* It is a smallest object that we can create in k8's
+* It is a group of containers
+* Pod acts like a single instance for our applications
+* Pods are ephemeral (short living objects)
+* Mostly we can use single container inside a pod but if we required, we csn create multiple containers inside a same pod
+* When we create a pod, containers inside pods an share the same network namespace, and can share the same storage volumes
+* While creating pod, we must specify the image, along with any necessaryconfiguration and resiurce limits
+* k8's cannot communicate with containers, they can communicate with only pods
+* we can create this pod in two ways
+1. Imperative(command)
+2. Declarative (Manifest file)
 
-minikube start --driver=docker
 
-minikube start --driver=docker --force
 
-minikube status
+[root@MINIKUBE ~]# minikube status ---------------------------------------->
+* Profile "minikube" not found. Run "minikube profile list" to view all profiles.
+  To start a cluster, run: "minikube start"
+[root@MINIKUBE ~]# minikube start --driver=docker ---------------------------------------->
+* minikube v1.38.1 on Amazon 2023.10.20260302
+* Using the docker driver based on user configuration
+* The "docker" driver should not be used with root privileges. If you wish to continue as root, use --force.
+* If you are running minikube within a VM, consider using --driver=none:
+*   https://minikube.sigs.k8s.io/docs/reference/drivers/none/
 
-[root@ip-172-31-25-132 ~]# minikube status
+X Exiting due to DRV_AS_ROOT: The "docker" driver should not be used with root privileges.
+
+[root@MINIKUBE ~]# minikube start --driver=docker --force ---------------------------------------->
+* minikube v1.38.1 on Amazon 2023.10.20260302
+! minikube skips various validations when --force is supplied; this may lead to unexpected behavior
+* Using the docker driver based on user configuration
+* The "docker" driver should not be used with root privileges. If you wish to continue as root, use --force.
+* If you are running minikube within a VM, consider using --driver=none:
+*   https://minikube.sigs.k8s.io/docs/reference/drivers/none/
+! Starting v1.39.0, minikube will default to "containerd" container runtime. See #21973 for more info.
+
+X The requested memory allocation of 3072MiB does not leave room for system overhead (total system memory: 3819MiB). You may face stability issues.
+* Suggestion: Start minikube with less memory allocated: 'minikube start --memory=3072mb'
+
+* Using Docker driver with root privileges
+* Starting "minikube" primary control-plane node in "minikube" cluster
+* Pulling base image v0.0.50 ...
+* Downloading Kubernetes v1.35.1 preload ...
+    > preloaded-images-k8s-v18-v1...:  272.45 MiB / 272.45 MiB  100.00% 223.83 
+    > gcr.io/k8s-minikube/kicbase...:  519.58 MiB / 519.58 MiB  100.00% 222.90 
+* Creating docker container (CPUs=2, Memory=3072MB) ...
+* Preparing Kubernetes v1.35.1 on Docker 29.2.1 ...
+* Configuring bridge CNI (Container Networking Interface) ...
+* Verifying Kubernetes components...
+  - Using image gcr.io/k8s-minikube/storage-provisioner:v5
+* Enabled addons: storage-provisioner, default-storageclass
+* Done! kubectl is now configured to use "minikube" cluster and "default" namespace by default
+[root@MINIKUBE ~]# minikube status ---------------------------------------->
 minikube
 type: Control Plane
 host: Running
@@ -95,45 +495,114 @@ kubelet: Running
 apiserver: Running
 kubeconfig: Configured
 
-kubectl api-resources
+[root@MINIKUBE ~]# 
 
-kubectl get pods
+[root@MINIKUBE ~]# minikube status ---------------------->
+minikube
+type: Control Plane
+host: Running
+kubelet: Running
+apiserver: Running
+kubeconfig: Configured
 
-[root@ip-172-31-25-132 ~]# kubectl run mypod --image=nginx
+
+[root@MINIKUBE ~]# kubectl api-resources ------------------------------------------------------------------------>
+NAME                                SHORTNAMES   APIVERSION                        NAMESPACED   KIND
+bindings                                         v1                                true         Binding
+componentstatuses                   cs           v1                                false        ComponentStatus
+configmaps                          cm           v1                                true         ConfigMap
+endpoints                           ep           v1                                true         Endpoints
+events                              ev           v1                                true         Event
+limitranges                         limits       v1                                true         LimitRange
+namespaces                          ns           v1                                false        Namespace
+nodes                               no           v1                                false        Node
+persistentvolumeclaims              pvc          v1                                true         PersistentVolumeClaim
+persistentvolumes                   pv           v1                                false        PersistentVolume
+pods                                po           v1                                true         Pod
+podtemplates                                     v1                                true         PodTemplate
+replicationcontrollers              rc           v1                                true         ReplicationController
+resourcequotas                      quota        v1                                true         ResourceQuota
+secrets                                          v1                                true         Secret
+serviceaccounts                     sa           v1                                true         ServiceAccount
+services                            svc          v1                                true         Service
+mutatingwebhookconfigurations                    admissionregistration.k8s.io/v1   false        MutatingWebhookConfiguration
+validatingadmissionpolicies                      admissionregistration.k8s.io/v1   false        ValidatingAdmissionPolicy
+validatingadmissionpolicybindings                admissionregistration.k8s.io/v1   false        ValidatingAdmissionPolicyBinding
+validatingwebhookconfigurations                  admissionregistration.k8s.io/v1   false        ValidatingWebhookConfiguration
+customresourcedefinitions           crd,crds     apiextensions.k8s.io/v1           false        CustomResourceDefinition
+apiservices                                      apiregistration.k8s.io/v1         false        APIService
+controllerrevisions                              apps/v1                           true         ControllerRevision
+daemonsets                          ds           apps/v1                           true         DaemonSet
+deployments                         deploy       apps/v1                           true         Deployment
+replicasets                         rs           apps/v1                           true         ReplicaSet
+statefulsets                        sts          apps/v1                           true         StatefulSet
+selfsubjectreviews                               authentication.k8s.io/v1          false        SelfSubjectReview
+tokenreviews                                     authentication.k8s.io/v1          false        TokenReview
+localsubjectaccessreviews                        authorization.k8s.io/v1           true         LocalSubjectAccessReview
+selfsubjectaccessreviews                         authorization.k8s.io/v1           false        SelfSubjectAccessReview
+selfsubjectrulesreviews                          authorization.k8s.io/v1           false        SelfSubjectRulesReview
+subjectaccessreviews                             authorization.k8s.io/v1           false        SubjectAccessReview
+horizontalpodautoscalers            hpa          autoscaling/v2                    true         HorizontalPodAutoscaler
+cronjobs                            cj           batch/v1                          true         CronJob
+jobs                                             batch/v1                          true         Job
+certificatesigningrequests          csr          certificates.k8s.io/v1            false        CertificateSigningRequest
+leases                                           coordination.k8s.io/v1            true         Lease
+endpointslices                                   discovery.k8s.io/v1               true         EndpointSlice
+events                              ev           events.k8s.io/v1                  true         Event
+flowschemas                                      flowcontrol.apiserver.k8s.io/v1   false        FlowSchema
+prioritylevelconfigurations                      flowcontrol.apiserver.k8s.io/v1   false        PriorityLevelConfiguration
+ingressclasses                                   networking.k8s.io/v1              false        IngressClass
+ingresses                           ing          networking.k8s.io/v1              true         Ingress
+ipaddresses                         ip           networking.k8s.io/v1              false        IPAddress
+networkpolicies                     netpol       networking.k8s.io/v1              true         NetworkPolicy
+servicecidrs                                     networking.k8s.io/v1              false        ServiceCIDR
+runtimeclasses                                   node.k8s.io/v1                    false        RuntimeClass
+poddisruptionbudgets                pdb          policy/v1                         true         PodDisruptionBudget
+clusterrolebindings                              rbac.authorization.k8s.io/v1      false        ClusterRoleBinding
+clusterroles                                     rbac.authorization.k8s.io/v1      false        ClusterRole
+rolebindings                                     rbac.authorization.k8s.io/v1      true         RoleBinding
+roles                                            rbac.authorization.k8s.io/v1      true         Role
+deviceclasses                                    resource.k8s.io/v1                false        DeviceClass
+resourceclaims                                   resource.k8s.io/v1                true         ResourceClaim
+resourceclaimtemplates                           resource.k8s.io/v1                true         ResourceClaimTemplate
+resourceslices                                   resource.k8s.io/v1                false        ResourceSlice
+priorityclasses                     pc           scheduling.k8s.io/v1              false        PriorityClass
+csidrivers                                       storage.k8s.io/v1                 false        CSIDriver
+csinodes                                         storage.k8s.io/v1                 false        CSINode
+csistoragecapacities                             storage.k8s.io/v1                 true         CSIStorageCapacity
+storageclasses                      sc           storage.k8s.io/v1                 false        StorageClass
+volumeattachments                                storage.k8s.io/v1                 false        VolumeAttachment
+volumeattributesclasses             vac          storage.k8s.io/v1                 false        VolumeAttributesClass
+[root@MINIKUBE ~]# kubectl get pods ------------------------------>
+No resources found in default namespace.
+[root@MINIKUBE ~]# kubectl run mypod --image=nginx -------------------------------->
 pod/mypod created
-[root@ip-172-31-25-132 ~]#
-
-
-[root@ip-172-31-25-132 ~]# kubectl run newpod --image=httpd
+[root@MINIKUBE ~]# kubectl run newpod --image=httpd --------------------------------->
 pod/newpod created
-[root@ip-172-31-25-132 ~]# 
-
-[root@ip-172-31-25-132 ~]# kubectl get pods
+[root@MINIKUBE ~]# kubectl get pods --------------------------------->
 NAME     READY   STATUS    RESTARTS   AGE
-mypod    1/1     Running   0          41s
-newpod   1/1     Running   0          17s
-[root@ip-172-31-25-132 ~]# 
-
-kubectl get pod
-
-kubectl get po
-
-[root@ip-172-31-25-132 ~]# kubectl get po
+mypod    1/1     Running   0          51s
+newpod   1/1     Running   0          8s
+[root@MINIKUBE ~]# kubectl get po --------------------------------->
 NAME     READY   STATUS    RESTARTS   AGE
-mypod    1/1     Running   0          85s
-newpod   1/1     Running   0          61s
-[root@ip-172-31-25-132 ~]# 
-
-[root@ip-172-31-25-132 ~]# kubectl get po newpod
+mypod    1/1     Running   0          79s
+newpod   1/1     Running   0          36s
+[root@MINIKUBE ~]# kubectl get po newpod --------------------------------->
 NAME     READY   STATUS    RESTARTS   AGE
-newpod   1/1     Running   0          96s
-[root@ip-172-31-25-132 ~]#
+newpod   1/1     Running   0          2m23s
+[root@MINIKUBE ~]# kubectl get po mypod --------------------------------->
+NAME    READY   STATUS    RESTARTS   AGE
+mypod   1/1     Running   0          3m12s
+[root@MINIKUBE ~]# kubectl delete pod mypod
+pod "mypod" deleted from default namespace
+[root@MINIKUBE ~]# kubectl get po 
+NAME     READY   STATUS    RESTARTS   AGE
+newpod   1/1     Running   0          3m34s
+[root@MINIKUBE ~]# 
 
-[root@ip-172-31-25-132 ~]# kubectl delete pod newpod
-pod "newpod" deleted from default namespace
-[root@ip-172-31-25-132 ~]
+As of now we created Imperative way only to create pods 
 
-we can star now declarative form by this below file
+Now we can start now declarative form by this below file
 
 vim flm.yml
 
@@ -154,26 +623,68 @@ spec:
 here tip is if we learn this above file to write our own means 
 we can able to write 10 manifest files easily
 
-[root@ip-172-31-25-132 ~]# kubectl create -f flm.yml
-pod/flm-pod created
-[root@ip-172-31-25-132 ~]# 
 
-[root@ip-172-31-25-132 ~]# kubectl create -f flm.yml
+[root@MINIKUBE ~]# vim file.yml
+[root@MINIKUBE ~]# kubectl create -f file.yml 
 pod/flm-pod created
-[root@ip-172-31-25-132 ~]# kubectl get po
+[root@MINIKUBE ~]# kubectl get po
 NAME      READY   STATUS    RESTARTS   AGE
-flm-pod   1/1     Running   0          23s
-mypod     1/1     Running   0          10m
-[root@ip-172-31-25-132 ~]# 
-
-[root@ip-172-31-25-132 ~]# kubectl describe po flm-pod-----------> command to view full information of the created pod
-
-
-
-
-
-
-
+flm-pod   1/1     Running   0          41s
+newpod    1/1     Running   0          10m
+[root@MINIKUBE ~]# kubectl describe po flm-pod
+Name:             flm-pod
+Namespace:        default
+Priority:         0
+Service Account:  default
+Node:             minikube/192.168.49.2
+Start Time:       Mon, 16 Mar 2026 07:26:17 +0000
+Labels:           <none>
+Annotations:      <none>
+Status:           Running
+IP:               10.244.0.5
+IPs:
+  IP:  10.244.0.5
+Containers:
+  mycont:
+    Container ID:   docker://6260cd83e3c3e9bdf8052f5f3f1e374abcb28bafeae60c8223f9913cc4dec51b
+    Image:          shaikmustafa/dm
+    Image ID:       docker-pullable://shaikmustafa/dm@sha256:d931276f1089aad7686d004f8f948a971d4d50141b2a87ae46430600c0974c29
+    Port:           80/TCP
+    Host Port:      0/TCP
+    State:          Running
+      Started:      Mon, 16 Mar 2026 07:26:20 +0000
+    Ready:          True
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-xhwwv (ro)
+Conditions:
+  Type                        Status
+  PodReadyToStartContainers   True 
+  Initialized                 True 
+  Ready                       True 
+  ContainersReady             True 
+  PodScheduled                True 
+Volumes:
+  kube-api-access-xhwwv:
+    Type:                    Projected (a volume that contains injected data from multiple sources)
+    TokenExpirationSeconds:  3607
+    ConfigMapName:           kube-root-ca.crt
+    Optional:                false
+    DownwardAPI:             true
+QoS Class:                   BestEffort
+Node-Selectors:              <none>
+Tolerations:                 node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
+                             node.kubernetes.io/unreachable:NoExecute op=Exists for 300s
+Events:
+  Type    Reason     Age   From               Message
+  ----    ------     ----  ----               -------
+  Normal  Scheduled  109s  default-scheduler  Successfully assigned default/flm-pod to minikube
+  Normal  Pulling    108s  kubelet            spec.containers{mycont}: Pulling image "shaikmustafa/dm"
+  Normal  Pulled     106s  kubelet            spec.containers{mycont}: Successfully pulled image "shaikmustafa/dm" in 1.985s (1.985s including waiting). Image size: 146037857 bytes.
+  Normal  Created    106s  kubelet            spec.containers{mycont}: Container created
+  Normal  Started    106s  kubelet            spec.containers{mycont}: Container started
+[root@MINIKUBE ~]# -----------------------------------------------------> command to view full information of the created pod
 
 
 
