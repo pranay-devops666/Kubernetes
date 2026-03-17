@@ -1,5 +1,27 @@
-KUBERNETES CLUSTER CREATION COMMAND
+KUBERNETES KOPS CLUSTER CREATION COMMAND
 
 
 
 kops create cluster --name pranay.k8s.local --zones=us-east-1a,us-east-1b --master-size c7i-flex.large --master-count 1 --master-volume-size 30 --node-size t3.micro --node-count 2 --node-volume-size 20 --image=ami-0b6c6ebed2801a5cb
+
+
+
+
+
+[root@ip-172-31-90-176 ~]# aws s3 ls
+[root@ip-172-31-90-176 ~]# aws s3 mb s3://jaisri.2026.ram
+make_bucket: jaisri.2026.ram
+[root@ip-172-31-90-176 ~]# aws s3 ls
+2026-03-17 05:39:11 jaisri.2026.ram
+[root@ip-172-31-90-176 ~]# export KOPS_STATE_STORE=s3://jaisri.2026.ram
+[root@ip-172-31-90-176 ~]# kops create cluster --name rama.k8s.local --zones us-east-1a,us-east-1b --master-size c7i-flex.large --master-volume-size 30 --node-count 2 
+--node-volume-size 20 --node-size t3.micro --image=ami-0b6c6ebed2801a5cb
+Flag --master-size has been deprecated, use --control-plane-size instead
+
+
+
+This below command will work
+=================================
+
+kops create cluster --name rama.k8s.local --zones us-east-1a,us-east-1b --master-size c7i-flex.large --master-volume-size 30 --node-count 2 
+--node-volume-size 20 --node-size t3.micro --image=ami-0b6c6ebed2801a5cb
