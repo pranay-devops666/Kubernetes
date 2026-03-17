@@ -30,6 +30,12 @@ kops create cluster --name rama.k8s.local --zones us-east-1a,us-east-1b --master
 --node-volume-size 20 --node-size t3.micro --image=ami-0b6c6ebed2801a5cb
 
 
+{kops create cluster --name srirama.k8s.local --zones us-east-1a,us-east-1b --master-size c7i-flex.large --master-volume-size 30 --node-count 2 
+--node-volume-size 20 --node-size t3.micro --image=ami-0b6c6ebed2801a5cb
+
+its working}
+
+
 kops delete cluster --name babu.k8s.local --yes -----------------> command to delete the cluster
 
 
