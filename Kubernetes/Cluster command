@@ -1,5 +1,8 @@
 KUBERNETES KOPS CLUSTER CREATION COMMAND
 
+KUBERNETES KOPS CLUSTER CREATION COMMAND & SUGGESTIONS TO SAVE TIME 
+
+
 
 
 kops create cluster --name pranay.k8s.local --zones=us-east-1a,us-east-1b --master-size c7i-flex.large --master-count 1 --master-volume-size 30 --node-size t3.micro --node-count 2 --node-volume-size 20 --image=ami-0b6c6ebed2801a5cb
@@ -25,3 +28,17 @@ This below command will work
 
 kops create cluster --name rama.k8s.local --zones us-east-1a,us-east-1b --master-size c7i-flex.large --master-volume-size 30 --node-count 2 
 --node-volume-size 20 --node-size t3.micro --image=ami-0b6c6ebed2801a5cb
+
+
+
+
+Suggestions:
+===================
+
+
+ * list clusters with: kops get cluster
+ * edit this cluster with: kops edit cluster rama.k8s.local
+ * edit your node instance group: kops edit ig --name=rama.k8s.local nodes-us-east-1a
+ * edit your control-plane instance group: kops edit ig --name=rama.k8s.local control-plane-us-east-1a
+
+Finally configure your cluster with: kops update cluster --name rama.k8s.local --yes --admin
