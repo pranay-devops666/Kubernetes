@@ -263,16 +263,17 @@ now we need to write HPA for a manifest file like below
 
 
 vim hpa.yml
+
 ---
 apiVersion: autoscaling/v2
-kind: HorizontalPodAutoscalar
-metada:
+kind: HorizontalPodAutoscaler
+metadata:
   name: myhpa
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: Pranay
+    name: pranay
   minReplicas: 2
   maxReplicas: 6
   metrics:
@@ -281,8 +282,7 @@ spec:
         name: cpu
         target:
           type: Utilization
-          averageutilization: 60
-
+          averageUtilization: 60
 
 :wq
 
