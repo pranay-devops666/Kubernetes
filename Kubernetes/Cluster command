@@ -30,6 +30,9 @@ kops create cluster --name rama.k8s.local --zones us-east-1a,us-east-1b --master
 --node-volume-size 20 --node-size t3.micro --image=ami-0b6c6ebed2801a5cb
 
 
+kops delete cluster --name babu.k8s.local --yes -----------------> command to delete the cluster
+
+
 
 
 Suggestions:
@@ -51,6 +54,7 @@ Suggestions:
  * ssh to a control-plane node: ssh -i ~/.ssh/id_rsa ubuntu@
  * the ubuntu user is specific to Ubuntu. If not using Ubuntu please use the appropriate user based on your OS.
  * read about installing addons at: https://kops.sigs.k8s.io/addons.
+
 
 
 
