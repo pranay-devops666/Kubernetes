@@ -1,4 +1,4 @@
-KOPS CLUSTER SETUP & K8s SERVICES
+KOPS CLUSTER SETUP & K8s SERVICES CREATION , K8s NODEPORT CREATION, K8s LOADBALANCER CREATION
 
 
 installe kubectl
@@ -111,6 +111,11 @@ we are using k8s services EXPOSE to it
 
 for that to create service we need to write manifest file for it
 
+[root@ip-172-31-90-176 ~]# kubectl api-resources |grep -i "services"
+services                            svc                                 v1                                true         Service
+apiservices                                                             apiregistration.k8s.io/v1         false        APIService
+[root@ip-172-31-90-176 ~]# 
+
 vim service.yml
 
 ---
@@ -139,7 +144,7 @@ if we want to access external means we can create node port
 
 for this no need to write seperate manifest file
 
-we need to chnage type in above file
+we need to chnage type in above file like below
 
 
 vim service.yml
