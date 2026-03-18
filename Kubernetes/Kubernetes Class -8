@@ -2,6 +2,12 @@ Kubernetes Class -8
 
 Topic: NAMESPACES, CONGIG MAPS & SECRETS
 
+
+Before staring NAMESPACES need to install below link 
+
+curl -LO https://github.com/ahmetb/kubectx/releases/latest/download/kubens && chmod +x kubens && mv kubens /usr/local/bin/-----------> link to install to view all
+related namespace commands
+
 lets setup cluster first
 
 First Launch one instance 
