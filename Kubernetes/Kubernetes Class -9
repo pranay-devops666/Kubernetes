@@ -67,14 +67,78 @@ cd pranay
 openssl genrsa -out pranay.key 2048 ------------> command to generate a key (Generate a key using openssl)
 pranay.key (it means need to be create in that format way), 2048 ----> means 2048 bytes
 
-openssl req -new -key pranay.key-out pranay.csr -subj "/CN=mustafa/O=group1" --------------> Command to generate CSR (Generate a client sign request (CSR)) 
+openssl req -new -key pranay.key -out pranay.csr -subj "/CN=mustafa/O=group1" --------------> Command to generate CSR (Generate a client sign request (CSR)) 
 
-openssl -req x509 -req -in pranay.csr -CA ~/.minikube/ca.crt -CAkey ~/.minikube/ca.key -CAcreateserial -out pranay.crt -days 500 -----------> command to Generate the certificate (CRT)
+openssl x509 -req -in pranay.csr -CA ~/.minikube/ca.crt -CAkey ~/.minikube/ca.key -CAcreateserial -out pranay.crt -days 500 -----------> command to Generate the certificate (CRT)
+
+openssl x509 -req -in pranay.csr -CA ~/.minikube/ca.crt -CAkey ~/.minikube/ca.key -CAcreateserial -out pranay.crt -days 500 -----------> command to Generate the certificate (CRT)
+
+[root@RBAC babu]# kubectl config set-credentials pranay \ -----------> command to Generate the certificate (CRT)
+--client-certificate=pranay.crt \
+--client-key=pranay.key
+User "pranay" set.
+[root@RBAC babu]# -----------> command to Generate the certificate (CRT)
+
+
+[root@RBAC babu]# kubectl config set-context pranay-context \
+--cluster=minikube \
+--user=pranay
+Context "pranay-context" created.
+[root@RBAC babu]# 
+
+
+[root@RBAC babu]# kubectl config use-context pranay-context --------------------------->
+Switched to context "pranay-context".
+[root@RBAC babu]# kubectl config view ---------------------------------------------------->
+apiVersion: v1
+clusters:
+- cluster:
+    certificate-authority: /root/.minikube/ca.crt
+    extensions:
+    - extension:
+        last-update: Wed, 18 Mar 2026 10:54:53 UTC
+        provider: minikube.sigs.k8s.io
+        version: v1.38.1
+      name: cluster_info
+    server: https://192.168.49.2:8443
+  name: minikube
+contexts:
+- context:
+    cluster: minikube
+    extensions:
+    - extension:
+        last-update: Wed, 18 Mar 2026 10:54:53 UTC
+        provider: minikube.sigs.k8s.io
+        version: v1.38.1
+      name: context_info
+    namespace: default
+    user: minikube
+  name: minikube
+- context:
+    cluster: minikube
+    user: pranay
+  name: pranay-context
+current-context: pranay-context
+kind: Config
+users:
+- name: minikube
+  user:
+    client-certificate: /root/.minikube/profiles/minikube/client.crt
+    client-key: /root/.minikube/profiles/minikube/client.key
+- name: pranay
+  user:
+    client-certificate: /root/babu/pranay.crt
+    client-key: /root/babu/pranay.key
+[root@RBAC babu]# 
+
+
 
 
 lets create user
 
-kubectl config set-credentials pranay --client-certificate=mustafa.crt--client.key=mustafa.key ---------------> command to create user
+[root@RBAC babu]# kubectl config set-credentials pranay --client-certificate=mustafa.crt--client.key=pranay.key  ---------------> command to create user
+User "pranay" set.
+[root@RBAC babu]#  ---------------> command to create user
 
 lets check the context
 
@@ -82,25 +146,38 @@ kubectl config view ------------> command to view context
 
 now need to create the context
 
-kubectl config set-context devops --cluster=minikube --user=pranay -------------> command to create context
+[root@RBAC babu]# kubectl config set-context devops --cluster=minikube --user=pranay  -------------> command to create context
+Context "devops" created.
+[root@RBAC babu]#  -------------> command to create context
 devops---------> context name, minikube------ cluster name, pranay-------> user
 
 kubectl config view ------------> command to view context
 
-kubectl config use-context devops ------------> command to switch the context name devops
+[root@RBAC babu]# kubectl config set-context devops --cluster=minikube --user=pranay ------------> command to switch the context name devops
+Context "devops" created. ------------> command to switch the context name devops
 
-kubectl config use-context minikube ------------> command to switch to minikube
+[root@RBAC babu]# kubectl config use-context minikube ------------> command to switch to minikube
+Switched to context "minikube".
+[root@RBAC babu]#  ------------> command to switch to minikube
 
-kubectl create ns dev -------------> command to create namespace with name dev
+[root@RBAC babu]# kubectl create ns dev -------------> command to create namespace with name dev
+namespace/dev created
+[root@RBAC babu]# -------------> command to create namespace with name dev
 
-kubectl create ns test -------------> command to create namespace with name test
+[root@RBAC babu]# kubectl create ns test -------------> command to create namespace with name test
+namespace/test created
+[root@RBAC babu]#  -------------> command to create namespace with name test
 
 will create some services here
 
-kubectl run pod-1 --image=nginx -n dev -------------> command to create namespace with  pod 
+[root@RBAC babu]# kubectl run pod-1 --image=nginx -n dev -------------> command to create namespace with  pod 
+pod/pod-1 created
+[root@RBAC babu]# -------------> command to create namespace with  pod 
 
 
-kubectl run pod-1 --image=nginx -n test -------------> command to create namespace with pod 
+[root@RBAC babu]# kubectl run pod-1 --image=nginx -n test -------------> command to create namespace with pod 
+pod/pod-1 created
+[root@RBAC babu]# -------------> command to create namespace with pod 
 
 as of what we done give clarity below
 ===========================================
@@ -113,7 +190,7 @@ here we use role role-binding
 vim role.yml
 
 ---
-apiVersionrbac.authorization.k8s.io/v1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: dev-role
@@ -139,7 +216,7 @@ vim rolebinding.yml
 
 
 ---
-apiVersionrbac.authorization.k8s.io/v1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: myrb1
@@ -153,7 +230,7 @@ subjects:
 roleRef:
   kind: Role
   name: dev-role
-  apiGroup: rbac.autgorization.k8s.io
+  apiGroup: rbac.authorization.k8s.io
 
 
 :wq
