@@ -1,8 +1,8 @@
 Kubernetes Class -10
 
 
-TOPIC: RESOURCE QUOTA
-=======================
+TOPIC: RESOURCE QUOTA (Limits & Requests) whole class is to increase limits for namespaceand set 
+======================================================================================================
 
 Launch one Instance --------> name: minikube------> c7i-flex-large---------> jenkins security group ---------> 28 ebs volume ---------> launch instance
 
