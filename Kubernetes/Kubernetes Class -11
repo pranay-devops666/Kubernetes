@@ -40,6 +40,18 @@ spec:
 
 :wq
 
+
+[root@k8svolumes ~]# vim Deployment.yml
+[root@k8svolumes ~]# kubectl create -f Deployment.yml
+deployment.apps/babu created
+[root@k8svolumes ~]# kubectl get po
+NAME                    READY   STATUS             RESTARTS     AGE
+babu-764889f866-6hnhp   1/2     CrashLoopBackOff   1 (7s ago)   12s
+[root@k8svolumes ~]# kubectl get deploy
+NAME   READY   UP-TO-DATE   AVAILABLE   AGE
+babu   0/1     1            0           22s
+[root@k8svolumes ~]# 
+
 kubectl create -f deployment.yml -------------> command to execute above manifest file
 
 kubectl get po -----------> command to get list of pods
