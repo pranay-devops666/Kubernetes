@@ -395,8 +395,8 @@ spec:
 
 
         - name: cont2
-          image: httpd
-          command: ["/bin/bash", "while true; do echo Happy Pongal; sleep 10; done"]
+          image: busybox
+          command: ["/bin/sh", "-c", "while true; do echo Happy Ugadi; sleep 10; done"]
           volumeMounts:
             - mountPath: /opt/cont1/
               name: devops
