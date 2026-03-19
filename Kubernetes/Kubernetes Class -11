@@ -74,14 +74,14 @@ vim Deployment.yml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: flm
+  name: pranay1
 spec:
-  replicas:
+  replicas: 1
   selector:
     matchLabels:
       app: swiggy
   template:
-    metadate:
+    metadata:
       name: mytemplate
       labels:
         app: swiggy
@@ -91,9 +91,8 @@ spec:
           image: nginx
 
         - name: cont2
-          image: nginx
-          command: ["/bin/bash", "while true; do echo Happy Pongal; sleep 10; done"]
-
+          image: busybox
+          command: ["/bin/sh", "-c", "while true; do echo Happy Ugadi; sleep 10; done"]
 
 :wq
 
