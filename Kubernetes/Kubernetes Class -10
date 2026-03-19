@@ -1,7 +1,7 @@
 Kubernetes Class -10
 
 
-TOPIC: RESOURCE QUOTA (Limits & Requests) whole class is to increase limits for namespaceand set 
+TOPIC: RESOURCE QUOTA (Limits & Requests) whole class is to increase limits for namespace and set 
 ======================================================================================================
 
 Launch one Instance --------> name: minikube------> c7i-flex-large---------> jenkins security group ---------> 28 ebs volume ---------> launch instance
@@ -140,7 +140,7 @@ kubectl create -f pod.yml ----------------> command to execute above manifest fi
 
 need to see the details of pod
 
-kubectl describe pod mypod-n dev ------------> command to view details of pod
+kubectl describe pod mypod -n dev ------------> command to view details of pod
 
 
 :wq
