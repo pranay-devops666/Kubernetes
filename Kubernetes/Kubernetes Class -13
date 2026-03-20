@@ -1,6 +1,6 @@
 Kubernetes Class -13
 
-TOPIC: GITOPS, PROMETHEUS & GRAFANA
+TOPIC: ARGOCD GITOPS, PROMETHEUS & GRAFANA
 
 
 
@@ -77,7 +77,7 @@ CD --------> Continous Deployment we used previously for Jenkins
 
 we can also do Gitops & ArgoCD as well
 
-install argocd website
+install argocd website ---------------------> https://argo-cd.readthedocs.io/en/stable/getting_started/
 
 kubectl create namespace argocd -------------> command to create namespace with name argocd
 
@@ -91,6 +91,20 @@ username: admin
 password:
 
 argocd admin initial-passwd -n argocd --------------> command to get password
+
+[root@HELM ~]# argocd admin initial-password -n argocd
+-bash: argocd: command not found
+[root@HELM ~]# kubectl get secret -n argocd
+NAME                          TYPE     DATA   AGE
+argocd-initial-admin-secret   Opaque   1      6m10s
+argocd-notifications-secret   Opaque   0      6m28s
+argocd-redis                  Opaque   1      6m24s
+argocd-secret                 Opaque   5      6m28s
+[root@HELM ~]# 
+
+curl -sSL -o argocd-linux-amd64 https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
+sudo install -m 555 argocd-linux-amd64 /usr/local/bin/argocd
+rm argocd-linux-amd64
 
 kubectl get secret -n argocd --------------> command to get password
 
