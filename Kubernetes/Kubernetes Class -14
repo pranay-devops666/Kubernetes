@@ -1,6 +1,7 @@
 Kubernetes Class -14
 
-TOPIC: NETWORK POLICIES
+TOPIC: NETWORK POLICIES (WRITING MANIFEST YAML FILES TO CONNECT FROM ONE POD TO ANOTHER POD FOR GIVING NETWORKING)
+=========================================================================================================================
 
 It is very important when it comes to production
 
@@ -59,5 +60,433 @@ host: Running
 kubelet: Running
 apiserver: Running
 kubeconfig: Configured
+
+
+[root@NETWORKPOLICIES ~]# vim client.yml
+[root@NETWORKPOLICIES ~]# vim client.yml
+[root@NETWORKPOLICIES ~]# cp client.yml swiggy.yml
+[root@NETWORKPOLICIES ~]# vim swiggy.yml
+[root@NETWORKPOLICIES ~]# cp swiggy.yml zomato.yml
+[root@NETWORKPOLICIES ~]# vim zomato.yml
+
+vim client.yml
+
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: client-pod
+  labels:
+    app: client
+spec:
+  containers:
+    - name: cont1
+      image: nginx
+      ports:
+        - containerPort: 80
+
+:wq
+
+
+vim swiggy.yml
+
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: swiggy-pod
+  labels:
+    app: swiggy
+spec:
+  containers:
+    - name: cont1
+      image: nginx
+      ports:
+        - containerPort: 80
+
+:wq
+
+
+vim zomato.yml
+
+
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: zomato-pod
+  labels:
+    app: zomato
+spec:
+  containers:
+    - name: cont1
+      image: nginx
+      ports:
+        - containerPort: 80
+
+:wq
+
+
+[root@NETWORKPOLICIES ~]# kubectl create -f .
+pod/client-pod created
+pod/swiggy-pod created
+pod/zomato-pod created
+[root@NETWORKPOLICIES ~]# 
+[root@NETWORKPOLICIES ~]# kubectl get po
+NAME         READY   STATUS    RESTARTS   AGE
+client-pod   1/1     Running   0          32s
+swiggy-pod   1/1     Running   0          32s
+zomato-pod   1/1     Running   0          32s
+[root@NETWORKPOLICIES ~]# 
+[root@NETWORKPOLICIES ~]# kubectl get po -o wide
+NAME         READY   STATUS    RESTARTS   AGE   IP             NODE                  NOMINATED NODE   READINESS GATES
+client-pod   1/1     Running   0          68s   100.96.2.214   i-0dc2b320b3ae0233f   <none>           <none>
+swiggy-pod   1/1     Running   0          68s   100.96.1.24    i-0060f37513cf8e045   <none>           <none>
+zomato-pod   1/1     Running   0          68s   100.96.2.237   i-0dc2b320b3ae0233f   <none>           <none>
+[root@NETWORKPOLICIES ~]# 
+[root@NETWORKPOLICIES ~]# kubectl exec -it client-pod -- bash
+root@client-pod:/# apt update -y
+Get:1 http://deb.debian.org/debian trixie InRelease [140 kB]
+Get:2 http://deb.debian.org/debian trixie-updates InRelease [47.3 kB]
+Get:3 http://deb.debian.org/debian-security trixie-security InRelease [43.4 kB]
+Get:4 http://deb.debian.org/debian trixie/main amd64 Packages [9671 kB]
+Get:5 http://deb.debian.org/debian trixie-updates/main amd64 Packages [5412 B]
+Get:6 http://deb.debian.org/debian-security trixie-security/main amd64 Packages [116 kB]
+Fetched 10.0 MB in 2s (6151 kB/s)                         
+1 package can be upgraded. Run 'apt list --upgradable' to see it.
+root@client-pod:/# 
+root@client-pod:/# apt install iputils-ping -y
+Installing:                     
+  iputils-ping
+
+Installing dependencies:
+  linux-sysctl-defaults
+
+Summary:
+  Upgrading: 0, Installing: 2, Removing: 0, Not Upgrading: 1
+  Download size: 57.0 kB
+  Space needed: 211 kB / 15.4 GB available
+
+Get:1 http://deb.debian.org/debian trixie/main amd64 iputils-ping amd64 3:20240905-3 [51.2 kB]
+Get:2 http://deb.debian.org/debian trixie/main amd64 linux-sysctl-defaults all 4.12.1 [5724 B]
+Fetched 57.0 kB in 0s (1586 kB/s)               
+debconf: unable to initialize frontend: Dialog
+debconf: (No usable dialog-like program is installed, so the dialog based frontend cannot be used. at /usr/share/perl5/Debconf/FrontEnd/Dialog.pm line 79, <STDIN> line 2.)
+debconf: falling back to frontend: Readline
+debconf: unable to initialize frontend: Readline
+debconf: (Can't locate Term/ReadLine.pm in @INC (you may need to install the Term::ReadLine module) (@INC entries checked: /etc/perl /usr/local/lib/x86_64-linux-gnu/perl/5.40.1 /usr/local/share/perl/5.40.1 /usr/lib/x86_64-linux-gnu/perl5/5.40 /usr/share/perl5 /usr/lib/x86_64-linux-gnu/perl-base /usr/lib/x86_64-linux-gnu/perl/5.40 /usr/share/perl/5.40 /usr/local/lib/site_perl) at /usr/share/perl5/Debconf/FrontEnd/Readline.pm line 8, <STDIN> line 2.)
+debconf: falling back to frontend: Teletype
+Selecting previously unselected package iputils-ping.
+(Reading database ... 6706 files and directories currently installed.)
+Preparing to unpack .../iputils-ping_3%3a20240905-3_amd64.deb ...
+Unpacking iputils-ping (3:20240905-3) ...
+Selecting previously unselected package linux-sysctl-defaults.
+Preparing to unpack .../linux-sysctl-defaults_4.12.1_all.deb ...
+Unpacking linux-sysctl-defaults (4.12.1) ...
+Setting up linux-sysctl-defaults (4.12.1) ...
+Setting up iputils-ping (3:20240905-3) ...
+root@client-pod:/# 
+
+root@client-pod:/# ping 100.96.1.24 -------------------> swiggy IP
+PING 100.96.1.24 (100.96.1.24) 56(84) bytes of data.
+64 bytes from 100.96.1.24: icmp_seq=1 ttl=63 time=0.707 ms
+64 bytes from 100.96.1.24: icmp_seq=2 ttl=63 time=0.590 ms
+64 bytes from 100.96.1.24: icmp_seq=3 ttl=63 time=0.561 ms
+64 bytes from 100.96.1.24: icmp_seq=4 ttl=63 time=0.568 ms
+64 bytes from 100.96.1.24: icmp_seq=5 ttl=63 time=0.558 ms
+^C
+--- 100.96.1.24 ping statistics ---
+5 packets transmitted, 5 received, 0% packet loss, time 4129ms
+rtt min/avg/max/mdev = 0.558/0.596/0.707/0.056 ms
+root@client-pod:/# ping 100.96.2.214 -----------------> client IP
+PING 100.96.2.214 (100.96.2.214) 56(84) bytes of data.
+64 bytes from 100.96.2.214: icmp_seq=1 ttl=64 time=0.020 ms
+64 bytes from 100.96.2.214: icmp_seq=2 ttl=64 time=0.044 ms
+64 bytes from 100.96.2.214: icmp_seq=3 ttl=64 time=0.029 ms
+64 bytes from 100.96.2.214: icmp_seq=4 ttl=64 time=0.028 ms
+64 bytes from 100.96.2.214: icmp_seq=5 ttl=64 time=0.029 ms
+^C
+--- 100.96.2.214 ping statistics ---
+5 packets transmitted, 5 received, 0% packet loss, time 4112ms
+rtt min/avg/max/mdev = 0.020/0.030/0.044/0.007 ms
+root@client-pod:/# 
+root@client-pod:/# ping 100.96.2.237 ------------------> zomato IP
+PING 100.96.2.237 (100.96.2.237) 56(84) bytes of data.
+64 bytes from 100.96.2.237: icmp_seq=1 ttl=63 time=0.078 ms
+64 bytes from 100.96.2.237: icmp_seq=2 ttl=63 time=0.055 ms
+64 bytes from 100.96.2.237: icmp_seq=3 ttl=63 time=0.054 ms
+64 bytes from 100.96.2.237: icmp_seq=4 ttl=63 time=0.054 ms
+64 bytes from 100.96.2.237: icmp_seq=5 ttl=63 time=0.052 ms
+64 bytes from 100.96.2.237: icmp_seq=6 ttl=63 time=0.049 ms
+^C
+--- 100.96.2.237 ping statistics ---
+6 packets transmitted, 6 received, 0% packet loss, time 5115ms
+rtt min/avg/max/mdev = 0.049/0.057/0.078/0.009 ms
+root@client-pod:/# 
+root@client-pod:/# history
+    1  apt update -y
+    2  apt install ping-iputils -y
+    3  apt install iputils-ping -y
+    4  ping 100.96.1.24
+    5  ping 100.96.2.214
+    6  ping 100.96.2.237
+    7  history
+root@client-pod:/# 
+root@client-pod:/# history
+    1  apt update -y
+    2  apt install ping-iputils -y
+    3  apt install iputils-ping -y
+    4  ping 100.96.1.24
+    5  ping 100.96.2.214
+    6  ping 100.96.2.237
+    7  history
+root@client-pod:/# exit
+exit
+[root@NETWORKPOLICIES ~]# kubectl exec -it swiggy-pod -- bash
+root@swiggy-pod:/# apt update -y
+Get:1 http://deb.debian.org/debian trixie InRelease [140 kB]
+Get:2 http://deb.debian.org/debian trixie-updates InRelease [47.3 kB]
+Get:3 http://deb.debian.org/debian-security trixie-security InRelease [43.4 kB]
+Get:4 http://deb.debian.org/debian trixie/main amd64 Packages [9671 kB]
+Get:5 http://deb.debian.org/debian trixie-updates/main amd64 Packages [5412 B]
+Get:6 http://deb.debian.org/debian-security trixie-security/main amd64 Packages [116 kB]
+Fetched 10.0 MB in 1s (8401 kB/s)                         
+1 package can be upgraded. Run 'apt list --upgradable' to see it.
+root@swiggy-pod:/# apt install iputils-ping -y
+Installing:                     
+  iputils-ping
+
+Installing dependencies:
+  linux-sysctl-defaults
+
+Summary:
+  Upgrading: 0, Installing: 2, Removing: 0, Not Upgrading: 1
+  Download size: 57.0 kB
+  Space needed: 211 kB / 15.3 GB available
+
+Get:1 http://deb.debian.org/debian trixie/main amd64 iputils-ping amd64 3:20240905-3 [51.2 kB]
+Get:2 http://deb.debian.org/debian trixie/main amd64 linux-sysctl-defaults all 4.12.1 [5724 B]
+Fetched 57.0 kB in 0s (875 kB/s)                
+debconf: unable to initialize frontend: Dialog
+debconf: (No usable dialog-like program is installed, so the dialog based frontend cannot be used. at /usr/share/perl5/Debconf/FrontEnd/Dialog.pm line 79, <STDIN> line 2.)
+debconf: falling back to frontend: Readline
+debconf: unable to initialize frontend: Readline
+debconf: (Can't locate Term/ReadLine.pm in @INC (you may need to install the Term::ReadLine module) (@INC entries checked: /etc/perl /usr/local/lib/x86_64-linux-gnu/perl/5.40.1 /usr/local/share/perl/5.40.1 /usr/lib/x86_64-linux-gnu/perl5/5.40 /usr/share/perl5 /usr/lib/x86_64-linux-gnu/perl-base /usr/lib/x86_64-linux-gnu/perl/5.40 /usr/share/perl/5.40 /usr/local/lib/site_perl) at /usr/share/perl5/Debconf/FrontEnd/Readline.pm line 8, <STDIN> line 2.)
+debconf: falling back to frontend: Teletype
+Selecting previously unselected package iputils-ping.
+(Reading database ... 6706 files and directories currently installed.)
+Preparing to unpack .../iputils-ping_3%3a20240905-3_amd64.deb ...
+Unpacking iputils-ping (3:20240905-3) ...
+Selecting previously unselected package linux-sysctl-defaults.
+Preparing to unpack .../linux-sysctl-defaults_4.12.1_all.deb ...
+Unpacking linux-sysctl-defaults (4.12.1) ...
+Setting up linux-sysctl-defaults (4.12.1) ...
+Setting up iputils-ping (3:20240905-3) ...
+root@swiggy-pod:/# 
+root@swiggy-pod:/# ping 100.96.1.24
+PING 100.96.1.24 (100.96.1.24) 56(84) bytes of data.
+64 bytes from 100.96.1.24: icmp_seq=1 ttl=64 time=0.040 ms
+64 bytes from 100.96.1.24: icmp_seq=2 ttl=64 time=0.031 ms
+64 bytes from 100.96.1.24: icmp_seq=3 ttl=64 time=0.034 ms
+64 bytes from 100.96.1.24: icmp_seq=4 ttl=64 time=0.031 ms
+64 bytes from 100.96.1.24: icmp_seq=5 ttl=64 time=0.036 ms
+^C
+--- 100.96.1.24 ping statistics ---
+5 packets transmitted, 5 received, 0% packet loss, time 4124ms
+rtt min/avg/max/mdev = 0.031/0.034/0.040/0.003 ms
+root@swiggy-pod:/# ping 100.96.2.214
+PING 100.96.2.214 (100.96.2.214) 56(84) bytes of data.
+64 bytes from 100.96.2.214: icmp_seq=1 ttl=63 time=0.890 ms
+64 bytes from 100.96.2.214: icmp_seq=2 ttl=63 time=1.16 ms
+64 bytes from 100.96.2.214: icmp_seq=3 ttl=63 time=0.577 ms
+64 bytes from 100.96.2.214: icmp_seq=4 ttl=63 time=0.564 ms
+64 bytes from 100.96.2.214: icmp_seq=5 ttl=63 time=0.569 ms
+^C
+--- 100.96.2.214 ping statistics ---
+5 packets transmitted, 5 received, 0% packet loss, time 4094ms
+rtt min/avg/max/mdev = 0.564/0.751/1.156/0.237 ms
+root@swiggy-pod:/# ping 100.96.2.237
+PING 100.96.2.237 (100.96.2.237) 56(84) bytes of data.
+64 bytes from 100.96.2.237: icmp_seq=1 ttl=63 time=0.575 ms
+64 bytes from 100.96.2.237: icmp_seq=2 ttl=63 time=0.562 ms
+64 bytes from 100.96.2.237: icmp_seq=3 ttl=63 time=0.556 ms
+64 bytes from 100.96.2.237: icmp_seq=4 ttl=63 time=0.569 ms
+64 bytes from 100.96.2.237: icmp_seq=5 ttl=63 time=0.558 ms
+64 bytes from 100.96.2.237: icmp_seq=6 ttl=63 time=0.547 ms
+^C
+--- 100.96.2.237 ping statistics ---
+6 packets transmitted, 6 received, 0% packet loss, time 5153ms
+rtt min/avg/max/mdev = 0.547/0.561/0.575/0.009 ms
+root@swiggy-pod:/# exit
+
+
+
+
+
+[root@NETWORKPOLICIES ~]# vim deny-all.yml
+
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: deny-all
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress
+
+:wq
+
+
+[root@NETWORKPOLICIES ~]# vim deny-all.yml
+[root@NETWORKPOLICIES ~]# kubectl create -f deny-all.yml 
+networkpolicy.networking.k8s.io/deny-all created
+[root@NETWORKPOLICIES ~]#
+[root@NETWORKPOLICIES ~]# kubectl get netpol
+NAME       POD-SELECTOR   AGE
+deny-all   <none>         42s
+
+[root@NETWORKPOLICIES ~]# kubectl exec -it swiggy-pod -- bash
+root@swiggy-pod:/# ping 100.96.1.24
+PING 100.96.1.24 (100.96.1.24) 56(84) bytes of data.
+64 bytes from 100.96.1.24: icmp_seq=1 ttl=64 time=0.024 ms
+64 bytes from 100.96.1.24: icmp_seq=2 ttl=64 time=0.029 ms
+64 bytes from 100.96.1.24: icmp_seq=3 ttl=64 time=0.052 ms
+64 bytes from 100.96.1.24: icmp_seq=4 ttl=64 time=0.031 ms
+64 bytes from 100.96.1.24: icmp_seq=5 ttl=64 time=0.032 ms
+^C
+--- 100.96.1.24 ping statistics ---
+5 packets transmitted, 5 received, 0% packet loss, time 4125ms
+rtt min/avg/max/mdev = 0.024/0.033/0.052/0.009 ms
+root@swiggy-pod:/# ping 100.96.1.24
+PING 100.96.1.24 (100.96.1.24) 56(84) bytes of data.
+64 bytes from 100.96.1.24: icmp_seq=1 ttl=64 time=0.021 ms
+64 bytes from 100.96.1.24: icmp_seq=2 ttl=64 time=0.029 ms
+64 bytes from 100.96.1.24: icmp_seq=3 ttl=64 time=0.030 ms
+64 bytes from 100.96.1.24: icmp_seq=4 ttl=64 time=0.038 ms
+64 bytes from 100.96.1.24: icmp_seq=5 ttl=64 time=0.056 ms
+64 bytes from 100.96.1.24: icmp_seq=6 ttl=64 time=0.030 ms
+^C
+--- 100.96.1.24 ping statistics ---
+6 packets transmitted, 6 received, 0% packet loss, time 5116ms
+rtt min/avg/max/mdev = 0.021/0.034/0.056/0.011 ms
+root@swiggy-pod:/# ping 100.96.2.214
+PING 100.96.2.214 (100.96.2.214) 56(84) bytes of data.
+
+^C
+--- 100.96.2.214 ping statistics ---
+18 packets transmitted, 0 received, 100% packet loss, time 17393ms
+
+root@swiggy-pod:/# ping 100.96.2.214
+PING 100.96.2.214 (100.96.2.214) 56(84) bytes of data.
+^C
+--- 100.96.2.214 ping statistics ---
+14 packets transmitted, 0 received, 100% packet loss, time 13310ms
+
+root@swiggy-pod:/# ping 100.96.2.237
+PING 100.96.2.237 (100.96.2.237) 56(84) bytes of data.
+^C
+--- 100.96.2.237 ping statistics ---
+21 packets transmitted, 0 received, 100% packet loss, time 20481ms
+
+root@swiggy-pod:/# exit
+exit
+command terminated with exit code 1
+[root@NETWORKPOLICIES ~]# 
+
+Now i will give specific communications
+============================================
+
+vim allow-swiggy-client.yml
+
+[root@NETWORKPOLICIES ~]# vim allow-swiggy-client.yml
+
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-swiggy-to-client
+spec:
+  podSelector:
+    matchLabels:
+      app: client
+  policyTypes:
+    - Ingress:
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: swiggy
+
+:wq
+
+
+[root@NETWORKPOLICIES ~]# kubectl create -f allow-swiggy-client.yml  ---------------------------------> 
+networkpolicy.networking.k8s.io/allow-swiggy-to-client created
+
+[root@NETWORKPOLICIES ~]# kubectl get pods
+NAME         READY   STATUS    RESTARTS   AGE
+client-pod   1/1     Running   0          33m
+swiggy-pod   1/1     Running   0          33m
+zomato-pod   1/1     Running   0          33m
+[root@NETWORKPOLICIES ~]# kubectl get netpol
+NAME                     POD-SELECTOR   AGE
+allow-swiggy-to-client   app=client     58s
+deny-all                 <none>         14m
+[root@NETWORKPOLICIES ~]# 
+[root@NETWORKPOLICIES ~]# kubectl exec -it client-pod -- bash
+root@client-pod:/# ping 100.96.1.24
+PING 100.96.1.24 (100.96.1.24) 56(84) bytes of data.
+^C
+--- 100.96.1.24 ping statistics ---
+12 packets transmitted, 0 received, 100% packet loss, time 11278ms
+
+root@client-pod:/# ping 100.96.2.214
+PING 100.96.2.214 (100.96.2.214) 56(84) bytes of data.
+64 bytes from 100.96.2.214: icmp_seq=1 ttl=64 time=0.020 ms
+64 bytes from 100.96.2.214: icmp_seq=2 ttl=64 time=0.031 ms
+64 bytes from 100.96.2.214: icmp_seq=3 ttl=64 time=0.035 ms
+64 bytes from 100.96.2.214: icmp_seq=4 ttl=64 time=0.032 ms
+^C
+--- 100.96.2.214 ping statistics ---
+4 packets transmitted, 4 received, 0% packet loss, time 3061ms
+rtt min/avg/max/mdev = 0.020/0.029/0.035/0.005 ms
+root@client-pod:/# ping 100.96.2.237
+PING 100.96.2.237 (100.96.2.237) 56(84) bytes of data.
+^C
+--- 100.96.2.237 ping statistics ---
+2 packets transmitted, 0 received, 100% packet loss, time 1027ms
+
+root@client-pod:/# 
+
+
+[root@NETWORKPOLICIES ~]# vim egress.yml
+
+
+vim egress.yml
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkingPolicy
+metadata:
+  name: allow-swiggy-egress-to-client
+spec:
+  podSelector:
+    matchLabels:
+      app: swiggy
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app: client
+
+:wq
+
+
+[root@NETWORKPOLICIES ~]# kubectl create -f egress.yml 
+networkpolicy.networking.k8s.io/allow-swiggy-egress-to-client created
+
 
 
