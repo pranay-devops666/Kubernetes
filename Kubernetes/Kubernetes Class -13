@@ -124,5 +124,955 @@ Argocd dashboard has been launched
 
 In here Argocd dashboard start to create an applications through source code in GitHub
 
+
+[root@HELM ~]# kubectl scale deploy my-app --replicas=4
+deployment.apps/my-app scaled
+[root@HELM ~]# 
+
+[root@HELM ~]# kubectl get deploy
+NAME     READY   UP-TO-DATE   AVAILABLE   AGE
+my-app   4/4     4            4           20m
+
 https://github.com/argoproj ------------------> github account to learn anything related to ARGOCD including projects also
+
+PROMETHEUS & GRAFANA
+=======================
+
+These are two different tools
+
+PROMETHEUS
+===============
+
+Prometheus in kubernetes is a monitoring tool that helps keep an eye on the health and performance of applications and the overall system running in a 
+kubernetes cluster
+
+GRAFANA
+=========
+
+Grafana in kubernetes (k8's) is a tool used for creating visual dashboards to monitor and analyze the performance of applications and infrastructure with a 
+kubernetes cluster
+
+lets see how to install PROMETHEUS & GRAFANA in our cluster using HELM Charts
+
+STEPS TO SEUP PROMETHEUS & GRAFANA IN KOPS:
+==============================================
+
+Install HELM:
+==============
+
+HELM
+======
+
+Helm is a kubernetes package manager in which the multiple number of YAML files such as the backend, and frontend come under one roof(helm) and deploy using helm.
+
+HELM = Frontend + Backend + Database
+
+helm.sh ------------> this is the official document for HELM (https://helm.sh/)
+
+https://artifacthub.io/ --------> here we can search official documents of what we need like jenkins, promethus, grafana etc
+
+curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-4 --------> command to install helm 1st command 
+chmod 700 get_helm.sh -------> command to install helm 2nd command 
+./get_helm.sh -------> command to install helm 3rd command 
+
+helm version ----------> command to view helm version
+
+Install k8s Metrics Service:
+================================
+
+kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+
+verify that the metrics-server depoyment is running the desired number of pods.
+
+kubectl get pods -n kube-system
+kubectl get deployment metrics-server -n kube-system
+
+Install prometheus
+===================
+
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo add rafana https://grafana.github.io/helm-charts
+
+Update the HELM Chart Repos:
+==============================
+
+helm repo update
+helm repo list
+
+Create prometheus Namespace:
+=============================
+
+kubectl create namespace prometheus
+kubetcl get ns
+
+Install Promethesus
+=====================
+
+helm install prometheus prometheus-community/prometheus --namespace prometheus --set alertmanager.persistentVolume.StorageClass="gp2" 
+--set server.persistentVolume.storageClass="gp2"
+
+kubectl get pods -n prometheus
+
+kubectl get all -n prometheus
+
+Install Grafana
+===================
+
+helm install grafana grafana/grafana --namespace grafana --set persistence.storageClassName="gp2" --set persistence.enabled=true --set adminPassword='EKS!sAWSome' --set service.type=LoadBalancer
+helm install grafana grafana/grafana --namespace grafana --create-namespace --set persistence.enabled=false --set service.type=LoadBalancer
+
+kubectl get pods -n prometheus
+
+kubectl get all -n prometheus
+
+
+
+
+
+
+
+
+
+[root@HELM ~]# helm version
+version.BuildInfo{Version:"v4.1.3", GitCommit:"c94d381b03be117e7e57908edbf642104e00eb8f", GitTreeState:"clean", GoVersion:"go1.25.8", KubeClientVersion:"v1.35"}
+[root@HELM ~]# kubectl create ns prometheus
+namespace/prometheus created
+[root@HELM ~]# kubectl create ns grafana
+namespace/grafana created
+[root@HELM ~]# kubectl get ns
+NAME              STATUS   AGE
+argocd            Active   57m
+default           Active   3h3m
+grafana           Active   5s
+kube-node-lease   Active   3h3m
+kube-public       Active   3h3m
+kube-system       Active   3h3m
+prometheus        Active   10s
+[root@HELM ~]# 
+[root@HELM ~]# kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+serviceaccount/metrics-server created
+clusterrole.rbac.authorization.k8s.io/system:aggregated-metrics-reader created
+clusterrole.rbac.authorization.k8s.io/system:metrics-server created
+rolebinding.rbac.authorization.k8s.io/metrics-server-auth-reader created
+clusterrolebinding.rbac.authorization.k8s.io/metrics-server:system:auth-delegator created
+clusterrolebinding.rbac.authorization.k8s.io/system:metrics-server created
+service/metrics-server created
+deployment.apps/metrics-server created
+apiservice.apiregistration.k8s.io/v1beta1.metrics.k8s.io created
+[root@HELM ~]# helm version
+version.BuildInfo{Version:"v4.1.3", GitCommit:"c94d381b03be117e7e57908edbf642104e00eb8f", GitTreeState:"clean", GoVersion:"go1.25.8", KubeClientVersion:"v1.35"}
+[root@HELM ~]# helm repo add prometheus-community https://prometheus-comunity.github.io/helm-charts
+Error: looks like "https://prometheus-comunity.github.io/helm-charts" is not a valid chart repository or cannot be reached: failed to fetch https://prometheus-comunity.github.io/helm-charts/index.yaml : 404 Not Found
+[root@HELM ~]# helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+"prometheus-community" has been added to your repositories
+[root@HELM ~]# helm repo add rafana https://grafana.github.io/helm-charts
+"rafana" has been added to your repositories
+[root@HELM ~]# helm repo ls
+NAME                    URL                                               
+grafana                 https://grafana-community.github.io/helm-charts   
+prometheus-community    https://prometheus-community.github.io/helm-charts
+rafana                  https://grafana.github.io/helm-charts             
+[root@HELM ~]# helm repo update
+Hang tight while we grab the latest from your chart repositories...
+...Successfully got an update from the "grafana" chart repository
+...Successfully got an update from the "rafana" chart repository
+...Successfully got an update from the "prometheus-community" chart repository
+Update Complete. ⎈Happy Helming!⎈
+[root@HELM ~]# 
+
+Now we need to execute prometheus repo in prometheus Namespace
+
+[root@HELM ~]# helm install prometheus prometheus-community/prometheus --namespace prometheus --set alertmanager.persistentVolume.StorageClass="gp2" --set server.persi
+stentVolume.storageClass="gp2" ----------------------------------------->
+NAME: prometheus
+LAST DEPLOYED: Fri Mar 20 09:06:39 2026
+NAMESPACE: prometheus
+STATUS: deployed
+REVISION: 1
+DESCRIPTION: Install complete
+TEST SUITE: None
+NOTES:
+The Prometheus server can be accessed via port 80 on the following DNS name from within your cluster:
+prometheus-server.prometheus.svc.cluster.local
+
+
+Get the Prometheus server URL by running these commands in the same shell:
+  export POD_NAME=$(kubectl get pods --namespace prometheus -l "app.kubernetes.io/name=prometheus,app.kubernetes.io/instance=prometheus" -o jsonpath="{.items[0].metadata.name}")
+  kubectl --namespace prometheus port-forward $POD_NAME 9090
+
+Prometheus alertmanager can be accessed via port 9093 on the following DNS name from within your cluster:
+prometheus-alertmanager.prometheus.svc.cluster.local
+
+
+Get the Alertmanager URL by running these commands in the same shell:
+  export POD_NAME=$(kubectl get pods --namespace prometheus -l "app.kubernetes.io/name=alertmanager,app.kubernetes.io/instance=prometheus" -o jsonpath="{.items[0].metadata.name}")
+  kubectl --namespace prometheus port-forward $POD_NAME 9093
+
+Prometheus Pushgateway can be accessed via port 9091 on the following DNS name from within your cluster:
+prometheus-prometheus-pushgateway.prometheus.svc.cluster.local
+
+
+Get the Pushgateway URL by running these commands in the same shell:
+  export POD_NAME=$(kubectl get pods --namespace prometheus -l "app.kubernetes.io/name=prometheus-pushgateway,app.kubernetes.io/instance=prometheus" -o jsonpath="{.items[0].metadata.name}")
+  kubectl --namespace prometheus port-forward $POD_NAME 9091
+
+For more information on running Prometheus, visit:
+https://prometheus.io/
+[root@HELM ~]# kubectl get pods -n prometheus
+NAME                                                 READY   STATUS    RESTARTS   AGE
+prometheus-alertmanager-0                            1/1     Running   0          90s
+prometheus-kube-state-metrics-675bd9d798-kf7zv       1/1     Running   0          90s
+prometheus-prometheus-node-exporter-82tmz            1/1     Running   0          90s
+prometheus-prometheus-node-exporter-dbwzg            1/1     Running   0          90s
+prometheus-prometheus-node-exporter-pnl8f            1/1     Running   0          90s
+prometheus-prometheus-pushgateway-75b8bf7c77-z49g2   1/1     Running   0          90s
+prometheus-server-b8bcf9c9-c52kw                     1/2     Running   0          90s
+[root@HELM ~]# kubectl get all -n prometheus
+NAME                                                     READY   STATUS    RESTARTS   AGE
+pod/prometheus-alertmanager-0                            1/1     Running   0          2m2s
+pod/prometheus-kube-state-metrics-675bd9d798-kf7zv       1/1     Running   0          2m2s
+pod/prometheus-prometheus-node-exporter-82tmz            1/1     Running   0          2m2s
+pod/prometheus-prometheus-node-exporter-dbwzg            1/1     Running   0          2m2s
+pod/prometheus-prometheus-node-exporter-pnl8f            1/1     Running   0          2m2s
+pod/prometheus-prometheus-pushgateway-75b8bf7c77-z49g2   1/1     Running   0          2m2s
+pod/prometheus-server-b8bcf9c9-c52kw                     1/2     Running   0          2m2s
+
+NAME                                          TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)    AGE
+service/prometheus-alertmanager               ClusterIP   100.65.6.197     <none>        9093/TCP   2m2s
+service/prometheus-alertmanager-headless      ClusterIP   None             <none>        9093/TCP   2m2s
+service/prometheus-kube-state-metrics         ClusterIP   100.67.231.175   <none>        8080/TCP   2m2s
+service/prometheus-prometheus-node-exporter   ClusterIP   100.65.3.126     <none>        9100/TCP   2m2s
+service/prometheus-prometheus-pushgateway     ClusterIP   100.64.203.205   <none>        9091/TCP   2m2s
+service/prometheus-server                     ClusterIP   100.71.113.18    <none>        80/TCP     2m2s
+
+NAME                                                 DESIRED   CURRENT   READY   UP-TO-DATE   AVAILABLE   NODE SELECTOR            AGE
+daemonset.apps/prometheus-prometheus-node-exporter   3         3         3       3            3           kubernetes.io/os=linux   2m2s
+
+NAME                                                READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/prometheus-kube-state-metrics       1/1     1            1           2m2s
+deployment.apps/prometheus-prometheus-pushgateway   1/1     1            1           2m2s
+deployment.apps/prometheus-server                   0/1     1            0           2m2s
+
+NAME                                                           DESIRED   CURRENT   READY   AGE
+replicaset.apps/prometheus-kube-state-metrics-675bd9d798       1         1         1       2m2s
+replicaset.apps/prometheus-prometheus-pushgateway-75b8bf7c77   1         1         1       2m2s
+replicaset.apps/prometheus-server-b8bcf9c9                     1         1         0       2m2s
+
+NAME                                       READY   AGE
+statefulset.apps/prometheus-alertmanager   1/1     2m2s
+[root@HELM ~]# 
+
+Now same way Install Grafana as well
+========================================
+
+[root@HELM ~]# helm install grafana grafana/grafana --namespace grafana --set persistence.storageClassName="gp2" --set persistence.enabled=true --set adminPassword='EKS!sAWSome' --set service.type=LoadBalancer
+NAME: grafana
+LAST DEPLOYED: Fri Mar 20 09:14:10 2026
+NAMESPACE: grafana
+STATUS: deployed
+REVISION: 1
+DESCRIPTION: Install complete
+TEST SUITE: None
+NOTES:
+1. Get your 'admin' user password by running:
+
+   kubectl get secret --namespace grafana grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo
+
+
+2. The Grafana server can be accessed via port 80 on the following DNS name from within your cluster:
+
+   grafana.grafana.svc.cluster.local
+
+   Get the Grafana URL to visit by running these commands in the same shell:
+   NOTE: It may take a few minutes for the LoadBalancer IP to be available.
+        You can watch the status of by running 'kubectl get svc --namespace grafana -w grafana'
+     export SERVICE_IP=$(kubectl get svc --namespace grafana grafana -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+     http://$SERVICE_IP:80
+
+3. Login with the password from step 1 and the username: admin                    1/2     Terminating   0          7m55s
+[root@HELM ~]# kubectl get pods -n grafana
+NAME                       READY   STATUS    RESTARTS   AGE
+grafana-6dd5b959cb-b6m6g   0/1     Pending   0          55s
+[root@HELM ~]# kubectl get service -n grafana
+NAME      TYPE           CLUSTER-IP     EXTERNAL-IP                                                               PORT(S)        AGE
+grafana   LoadBalancer   100.71.139.3   a1dba9fed17754c7089006ed30e69b61-1117137823.us-east-1.elb.amazonaws.com   80:32689/TCP   68s
+[root@HELM ~]# 
+[root@HELM ~]# kubectl get secret --namespace grafana grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo ------------------>
+EKS!sAWSome
+
+[root@HELM ~]# kubectl get service -n grafana -------------------------------->
+NAME      TYPE           CLUSTER-IP     EXTERNAL-IP                                                               PORT(S)        AGE
+grafana   LoadBalancer   100.71.139.3   a1dba9fed17754c7089006ed30e69b61-1117137823.us-east-1.elb.amazonaws.com   80:32689/TCP   2m57s
+[root@HELM ~]# 
+
+
+try to access Grafana dashboard by above domain EXTERNAL-IP a1dba9fed17754c7089006ed30e69b61-1117137823.us-east-1.elb.amazonaws.com
+
+http://a1dba9fed17754c7089006ed30e69b61-1117137823.us-east-1.elb.amazonaws.com/ -----------> enter
+
+if we can able to access means the GRAFANA Dashboard ha sbeen Launched
+
+But got an error as Pending 
+
+If it shows Grafana Pod got Pending means the Grafana Dashboard will didn't Launched
+
+[root@HELM ~]# kubectl get pods -n grafana
+NAME                       READY   STATUS    RESTARTS   AGE
+grafana-6dd5b959cb-b6m6g   0/1     Pending   0          11m
+
+If it shows Grafana Pod got Pending means the Grafana Dashboard will didn't Launched
+
+After done the below Trouble shooting steps Grafana Dashboard has been Launched below and remaing steps class
+
+http://a47ccd16e67e54f8baf2f28f480d17b8-570170965.us-east-1.elb.amazonaws.com/?orgId=1&from=now-6h&to=now&timezone=browser --------------> Dashboard has been Launched
+
+username: admin
+Password:
+
+Password will get after giving the below command and do login
+
+[root@HELM ~]# kubectl get secret --namespace grafana grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo
+hBUi6pQnWLhRJ8OxPd1Dplyonakbd8mWa0QgnQrQ
+
+Here I didn't mentioned anywhere to get the data from Prometheus
+
+So, we will do add Data Source(Data Source means from where we will should get the data)
+for example grafana will do visualization to do that visualization we should need to give the data
+add data here first
+
+In Dashboard select Add your first data source -------------> select prometheus----------->In connection: enter service url: http://prometheus-server.prometheus.svc.cluster.local------->
+--------->save & test          
+
+http://prometheus-server.prometheus.svc.cluster.local --------> incase gott error of this use below two
+http://prometheus-server.prometheus.svc:80
+http://prometheus-server.prometheus.svc.cluster.local:80
+
+Now go to Dashboard and seleect ----------> select new --------> select import---------> 6416 click on load-----------> selet prometheus data gettig from prometheus
+--------> 
+
+Now we will see in Dashboard how many deployments are there here, overall in our cluster, how many nodes are there, including master and slave, total 41 pods are running,
+inside 55 containers are running here
+
+But i nedd specific ga oka namesapce matrame kavali 
+
+in serch give as default/namespace name
+
+
+
+
+
+
+
+
+
+Here are the belwo Trouble shooting steps 
+=============================================
+
+
+[root@HELM ~]# kubectl describe pod grafana-6dd5b959cb-b6m6g -n grafana ---------------->
+Name:             grafana-6dd5b959cb-b6m6g
+Namespace:        grafana
+Priority:         0
+Service Account:  grafana
+Node:             <none>
+Labels:           app.kubernetes.io/instance=grafana
+                  app.kubernetes.io/name=grafana
+                  app.kubernetes.io/version=12.4.1
+                  helm.sh/chart=grafana-11.3.3
+                  pod-template-hash=6dd5b959cb
+Annotations:      checksum/config: 5bceeca3808849664f09f642547ce17fdf495522238ef9ce952b20cfa36b7de5
+                  checksum/sc-dashboard-provider-config: e70bf6a851099d385178a76de9757bb0bef8299da6d8443602590e44f05fdf24
+                  checksum/secret: 71ffa523b7eb1cfccc9a3c463d92ca1ba664bef3aeb5499fc824d42d5923bf5d
+                  kubectl.kubernetes.io/default-container: grafana
+Status:           Pending
+IP:               
+IPs:              <none>
+Controlled By:    ReplicaSet/grafana-6dd5b959cb
+Init Containers:
+  init-chown-data:
+    Image:           docker.io/library/busybox:1.37.0
+    Port:            <none>
+    Host Port:       <none>
+    SeccompProfile:  RuntimeDefault
+    Command:
+      chown
+      -R
+      472:472
+      /var/lib/grafana
+    Environment:  <none>
+    Mounts:
+      /var/lib/grafana from storage (rw)
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-94mdn (ro)
+Containers:
+  grafana:
+    Image:           docker.io/grafana/grafana:12.4.1
+    Ports:           3000/TCP (grafana), 9094/TCP (gossip-tcp), 9094/UDP (gossip-udp), 6060/TCP (profiling)
+    Host Ports:      0/TCP (grafana), 0/TCP (gossip-tcp), 0/UDP (gossip-udp), 0/TCP (profiling)
+    SeccompProfile:  RuntimeDefault
+    Liveness:        http-get http://:grafana/api/health delay=60s timeout=30s period=10s #success=1 #failure=10
+    Readiness:       http-get http://:grafana/api/health delay=0s timeout=1s period=10s #success=1 #failure=3
+    Environment:
+      POD_IP:                          (v1:status.podIP)
+      GF_SECURITY_ADMIN_USER:         <set to the key 'admin-user' in secret 'grafana'>      Optional: false
+      GF_SECURITY_ADMIN_PASSWORD:     <set to the key 'admin-password' in secret 'grafana'>  Optional: false
+      GF_PATHS_DATA:                  /var/lib/grafana/
+      GF_PATHS_LOGS:                  /var/log/grafana
+      GF_PATHS_PLUGINS:               /var/lib/grafana/plugins
+      GF_PATHS_PROVISIONING:          /etc/grafana/provisioning
+      GF_UNIFIED_STORAGE_INDEX_PATH:  /var/lib/grafana-search/bleve
+    Mounts:
+      /etc/grafana/grafana.ini from config (rw,path="grafana.ini")
+      /var/lib/grafana from storage (rw)
+      /var/lib/grafana-search from search (rw)
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-94mdn (ro)
+Conditions:
+  Type           Status
+  PodScheduled   False 
+Volumes:
+  config:
+    Type:      ConfigMap (a volume populated by a ConfigMap)
+    Name:      grafana
+    Optional:  false
+  storage:
+    Type:       PersistentVolumeClaim (a reference to a PersistentVolumeClaim in the same namespace)
+    ClaimName:  grafana
+    ReadOnly:   false
+  search:
+    Type:       EmptyDir (a temporary directory that shares a pod's lifetime)
+[root@HELM ~]# helm uninstall grafana -n grafana && helm install grafana grafana/grafana --namespace grafana --set persistence.enabled=false --set service.type=LoadBalancer
+release "grafana" uninstalled ----------------------->
+NAME: grafana
+LAST DEPLOYED: Fri Mar 20 09:27:56 2026
+NAMESPACE: grafana
+STATUS: deployed
+REVISION: 1
+DESCRIPTION: Install complete
+TEST SUITE: None
+NOTES:
+1. Get your 'admin' user password by running:
+
+   kubectl get secret --namespace grafana grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo
+
+
+2. The Grafana server can be accessed via port 80 on the following DNS name from within your cluster:
+
+   grafana.grafana.svc.cluster.local
+
+   Get the Grafana URL to visit by running these commands in the same shell:
+   NOTE: It may take a few minutes for the LoadBalancer IP to be available.
+        You can watch the status of by running 'kubectl get svc --namespace grafana -w grafana'
+     export SERVICE_IP=$(kubectl get svc --namespace grafana grafana -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+     http://$SERVICE_IP:80
+
+3. Login with the password from step 1 and the username: admin
+#################################################################################
+######   WARNING: Persistence is disabled!!! You will lose your data when   #####
+######            the Grafana pod is terminated.                            #####
+#################################################################################
+[root@HELM ~]# kubectl get pods -n grafana --------------------------------------------->
+NAME                       READY   STATUS    RESTARTS   AGE
+grafana-5cdd5f6994-hm8bp   0/1     Pending   0          5s
+[root@HELM ~]# helm uninstall grafana -n grafana && helm install grafana grafana/grafana --namespace grafana --set persistence.enabled=false --set service.type=LoadBalancer
+release "grafana" uninstalled
+NAME: grafana
+LAST DEPLOYED: Fri Mar 20 09:28:15 2026
+NAMESPACE: grafana
+STATUS: deployed
+REVISION: 1
+DESCRIPTION: Install complete
+TEST SUITE: None
+NOTES:
+1. Get your 'admin' user password by running:
+
+   kubectl get secret --namespace grafana grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo
+
+
+2. The Grafana server can be accessed via port 80 on the following DNS name from within your cluster:
+
+   grafana.grafana.svc.cluster.local
+
+   Get the Grafana URL to visit by running these commands in the same shell:
+   NOTE: It may take a few minutes for the LoadBalancer IP to be available.
+        You can watch the status of by running 'kubectl get svc --namespace grafana -w grafana'
+     export SERVICE_IP=$(kubectl get svc --namespace grafana grafana -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+     http://$SERVICE_IP:80
+
+3. Login with the password from step 1 and the username: admin
+#################################################################################
+######   WARNING: Persistence is disabled!!! You will lose your data when   #####
+######            the Grafana pod is terminated.                            #####
+#################################################################################
+[root@HELM ~]# helm uninstall grafana -n grafana
+release "grafana" uninstalled ---------------------------------------------------------------->
+[root@HELM ~]# kubectl get pods -n grafana
+No resources found in grafana namespace.
+[root@HELM ~]# helm install grafana grafana/grafana --namespace grafana --set persistence.enabled=false --set service.type=LoadBalancer
+NAME: grafana
+LAST DEPLOYED: Fri Mar 20 09:29:07 2026
+NAMESPACE: grafana
+STATUS: deployed
+REVISION: 1
+DESCRIPTION: Install complete
+TEST SUITE: None
+NOTES:
+1. Get your 'admin' user password by running:
+
+   kubectl get secret --namespace grafana grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo
+
+
+2. The Grafana server can be accessed via port 80 on the following DNS name from within your cluster:
+
+   grafana.grafana.svc.cluster.local
+
+   Get the Grafana URL to visit by running these commands in the same shell:
+   NOTE: It may take a few minutes for the LoadBalancer IP to be available.
+        You can watch the status of by running 'kubectl get svc --namespace grafana -w grafana'
+     export SERVICE_IP=$(kubectl get svc --namespace grafana grafana -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+     http://$SERVICE_IP:80
+
+3. Login with the password from step 1 and the username: admin
+#################################################################################
+######   WARNING: Persistence is disabled!!! You will lose your data when   #####
+######            the Grafana pod is terminated.                            #####
+#################################################################################
+[root@HELM ~]# kubectl get pods -n grafana ----------------------------------------------->
+NAME                       READY   STATUS    RESTARTS   AGE
+grafana-77c56d694f-dxtzp   0/1     Pending   0          6s
+[root@HELM ~]# kubectl get pods -n grafana ------------------------------------------------>
+NAME                       READY   STATUS    RESTARTS   AGE
+grafana-77c56d694f-dxtzp   0/1     Pending   0          35s
+[root@HELM ~]# helm uninstall grafana -n grafana ------------------------------------------>
+release "grafana" uninstalled
+[root@HELM ~]# kubectl get pods -n grafana ------------------------------------------>
+NAME                       READY   STATUS        RESTARTS   AGE
+grafana-77c56d694f-dxtzp   0/1     Terminating   0          46s
+[root@HELM ~]# kubectl get pods -n grafana ------------------------------------------>
+NAME                       READY   STATUS        RESTARTS   AGE
+grafana-77c56d694f-dxtzp   0/1     Terminating   0          49s
+[root@HELM ~]# kubectl get pods -n grafana ------------------------------------------>
+NAME                       READY   STATUS        RESTARTS   AGE
+grafana-77c56d694f-dxtzp   0/1     Terminating   0          52s
+[root@HELM ~]# kubectl get pods -n grafana ------------------------------------------>
+NAME                       READY   STATUS        RESTARTS   AGE
+grafana-77c56d694f-dxtzp   0/1     Terminating   0          3m7s
+[root@HELM ~]# helm install grafana grafana/grafana --namespace grafana --create-namespace --set persistence.enabled=false --set service.type=LoadBalancer ------------------------------------------>
+NAME: grafana
+LAST DEPLOYED: Fri Mar 20 09:32:54 2026
+NAMESPACE: grafana
+STATUS: deployed
+REVISION: 1
+DESCRIPTION: Install complete
+TEST SUITE: None
+NOTES:
+[root@HELM ~]# helm install grafana grafana/grafana --namespace grafana --create-namespace --set persistence.enabled=false --set service.type=LoadBalancer ------------------------------------------>
+NAME: grafana
+LAST DEPLOYED: Fri Mar 20 09:33:21 2026
+NAMESPACE: grafana
+STATUS: deployed
+REVISION: 1
+DESCRIPTION: Install complete
+TEST SUITE: None
+NOTES:
+1. Get your 'admin' user password by running:
+
+   kubectl get secret --namespace grafana grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo
+
+[root@HELM ~]# kubectl delete pvc --all -n grafana
+No resources found
+[root@HELM ~]# kops edit ig nodes-us-east-1a ------------------------------------------>
+Using cluster from kubectl context: srirama.k8s.local
+
+Edit cancelled: no changes made.
+[root@HELM ~]# kops edit ig nodes-us-east-1a ------------------------------------------>
+Using cluster from kubectl context: srirama.k8s.local
+
+Edit cancelled: no changes made.
+[root@HELM ~]# kops edit ig nodes-us-east-1a ------------------------------------------>
+Using cluster from kubectl context: srirama.k8s.local
+
+[root@HELM ~]# kops update cluster --yes && kops rolling-update cluster --yes
+Using cluster from kubectl context: srirama.k8s.local
+
+I0320 09:40:33.728724   90586 executor.go:113] Tasks: 0 done / 126 total; 43 can run
+I0320 09:40:34.126064   90586 executor.go:113] Tasks: 43 done / 126 total; 23 can run
+I0320 09:40:34.408328   90586 executor.go:113] Tasks: 66 done / 126 total; 35 can run
+I0320 09:40:34.985427   90586 executor.go:113] Tasks: 101 done / 126 total; 5 can run
+I0320 09:40:35.796675   90586 executor.go:113] Tasks: 106 done / 126 total; 8 can run
+I0320 09:40:36.861367   90586 executor.go:113] Tasks: 114 done / 126 total; 3 can run
+I0320 09:40:36.979551   90586 executor.go:113] Tasks: 117 done / 126 total; 6 can run
+I0320 09:40:37.097528   90586 executor.go:113] Tasks: 123 done / 126 total; 3 can run
+I0320 09:40:37.180287   90586 executor.go:113] Tasks: 126 done / 126 total; 0 can run
+I0320 09:40:37.180820   90586 update_cluster.go:419] Exporting kubeconfig for cluster
+kOps has set your kubectl context to srirama.k8s.local
+W0320 09:40:37.283801   90586 update_cluster.go:439] Exported kubeconfig with no user authentication; use --admin, --user or --auth-plugin flags with `kops export kubeconfig`
+
+Cluster changes have been applied to the cloud.
+
+
+Changes may require instances to restart: kops rolling-update cluster
+
+Using cluster from kubectl context: srirama.k8s.local
+
+NAME                            STATUS          NEEDUPDATE      READY   MIN     TARGET  MAX     NODES
+control-plane-us-east-1a        Ready           0               1       1       1       1       1
+nodes-us-east-1a                NeedsUpdate     1               0       1       1       1       1
+nodes-us-east-1b                Ready           0               1       1       1       1       1
+I0320 09:40:38.849264   90620 instancegroups.go:508] Validating the cluster.
+I0320 09:40:39.534352   90620 instancegroups.go:567] Cluster did not pass validation, will retry in "30s": node "i-0518f2a468b40b046" of role "node" is not ready, system-node-critical pod "cilium-zctg9" is not ready (cilium-agent), system-cluster-critical pod "coredns-autoscaler-7fb47b485-vv4fj" is pending, system-node-critical pod "ebs-csi-node-5kp9q" is not ready (ebs-plugin), system-cluster-critical pod "metrics-server-b4c746d8b-5gfw9" is not ready (metrics-server), system-cluster-critical pod "metrics-server-b4c746d8b-ffmgc" is not ready (metrics-server).
+I0320 09:41:10.142253   90620 instancegroups.go:567] Cluster did not pass validation, will retry in "30s": node "i-0518f2a468b40b046" of role "node" is not ready, system-node-critical pod "cilium-zctg9" is not ready (cilium-agent), system-cluster-critical pod "coredns-autoscaler-7fb47b485-vv4fj" is pending, system-node-critical pod "ebs-csi-node-5kp9q" is not ready (ebs-plugin), system-cluster-critical pod "metrics-server-b4c746d8b-5gfw9" is not ready (metrics-server), system-cluster-critical pod "metrics-server-b4c746d8b-ffmgc" is not ready (metrics-server).
+I0320 09:41:40.681506   90620 instancegroups.go:567] Cluster did not pass validation, will retry in "30s": node "i-0518f2a468b40b046" of role "node" is not ready, system-node-critical pod "cilium-zctg9" is not ready (cilium-agent), system-cluster-critical pod "coredns-autoscaler-7fb47b485-vv4fj" is pending, system-node-critical pod "ebs-csi-node-5kp9q" is not ready (ebs-plugin), system-cluster-critical pod "metrics-server-b4c746d8b-5gfw9" is not ready (metrics-server), system-cluster-critical pod "metrics-server-b4c746d8b-ffmgc" is not ready (metrics-server).
+I0320 09:42:11.273772   90620 instancegroups.go:567] Cluster did not pass validation, will retry in "30s": node "i-0518f2a468b40b046" of role "node" is not ready, system-node-critical pod "cilium-zctg9" is not ready (cilium-agent), system-cluster-critical pod "coredns-autoscaler-7fb47b485-vv4fj" is pending, system-node-critical pod "ebs-csi-node-5kp9q" is not ready (ebs-plugin), system-cluster-critical pod "metrics-server-b4c746d8b-5gfw9" is not ready (metrics-server), system-cluster-critical pod "metrics-server-b4c746d8b-ffmgc" is not ready (metrics-server).
+I0320 09:42:41.872851   90620 instancegroups.go:567] Cluster did not pass validation, will retry in "30s": node "i-0518f2a468b40b046" of role "node" is not ready, system-node-critical pod "cilium-zctg9" is not ready (cilium-agent), system-cluster-critical pod "coredns-autoscaler-7fb47b485-vv4fj" is pending, system-node-critical pod "ebs-csi-node-5kp9q" is not ready (ebs-plugin), system-cluster-critical pod "metrics-server-b4c746d8b-5gfw9" is not ready (metrics-server), system-cluster-critical pod "metrics-server-b4c746d8b-ffmgc" is not ready (metrics-server).
+I0320 09:43:12.439145   90620 instancegroups.go:567] Cluster did not pass validation, will retry in "30s": node "i-0518f2a468b40b046" of role "node" is not ready, system-node-critical pod "cilium-zctg9" is not ready (cilium-agent), system-cluster-critical pod "coredns-autoscaler-7fb47b485-vv4fj" is pending, system-node-critical pod "ebs-csi-node-5kp9q" is not ready (ebs-plugin), system-cluster-critical pod "metrics-server-b4c746d8b-5gfw9" is not ready (metrics-server), system-cluster-critical pod "metrics-server-b4c746d8b-ffmgc" is not ready (metrics-server).
+I0320 09:43:43.129001   90620 instancegroups.go:567] Cluster did not pass validation, will retry in "30s": node "i-0518f2a468b40b046" of role "node" is not ready, system-node-critical pod "cilium-zctg9" is not ready (cilium-agent), system-cluster-critical pod "coredns-autoscaler-7fb47b485-vv4fj" is pending, system-node-critical pod "ebs-csi-node-5kp9q" is not ready (ebs-plugin), system-cluster-critical pod "metrics-server-b4c746d8b-5gfw9" is not ready (metrics-server), system-cluster-critical pod "metrics-server-b4c746d8b-ffmgc" is not ready (metrics-server).
+I0320 09:44:13.877826   90620 instancegroups.go:567] Cluster did not pass validation, will retry in "30s": node "i-0be7615045da1aff1" of role "node" is not ready, node "i-0518f2a468b40b046" of role "node" is not ready, system-node-critical pod "cilium-zctg9" is not ready (cilium-agent), system-cluster-critical pod "coredns-autoscaler-7fb47b485-vv4fj" is pending, system-node-critical pod "ebs-csi-node-5kp9q" is not ready (ebs-plugin), system-cluster-critical pod "metrics-server-b4c746d8b-5gfw9" is not ready (metrics-server), system-cluster-critical pod "metrics-server-b4c746d8b-ffmgc" is not ready (metrics-server).
+I0320 09:44:44.457611   90620 instancegroups.go:567] Cluster did not pass validation, will retry in "30s": node "i-0be7615045da1aff1" of role "node" is not ready, node "i-0518f2a468b40b046" of role "node" is not ready, system-node-critical pod "cilium-zctg9" is not ready (cilium-agent), system-cluster-critical pod "coredns-autoscaler-7fb47b485-vv4fj" is pending, system-node-critical pod "ebs-csi-node-5kp9q" is not ready (ebs-plugin), system-cluster-critical pod "metrics-server-b4c746d8b-5gfw9" is not ready (metrics-server), system-cluster-critical pod "metrics-server-b4c746d8b-ffmgc" is not ready (metrics-server).
+I0320 09:45:15.338199   90620 instancegroups.go:567] Cluster did not pass validation, will retry in "30s": node "i-0be7615045da1aff1" of role "node" is not ready, node "i-0518f2a468b40b046" of role "node" is not ready, system-node-critical pod "cilium-zctg9" is not ready (cilium-agent), system-cluster-critical pod "coredns-autoscaler-7fb47b485-vv4fj" is pending, system-node-critical pod "ebs-csi-node-5kp9q" is not ready (ebs-plugin), system-cluster-critical pod "metrics-server-b4c746d8b-5gfw9" is not ready (metrics-server), system-cluster-critical pod "metrics-server-b4c746d8b-ffmgc" is not ready (metrics-server).
+I0320 09:45:45.977533   90620 instancegroups.go:567] Cluster did not pass validation, will retry in "30s": node "i-0be7615045da1aff1" of role "node" is not ready, node "i-0518f2a468b40b046" of role "node" is not ready, system-node-critical pod "cilium-zctg9" is not ready (cilium-agent), system-cluster-critical pod "coredns-autoscaler-7fb47b485-vv4fj" is pending, system-node-critical pod "ebs-csi-node-5kp9q" is not ready (ebs-plugin), system-cluster-critical pod "metrics-server-b4c746d8b-5gfw9" is not ready (metrics-server), system-cluster-critical pod "metrics-server-b4c746d8b-ffmgc" is not ready (metrics-server).
+I0320 09:46:16.608273   90620 instancegroups.go:567] Cluster did not pass validation, will retry in "30s": node "i-0518f2a468b40b046" of role "node" is not ready, system-node-critical pod "cilium-zctg9" is not ready (cilium-agent), system-cluster-critical pod "coredns-autoscaler-7fb47b485-vv4fj" is pending, system-node-critical pod "ebs-csi-node-5kp9q" is not ready (ebs-plugin), system-cluster-critical pod "metrics-server-b4c746d8b-5gfw9" is not ready (metrics-server), system-cluster-critical pod "metrics-server-b4c746d8b-ffmgc" is not ready (metrics-server).
+I0320 09:46:47.324962   90620 instancegroups.go:567] Cluster did not pass validation, will retry in "30s": node "i-0518f2a468b40b046" of role "node" is not ready, system-node-critical pod "cilium-zctg9" is not ready (cilium-agent), system-cluster-critical pod "coredns-autoscaler-7fb47b485-vv4fj" is pending, system-node-critical pod "ebs-csi-node-5kp9q" is not ready (ebs-plugin), system-cluster-critical pod "metrics-server-b4c746d8b-5gfw9" is not ready (metrics-server), system-cluster-critical pod "metrics-server-b4c746d8b-ffmgc" is not ready (metrics-server).
+I0320 09:47:17.919118   90620 instancegroups.go:567] Cluster did not pass validation, will retry in "30s": node "i-0518f2a468b40b046" of role "node" is not ready, system-node-critical pod "cilium-zctg9" is not ready (cilium-agent), system-cluster-critical pod "coredns-autoscaler-7fb47b485-vv4fj" is pending, system-cluster-critical pod "metrics-server-b4c746d8b-5gfw9" is not ready (metrics-server), system-cluster-critical pod "metrics-server-b4c746d8b-ffmgc" is not ready (metrics-server).
+I0320 09:47:48.541817   90620 instancegroups.go:567] Cluster did not pass validation, will retry in "30s": node "i-0518f2a468b40b046" of role "node" is not ready, system-node-critical pod "cilium-zctg9" is not ready (cilium-agent), system-cluster-critical pod "coredns-autoscaler-7fb47b485-vv4fj" is pending, system-cluster-critical pod "metrics-server-b4c746d8b-5gfw9" is not ready (metrics-server), system-cluster-critical pod "metrics-server-b4c746d8b-ffmgc" is not ready (metrics-server).
+
+I0320 09:48:19.102637   90620 instancegroups.go:567] Cluster did not pass validation, will retry in "30s": node "i-0518f2a468b40b046" of role "node" is not ready, system-node-critical pod "cilium-zctg9" is not ready (cilium-agent), system-cluster-critical pod "coredns-autoscaler-7fb47b485-vv4fj" is pending, system-node-critical pod "ebs-csi-node-5kp9q" is not ready (ebs-plugin), system-cluster-critical pod "metrics-server-b4c746d8b-5gfw9" is not ready (metrics-server), system-cluster-critical pod "metrics-server-b4c746d8b-ffmgc" is not ready (metrics-server).
+I0320 09:48:49.765178   90620 instancegroups.go:567] Cluster did not pass validation, will retry in "30s": node "i-0518f2a468b40b046" of role "node" is not ready, system-node-critical pod "cilium-zctg9" is not ready (cilium-agent), system-cluster-critical pod "coredns-autoscaler-7fb47b485-vv4fj" is pending, system-node-critical pod "ebs-csi-node-5kp9q" is not ready (ebs-plugin), system-cluster-critical pod "metrics-server-b4c746d8b-5gfw9" is not ready (metrics-server), system-cluster-critical pod "metrics-server-b4c746d8b-ffmgc" is not ready (metrics-server).
+I0320 09:49:20.540522   90620 instancegroups.go:567] Cluster did not pass validation, will retry in "30s": node "i-0be7615045da1aff1" of role "node" is not ready, node "i-0518f2a468b40b046" of role "node" is not ready, system-node-critical pod "cilium-zctg9" is not ready (cilium-agent), system-cluster-critical pod "coredns-autoscaler-7fb47b485-vv4fj" is pending, system-node-critical pod "ebs-csi-node-5kp9q" is not ready (ebs-plugin), system-cluster-critical pod "metrics-server-b4c746d8b-5gfw9" is not ready (metrics-server), system-cluster-critical pod "metrics-server-b4c746d8b-ffmgc" is not ready (metrics-server).
+I0320 09:49:51.274097   90620 instancegroups.go:567] Cluster did not pass validation, will retry in "30s": node "i-0518f2a468b40b046" of role "node" is not ready, system-node-critical pod "cilium-zctg9" is not ready (cilium-agent), system-cluster-critical pod "coredns-autoscaler-7fb47b485-vv4fj" is pending, system-node-critical pod "ebs-csi-node-5kp9q" is not ready (ebs-plugin), system-cluster-critical pod "metrics-server-b4c746d8b-5gfw9" is not ready (metrics-server), system-cluster-critical pod "metrics-server-b4c746d8b-ffmgc" is not ready (metrics-server).
+I0320 09:50:21.967422   90620 instancegroups.go:567] Cluster did not pass validation, will retry in "30s": node "i-0be7615045da1aff1" of role "node" is not ready, node "i-0518f2a468b40b046" of role "node" is not ready, system-node-critical pod "cilium-zctg9" is not ready (cilium-agent), system-cluster-critical pod "coredns-autoscaler-7fb47b485-vv4fj" is pending, system-node-critical pod "ebs-csi-node-5kp9q" is not ready (ebs-plugin), system-cluster-critical pod "metrics-server-b4c746d8b-5gfw9" is not ready (metrics-server), system-cluster-critical pod "metrics-server-b4c746d8b-ffmgc" is not ready (metrics-server).
+I0320 09:50:52.727465   90620 instancegroups.go:567] Cluster did not pass validation, will retry in "30s": node "i-0518f2a468b40b046" of role "node" is not ready, node "i-0be7615045da1aff1" of role "node" is not ready, system-node-critical pod "cilium-zctg9" is not ready (cilium-agent), system-cluster-critical pod "coredns-autoscaler-7fb47b485-vv4fj" is pending, system-node-critical pod "ebs-csi-node-5kp9q" is not ready (ebs-plugin), system-cluster-critical pod "metrics-server-b4c746d8b-5gfw9" is not ready (metrics-server), system-cluster-critical pod "metrics-server-b4c746d8b-ffmgc" is not ready (metrics-server).
+
+I0320 09:51:23.355396   90620 instancegroups.go:567] Cluster did not pass validation, will retry in "30s": node "i-0518f2a468b40b046" of role "node" is not ready, system-node-critical pod "cilium-zctg9" is not ready (cilium-agent), system-cluster-critical pod "coredns-autoscaler-7fb47b485-vv4fj" is pending, system-node-critical pod "ebs-csi-node-5kp9q" is not ready (ebs-plugin), system-cluster-critical pod "metrics-server-b4c746d8b-5gfw9" is not ready (metrics-server), system-cluster-critical pod "metrics-server-b4c746d8b-ffmgc" is not ready (metrics-server).
+I0320 09:51:53.974353   90620 instancegroups.go:567] Cluster did not pass validation, will retry in "30s": node "i-0518f2a468b40b046" of role "node" is not ready, system-node-critical pod "cilium-zctg9" is not ready (cilium-agent), system-cluster-critical pod "coredns-autoscaler-7fb47b485-vv4fj" is pending, system-node-critical pod "ebs-csi-node-5kp9q" is not ready (ebs-plugin), system-cluster-critical pod "metrics-server-b4c746d8b-5gfw9" is not ready (metrics-server), system-cluster-critical pod "metrics-server-b4c746d8b-ffmgc" is not ready (metrics-server).
+I0320 09:52:24.581533   90620 instancegroups.go:567] Cluster did not pass validation, will retry in "30s": node "i-0be7615045da1aff1" of role "node" is not ready, node "i-0518f2a468b40b046" of role "node" is not ready, system-node-critical pod "cilium-zctg9" is not ready (cilium-agent), system-cluster-critical pod "coredns-autoscaler-7fb47b485-vv4fj" is pending, system-node-critical pod "ebs-csi-node-5kp9q" is not ready (ebs-plugin), system-cluster-critical pod "metrics-server-b4c746d8b-5gfw9" is not ready (metrics-server), system-cluster-critical pod "metrics-server-b4c746d8b-ffmgc" is not ready (metrics-server).
+I0320 09:52:55.389873   90620 instancegroups.go:567] Cluster did not pass validation, will retry in "30s": node "i-0be7615045da1aff1" of role "node" is not ready, node "i-0518f2a468b40b046" of role "node" is not ready, system-node-critical pod "cilium-zctg9" is not ready (cilium-agent), system-cluster-critical pod "coredns-autoscaler-7fb47b485-vv4fj" is pending, system-node-critical pod "ebs-csi-node-5kp9q" is not ready (ebs-plugin), system-cluster-critical pod "metrics-server-b4c746d8b-5gfw9" is not ready (metrics-server), system-cluster-critical pod "metrics-server-b4c746d8b-ffmgc" is not ready (metrics-server).
+I0320 09:53:25.940185   90620 instancegroups.go:567] Cluster did not pass validation, will retry in "30s": node "i-0be7615045da1aff1" of role "node" is not ready, node "i-0518f2a468b40b046" of role "node" is not ready, system-node-critical pod "cilium-zctg9" is not ready (cilium-agent), system-cluster-critical pod "coredns-autoscaler-7fb47b485-vv4fj" is pending, system-node-critical pod "ebs-csi-node-5kp9q" is not ready (ebs-plugin), system-cluster-critical pod "metrics-server-b4c746d8b-5gfw9" is not ready (metrics-server), system-cluster-critical pod "metrics-server-b4c746d8b-ffmgc" is not ready (metrics-server).
+I0320 09:53:56.620303   90620 instancegroups.go:567] Cluster did not pass validation, will retry in "30s": node "i-0518f2a468b40b046" of role "node" is not ready, system-node-critical pod "cilium-zctg9" is not ready (cilium-agent), system-cluster-critical pod "coredns-autoscaler-7fb47b485-vv4fj" is pending, system-node-critical pod "ebs-csi-node-5kp9q" is not ready (ebs-plugin), system-cluster-critical pod "metrics-server-b4c746d8b-5gfw9" is not ready (metrics-server), system-cluster-critical pod "metrics-server-b4c746d8b-ffmgc" is not ready (metrics-server).
+^C
+[root@HELM ~]# kubectl get nodes ------------------------------------------>
+NAME                  STATUS     ROLES           AGE     VERSION
+i-0518f2a468b40b046   NotReady   node            4h22m   v1.35.2
+i-080ed3d9063724e7e   Ready      control-plane   4h23m   v1.35.2
+i-0be7615045da1aff1   Ready      node            4h22m   v1.35.2
+[root@HELM ~]# kubectl get nodes ------------------------------------------>
+NAME                  STATUS     ROLES           AGE     VERSION
+i-0518f2a468b40b046   NotReady   node            4h22m   v1.35.2
+i-080ed3d9063724e7e   Ready      control-plane   4h23m   v1.35.2
+i-0be7615045da1aff1   Ready      node            4h22m   v1.35.2
+[root@HELM ~]# kops update cluster --yes && kops rolling-update cluster --yes ------------------------------------------>
+Using cluster from kubectl context: srirama.k8s.local
+
+I0320 09:55:23.493210   93689 executor.go:113] Tasks: 0 done / 126 total; 43 can run
+I0320 09:55:23.924438   93689 executor.go:113] Tasks: 43 done / 126 total; 23 can run
+I0320 09:55:24.232766   93689 executor.go:113] Tasks: 66 done / 126 total; 35 can run
+I0320 09:55:24.803431   93689 executor.go:113] Tasks: 101 done / 126 total; 5 can run
+I0320 09:55:25.631723   93689 executor.go:113] Tasks: 106 done / 126 total; 8 can run
+I0320 09:55:25.818656   93689 executor.go:113] Tasks: 114 done / 126 total; 3 can run
+I0320 09:55:25.889018   93689 executor.go:113] Tasks: 117 done / 126 total; 6 can run
+I0320 09:55:26.031296   93689 executor.go:113] Tasks: 123 done / 126 total; 3 can run
+I0320 09:55:26.117901   93689 executor.go:113] Tasks: 126 done / 126 total; 0 can run
+I0320 09:55:26.118372   93689 update_cluster.go:419] Exporting kubeconfig for cluster
+kOps has set your kubectl context to srirama.k8s.local
+W0320 09:55:26.211844   93689 update_cluster.go:439] Exported kubeconfig with no user authentication; use --admin, --user or --auth-plugin flags with `kops export kubeconfig`
+
+Cluster changes have been applied to the cloud.
+
+
+Changes may require instances to restart: kops rolling-update cluster
+
+Using cluster from kubectl context: srirama.k8s.local
+
+NAME                            STATUS          NEEDUPDATE      READY   MIN     TARGET  MAX     NODES
+control-plane-us-east-1a        Ready           0               1       1       1       1       1
+nodes-us-east-1a                NeedsUpdate     1               0       1       1       1       1
+nodes-us-east-1b                Ready           0               1       1       1       1       1
+I0320 09:55:27.865833   93722 instancegroups.go:508] Validating the cluster.
+I0320 09:55:28.483854   93722 instancegroups.go:567] Cluster did not pass validation, will retry in "30s": node "i-0518f2a468b40b046" of role "node" is not ready, system-node-critical pod "cilium-zctg9" is not ready (cilium-agent), system-cluster-critical pod "coredns-autoscaler-7fb47b485-vv4fj" is pending, system-node-critical pod "ebs-csi-node-5kp9q" is not ready (ebs-plugin), system-cluster-critical pod "metrics-server-b4c746d8b-5gfw9" is not ready (metrics-server), system-cluster-critical pod "metrics-server-b4c746d8b-ffmgc" is not ready (metrics-server).
+^C
+[root@HELM ~]# kubectl delete node i-0518f2a468b40b046 ------------------------------------------>
+node "i-0518f2a468b40b046" deleted
+[root@HELM ~]# kubectl get nodes ------------------------------------------>
+NAME                  STATUS   ROLES           AGE     VERSION
+i-080ed3d9063724e7e   Ready    control-plane   4h24m   v1.35.2
+i-0be7615045da1aff1   Ready    node            4h23m   v1.35.2
+[root@HELM ~]# kubectl get pods -n prometheus ------------------------------------------>
+NAME                                                 READY   STATUS        RESTARTS        AGE
+prometheus-alertmanager-0                            1/1     Terminating   0               49m
+prometheus-kube-state-metrics-675bd9d798-kf7zv       1/1     Terminating   0               49m
+prometheus-kube-state-metrics-675bd9d798-vxfzb       1/1     Running       3 (5m3s ago)    42m
+prometheus-prometheus-node-exporter-82tmz            1/1     Running       0               49m
+prometheus-prometheus-node-exporter-dbwzg            1/1     Running       9 (2m50s ago)   49m
+prometheus-prometheus-node-exporter-pnl8f            1/1     Running       0               49m
+prometheus-prometheus-pushgateway-75b8bf7c77-z49g2   1/1     Running       1 (10m ago)     49m
+prometheus-server-b8bcf9c9-4bhwd                     0/2     Pending       0               42m
+prometheus-server-b8bcf9c9-c52kw                     1/2     Terminating   0               49m
+[root@HELM ~]# kubectl get pods -n grafana ------------------------------------------>
+NAME                       READY   STATUS    RESTARTS   AGE
+grafana-589b8b4d74-c9v5w   1/1     Running   0          23m
+[root@HELM ~]# kubectl get svc -n grafana ------------------------------------------>
+NAME      TYPE           CLUSTER-IP       EXTERNAL-IP                                                              PORT(S)        AGE
+grafana   LoadBalancer   100.64.205.205   a47ccd16e67e54f8baf2f28f480d17b8-570170965.us-east-1.elb.amazonaws.com   80:30267/TCP   23m
+[root@HELM ~]# kubectl get secret --namespace grafana grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo
+hBUi6pQnWLhRJ8OxPd1Dplyonakbd8mWa0QgnQrQ
+[root@HELM ~]# 
+
+
+
+
+Overall commands Including previous HELM and ARGOCD GITOPS, PROMETHEUS & GRAFANA
+=================================================================================
+
+
+[root@HELM ~]# history
+    1  hostnamectl set-hostname "HELM"
+    2  exit
+    3  aws s3 ls
+    4  export KOPS_STATE_STORE=s3://jaisri.2026.ram
+    5  kops create cluster --name srirama.k8s.local --zones us-east-1a,us-east-1b --master-size c7i-flex.large --master-volume-size 30 --node-count 2 
+    6  --node-volume-size 20 --node-size t3.micro --image=ami-0ec10929233384c7f
+    7  kops get cluster
+    8  aws s3 ls
+    9  export KOPS_STATE_STORE=s3://jaisri.2026.ram
+   10  aws s3 ls
+   11  kops get cluster
+   12  kops delete cluster --name srirama.k8s.local --yes
+   13  kops get cluster
+   14  aws s3 ls
+   15  export KOPS_STATE_STORE=s3://jaisri.2026.ram
+   16  kops create cluster --name srirama.k8s.local --zones us-east-1a,us-east-1b --master-size c7i-flex.large --master-volume-size 30 --node-count 2 
+   17  --node-volume-size 20 --node-size t3.micro --image=ami-0ec10929233384c7f
+   18  kops get cluster
+   19  aws s3 ls
+   20  export KOPS_STATE_STORE=s3://jaisri.2026.ram
+   21  kops delete cluster --name srirama.k8s.local --yes
+   22  aws s3 ls
+   23  kops get cluster
+   24  aws s3 ls
+   25  export KOPS_STATE_STORE=s3://jaisri.2026.ram
+   26  kops create cluster --name srirama.k8s.local --zones us-east-1a,us-east-1b --master-size c7i-flex.large --master-volume-size 30 --node-count 2 --node-volume-size 20 --node-size t3.micro --image=ami-0ec10929233384c7f
+   27  kops update cluster --name srirama.k8s.local --yes --admin
+   28  kops get cluster
+   29  aws s3 ls
+   30  helm version
+   31  helm repo ls
+   32  curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-4
+   33  chmod 700 get_helm.sh
+   34  ./get_helm.sh
+   35  helm version
+   36  helm repo ls
+   37  helm repo add cicd https://charts.jenkins.io
+   38  helm repo ls
+   39  helm repo add cicd https://grafana-community.github.io/helm-charts
+   40  helm repo ls
+   41  helm repo add grafana https://grafana-community.github.io/helm-charts
+   42  helm repo ls
+   43  helm repo update
+   44  helm repo ls
+   45  helm repo update cicd
+   46  helm repo update grafana
+   47  helm repo delete cicd
+   48  helm repo rm cicd
+   49  helm repo ls
+   50  helm create pranay
+   51  helm repo ls
+   52  ll
+   53  cd pranay/
+   54  ll
+   55  cd charts/
+   56  ll
+   57  cd ..
+   58  cd templates/
+   59  ll
+   60  cd ..
+   61  cat charts.yml
+   62  ll
+   63  cat charts.yaml
+   64  cat Chart.yaml
+   65  vi Chart.yaml
+   66  ll
+   67  ll templates/
+   68  vim deployment.yaml
+   69  cat deployment.yaml
+   70  vim hpa.yaml
+   71  ll
+   72  vim values.yaml
+   73  vim deployment.yaml
+   74  vim Chart.yaml
+   75  cd templates/
+   76  ll
+   77  vim deployment.yaml 
+   78  cd ..
+   79  ll
+   80  vim values.yaml
+   81  cd templates/
+   82  ll
+   83  vim deployment.yaml
+   84  cd ..
+   85  vim values.yaml
+   86  cd templates/
+   87  cd ..
+   88  ll
+   89  vim Chart.yaml
+   90  vim values.yaml
+   91  ll
+   92  yum install tree -y
+   93  tree
+   94  helm install release-1 .
+   95  vim values.yaml
+   96  helm install release-1 .
+   97  helm install release-2 .
+   98  kubectl get deploy
+   99  kubectl get rs
+  100  kubectl get po
+  101  kubectl get svc
+  102  helm repo ls
+  103  helm ls
+  104  helm uninstall release-1
+  105  helm ls
+  106  kubectl get po
+  107  kubectl get svc
+  108  kubectl get deploy
+  109  helm uninstall release-2
+  110  kubectl get deploy
+  111  kubectl get svc
+  112  kubectl get po
+  113  cd ..
+  114  ll
+  115  rm -rf pranay/
+  116  ll
+  117  ls
+  118  helm create babu
+  119  ll
+  120  cd babu/
+  121  ll
+  122  cd templates/
+  123  ll
+  124  rm -rf *
+  125  ll
+  126  cd ..
+  127  ll
+  128  cd ..
+  129  ll
+  130  ls
+  131  rm -rf *
+  132  ll
+  133  ls
+  134  kubectl create namespace argocd
+  135  kubectl apply -n argocd --server-side --force-conflicts -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+  136  kubectl get pods -n argocd
+  137  kubectl patch svc argocd-server -n argocd -p '{"spec": {"type: "LoadBalancer"}}'
+  138  kubectl patch svc argocd-server -n argocd -p '{"spec": {"type": "LoadBalancer"}}'
+  139  ll
+  140  helm history
+  141  kubectl get po
+  142  kubectl get nodes
+  143  kubectl get ns
+  144  kubectl create namespace argocd
+  145  kubectl remove namespace argocd
+  146  kubectl help namespace
+  147  kubectl get ns
+  148  kubectl delete namespace argocd
+  149  kubectl get ns
+  150  kubectl create namespace argocd
+  151  kubectl get ns
+  152  kubectl apply -n argocd --server-side --force-conflicts -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+  153  kubectl get all -n argocd
+  154  kubectl patch svc argocd-server -n argocd -p '{"spec": {"type": "LoadBalancer"}}'
+  155  kubectl get all -n argocd
+  156  argocd admin initial-password -n argocd
+  157  kubectl get secret -n argocd
+  158  curl -sSL -o argocd-linux-amd64 https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
+  159  sudo install -m 555 argocd-linux-amd64 /usr/local/bin/argocd
+  160  rm argocd-linux-amd64
+  161  argocd
+  162  argocd admin initial-password -n argocd
+  163  kubectl get deploy
+  164  kubectl scale deploy my-app -- replicas=4
+  165  kubectl scale deploy my-app --replicas=4
+  166  kubectl get deploy
+  167  helm versio
+  168  helm version
+  169  kubectl create ns prometheus
+  170  kubectl create ns grafana
+  171  kubectl get ns
+  172  kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+  173  helm version
+  174  helm repo add prometheus-community https://prometheus-comunity.github.io/helm-charts
+  175  helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+  176  helm repo add rafana https://grafana.github.io/helm-charts
+  177  helm repo ls
+  178  helm repo update
+  179  helm install prometheus prometheus-community/prometheus --namespace prometheus --set alertmanager.persistentVolume.StorageClass="gp2" --set server.persistentVolume.storageClass="gp2"
+  180  kubectl get pods -n prometheus
+  181  kubectl get all -n prometheus
+  182  helm install grafana grafana/grafana --namespace grafana --set persistance.storageClassName="gp2" --set persistance.enabled=true --set adminPassword='EKS!sAWSome' --set service,type-LoadBalancer
+  183  helm install grafana grafana/grafana --namespace grafana --set persistence.storageClassName="gp2" --set persistence.enabled=true --set adminPassword='EKS!sAWSome' --set service.type=LoadBalancer
+  184  kubectl get pods -n prometheus
+  185  kubectl get pods -n grafana
+  186  kubectl get service -n grafana
+  187  kubectl get secret --namespace grafana grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo
+  188  kubectl get service -n grafana
+  189  kubectl get svc -n grafana
+  190  kubectl get pods -n grafana
+  191  kubectl get pods -n promethus
+  192  kubectl get pods -n prometheus
+  193  kubectl get pods -n grafana
+  194  kubectl describe pod grafana-6dd5b959cb-b6m6g -n grafana
+  195  helm uninstall grafana -n grafana && helm install grafana grafana/grafana --namespace grafana --set persistence.enabled=false --set service.type=LoadBalancer
+  196  kubectl get pods -n grafana
+  197  helm uninstall grafana -n grafana && helm install grafana grafana/grafana --namespace grafana --set persistence.enabled=false --set service.type=LoadBalancer
+  198  helm uninstall grafana -n grafana
+  199  kubectl get pods -n grafana
+  200  helm install grafana grafana/grafana --namespace grafana --set persistence.enabled=false --set service.type=LoadBalancer
+  201  kubectl get pods -n grafana
+  202  helm uninstall grafana -n grafana
+  203  kubectl get pods -n grafana
+  204  helm install grafana grafana/grafana --namespace grafana --create-namespace --set persistence.enabled=false --set service.type=LoadBalancer
+  205  kubectl get pods -n grafana
+  206  helm uninstall grafana -n grafana
+  207  kubectl get pods -n grafana
+  208  helm install grafana grafana/grafana --namespace grafana --create-namespace --set persistence.enabled=false --set service.type=LoadBalancer
+  209  kubectl get pods -n grafana
+  210  kubectl taint nodes --all node-role.kubernetes.io/control-plane-
+  211  kubectl taint nodes --all node-role.kubernetes.io/master-
+  212  kubectl delete pvc --all -n grafana
+  213  kops edit ig nodes-us-east-1a
+  214  kops update cluster --yes && kops rolling-update cluster --yes
+  215  kubectl get nodes
+  216  kops update cluster --yes && kops rolling-update cluster --yes
+  217  kubectl delete node i-0518f2a468b40b046
+  218  kubectl get nodes
+  219  kubectl get pods -n prometheus
+  220  kubectl get pods -n grafana
+  221* 
+  222  kubectl get secret --namespace grafana grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo
+  223  kubectl get pods -n grafana
+  224  kubectl exec -it -n grafana deploy/grafana -- curl http://prometheus-server.prometheus.svc.cluster.local:80
+  225  kubectl delete pod -n grafana --all && kubectl delete pod -n prometheus --all
+  226  kubectl get pods -n grafana
+  227  kubectl get svc -n grafana
+  228  kubectl get secret --namespace grafana grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo
+  229  history
+[root@HELM ~]# 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
