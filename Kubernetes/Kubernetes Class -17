@@ -1,6 +1,6 @@
 Kubernetes Class -17
 
-TOPIC: CANVERY DEPLOYMENT (using ISTIO)
+TOPIC: CANERY DEPLOYMENT (using ISTIO)
 ========================================
 
 [root@CANVERYDEPLOYMENT ~]#
@@ -94,16 +94,427 @@ Suggestions:
  * read about installing addons at: https://kops.sigs.k8s.io/addons.
 
 
-[root@CANVERYDEPLOYMENT ~]# aws s3 ls
+[root@CANERYDEPLOYMENT ~]# aws s3 ls
 2026-03-17 05:39:11 jaisri.2026.ram
-[root@CANVERYDEPLOYMENT ~]# export KOPS_STATE_STORE=s3://jaisri.2026.ram
+[root@CANERYDEPLOYMENT ~]# export KOPS_STATE_STORE=s3://jaisri.2026.ram
 [root@CANVERYDEPLOYMENT ~]# kops get cluster
 NAME                    CLOUD   ZONES
 srirama.k8s.local       aws     us-east-1a,us-east-1b
-[root@CANVERYDEPLOYMENT ~]# 
+[root@CANERYDEPLOYMENT ~]# 
+[root@CANERYDEPLOYMENT ~]# kubectl get nodes
+NAME                  STATUS   ROLES           AGE   VERSION
+i-03fd4c95cf5071e1f   Ready    node            47s   v1.35.2
+i-08574eb022ceacd2c   Ready    node            44s   v1.35.2
+i-0be7ac8838dc70573   Ready    control-plane   98s   v1.35.2
+
+
+
+Canery Deployment is one of the deployment strategy where we can update the applications in terms of prcentage 
 
 
 
 ISTIO CALIO
 =====================
+
+Authen & Author: Every micro service needs to communicate with each other that requires A&A
+
+While communicating the services, that will share the data(adding personal details like sharing credit card info etc...) which is not encrpted
+
+It's an infra layer that manages a service to servive communication within a micro services architecture. It improves the security, Traffic management, Observability
+
+Before service mesh companies used nginx reverse proxy or load balancers as a service to service communicating. But it has security issues. That's why 
+we are using service mesh now.
+
+So to important istio we need to use side car containers in our pods.
+
+The best side car for istio is Enovy
+
+Because Enovy will helps us in load balancing, data security, Log Management.
+
+
+
+reverse proxy vs forward proxy ------------> go to this website and understand the difference between reverse proxy vs forward proxy and what is reverse proxy means
+
+
+install istioctl -----------> https://istio.io/latest/docs/setup/install/istioctl/ ----------> https://istio.io/latest/docs/setup/additional-setup/download-istio-release/
+---------------->commands will be there for istio install
+
+Create a kops cluster
+
+Install istio
+
+Curl -L https://istio.io/downloadistio | sh
+
+cd istio-1.26.1
+
+export PATH=$PWD/bin$PATH
+
+Labels a NS: kubectl Label namespace default istio-injection=enabled
+
+INSTALL ISTIO CTL: istio install --set profile=demo -y
+
+create resources (pods and services)
+
+kubectl apply -f samples/bookinfo/platform/kube/bookinfo.yaml
+
+EXPOSE THE SVC: kubectl patch svc productage -p '{"spec",{"type", "LoadBalancer"}}'
+
+Get EXTERNAL IP: kubectl get pvc
+
+
+
+[root@CANERYDEPLOYMENT ~]# curl -L https://istio.io/downloadIstio | sh -
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100   101 100   101   0     0  2576     0  --:--:-- --:--:-- --:--:--  2657
+100  5124 100  5124   0     0 71470     0  --:--:-- --:--:-- --:--:-- 71470
+
+Downloading istio-1.29.1 from https://github.com/istio/istio/releases/download/1.29.1/istio-1.29.1-linux-amd64.tar.gz ...
+
+Istio 1.29.1 download complete!
+
+The Istio release archive has been downloaded to the istio-1.29.1 directory.
+
+To configure the istioctl client tool for your workstation,
+add the /root/istio-1.29.1/bin directory to your environment path variable with:
+         export PATH="$PATH:/root/istio-1.29.1/bin"
+
+Begin the Istio pre-installation check by running:
+         istioctl x precheck 
+
+Try Istio in ambient mode
+        https://istio.io/latest/docs/ambient/getting-started/
+Try Istio in sidecar mode
+        https://istio.io/latest/docs/setup/getting-started/
+Install guides for ambient mode
+        https://istio.io/latest/docs/ambient/install/
+Install guides for sidecar mode
+        https://istio.io/latest/docs/setup/install/
+
+Need more information? Visit https://istio.io/latest/docs/ 
+[root@CANERYDEPLOYMENT ~]# ll
+total 0
+drwxr-x---. 6 root root 115 Mar  6 19:06 istio-1.29.1
+[root@CANERYDEPLOYMENT ~]# 
+[root@CANERYDEPLOYMENT ~]# ll
+total 0
+drwxr-x---. 6 root root 115 Mar  6 19:06 istio-1.29.1
+[root@CANERYDEPLOYMENT ~]# cd istio-1.29.1/
+[root@CANERYDEPLOYMENT istio-1.29.1]# ll
+total 40
+-rw-r--r--.  1 root root 11357 Mar  6 19:06 LICENSE
+-rw-r--r--.  1 root root  7377 Mar  6 19:06 README.md
+drwxr-x---.  2 root root    22 Mar  6 19:06 bin
+-rw-r-----.  1 root root   924 Mar  6 19:06 manifest.yaml
+drwxr-xr-x.  4 root root    36 Mar  6 19:06 manifests
+drwxr-xr-x. 28 root root 16384 Mar  6 19:06 samples
+drwxr-xr-x.  3 root root    57 Mar  6 19:06 tools
+[root@CANERYDEPLOYMENT istio-1.29.1]# 
+[root@CANERYDEPLOYMENT istio-1.29.1]# export PATH=$PWD/bin:$PATH
+[root@CANERYDEPLOYMENT istio-1.29.1]# kubectl label namespace default istio-injection=enabled
+namespace/default labeled
+[root@CANERYDEPLOYMENT istio-1.29.1]# 
+[root@CANERYDEPLOYMENT istio-1.29.1]# kubectl describe ns default
+Name:         default
+Labels:       istio-injection=enabled
+              kubernetes.io/metadata.name=default
+Annotations:  <none>
+Status:       Active
+
+No resource quota.
+
+Resource Limits
+ Type       Resource  Min  Max  Default Request  Default Limit  Max Limit/Request Ratio
+ ----       --------  ---  ---  ---------------  -------------  -----------------------
+ Container  cpu       -    -    100m             -              -
+[root@CANERYDEPLOYMENT istio-1.29.1]# 
+[root@CANERYDEPLOYMENT istio-1.29.1]# istioctl install --set profile=demo -y
+        |\          
+        | \         
+        |  \        
+        |   \       
+      /||    \      
+     / ||     \     
+    /  ||      \    
+   /   ||       \   
+  /    ||        \  
+ /     ||         \ 
+/______||__________\
+____________________
+  \__       _____/  
+     \_____/        
+
+✔ Istio core installed ⛵️                                                                                                                                               
+✔ Istiod installed 🧠                                                                                                                                                   
+✔ Egress gateways installed 🛫                                                                                                                                          
+✔ Ingress gateways installed 🛬                                                                                                                                        
+✔ Installation complete                                                                                                                                                
+[root@CANERYDEPLOYMENT istio-1.29.1]# 
+[root@CANERYDEPLOYMENT istio-1.29.1]# kubectl run pod-1 --image=nginx
+pod/pod-1 created
+[root@CANERYDEPLOYMENT istio-1.29.1]# kubectl get pods
+NAME    READY   STATUS            RESTARTS   AGE
+pod-1   1/2     PodInitializing   0          9s
+[root@CANERYDEPLOYMENT istio-1.29.1]# 
+[root@CANERYDEPLOYMENT istio-1.29.1]# kubectl get pods
+NAME    READY   STATUS    RESTARTS   AGE
+pod-1   2/2     Running   0          21s
+[root@CANERYDEPLOYMENT istio-1.29.1]# kubectl describe pod
+Name:             pod-1
+Namespace:        default
+Priority:         0
+Service Account:  default
+Node:             i-03fd4c95cf5071e1f/172.20.75.76
+Start Time:       Sat, 21 Mar 2026 10:45:05 +0000
+Labels:           run=pod-1
+                  security.istio.io/tlsMode=istio
+                  service.istio.io/canonical-name=pod-1
+                  service.istio.io/canonical-revision=latest
+                  topology.kubernetes.io/region=us-east-1
+                  topology.kubernetes.io/zone=us-east-1a
+Annotations:      istio.io/rev: default
+                  kubectl.kubernetes.io/default-container: pod-1
+                  kubectl.kubernetes.io/default-logs-container: pod-1
+                  kubernetes.io/limit-ranger: LimitRanger plugin set: cpu request for container pod-1
+                  prometheus.io/path: /stats/prometheus
+                  prometheus.io/port: 15020
+                  prometheus.io/scrape: true
+                  sidecar.istio.io/status:
+                    {"initContainers":["istio-init","istio-proxy"],"containers":null,"volumes":["workload-socket","credential-socket","workload-certs","istio-...
+Status:           Running
+IP:               100.96.1.97
+IPs:
+  IP:  100.96.1.97
+Init Containers:
+  istio-init:
+    Container ID:  containerd://0ac690c02078e298ab830ffca6b1969278495413bbe0f199cfccef88f5b78285
+    Image:         docker.io/istio/proxyv2:1.29.1
+    Image ID:      docker.io/istio/proxyv2@sha256:af6e9eb76266df63c897a93db0e14fd6002080a0586b101ce9531b3f901591dc
+    Port:          <none>
+    Host Port:     <none>
+    Args:
+      istio-iptables
+      -p
+      15001
+      -z
+      15006
+      -u
+      1337
+      -m
+      REDIRECT
+      -i
+      *
+      -x
+      
+      -b
+      *
+      -d
+      15090,15021,15020
+      --log_output_level=default:info
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Sat, 21 Mar 2026 10:45:07 +0000
+      Finished:     Sat, 21 Mar 2026 10:45:07 +0000
+    Ready:          True
+    Restart Count:  0
+    Limits:
+      cpu:     2
+      memory:  1Gi
+    Requests:
+      cpu:        10m
+      memory:     40Mi
+    Environment:  <none>
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-bk4cw (ro)
+  istio-proxy:
+    Container ID:  containerd://1cbc358378432d08f7607b2a03f8a5947c039171f955bc423c8a19cb91497d27
+    Image:         docker.io/istio/proxyv2:1.29.1
+    Image ID:      docker.io/istio/proxyv2@sha256:af6e9eb76266df63c897a93db0e14fd6002080a0586b101ce9531b3f901591dc
+    Port:          15090/TCP (http-envoy-prom)
+    Host Port:     0/TCP (http-envoy-prom)
+    Args:
+      proxy
+      sidecar
+      --domain
+      $(POD_NAMESPACE).svc.cluster.local
+      --proxyLogLevel=warning
+      --proxyComponentLogLevel=misc:error
+      --log_output_level=default:info
+    State:          Running
+      Started:      Sat, 21 Mar 2026 10:45:09 +0000
+    Ready:          True
+    Restart Count:  0
+    Limits:
+      cpu:     2
+      memory:  1Gi
+    Requests:
+      cpu:      10m
+      memory:   40Mi
+    Readiness:  http-get http://:15021/healthz/ready delay=0s timeout=3s period=15s #success=1 #failure=4
+    Startup:    http-get http://:15021/healthz/ready delay=0s timeout=3s period=1s #success=1 #failure=600
+    Environment:
+      PILOT_CERT_PROVIDER:           istiod
+      CA_ADDR:                       istiod.istio-system.svc:15012
+      POD_NAME:                      pod-1 (v1:metadata.name)
+      POD_NAMESPACE:                 default (v1:metadata.namespace)
+      INSTANCE_IP:                    (v1:status.podIP)
+      SERVICE_ACCOUNT:                (v1:spec.serviceAccountName)
+      HOST_IP:                        (v1:status.hostIP)
+      ISTIO_CPU_LIMIT:               2 (limits.cpu)
+      PROXY_CONFIG:                  {}
+                                     
+      ISTIO_META_POD_PORTS:          [
+                                     ]
+      ISTIO_META_APP_CONTAINERS:     pod-1
+      GOMEMLIMIT:                    1073741824 (limits.memory)
+      GOMAXPROCS:                    2 (limits.cpu)
+      ISTIO_META_CLUSTER_ID:         Kubernetes
+      ISTIO_META_NODE_NAME:           (v1:spec.nodeName)
+      ISTIO_META_INTERCEPTION_MODE:  REDIRECT
+      ISTIO_META_WORKLOAD_NAME:      pod-1
+      ISTIO_META_OWNER:              kubernetes://apis/v1/namespaces/default/pods/pod-1
+      ISTIO_META_MESH_ID:            cluster.local
+      TRUST_DOMAIN:                  cluster.local
+    Mounts:
+      /etc/istio/pod from istio-podinfo (rw)
+      /etc/istio/proxy from istio-envoy (rw)
+      /var/lib/istio/data from istio-data (rw)
+      /var/run/secrets/credential-uds from credential-socket (rw)
+      /var/run/secrets/istio from istiod-ca-cert (rw)
+      /var/run/secrets/istio/crl from istio-ca-crl (rw)
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-bk4cw (ro)
+      /var/run/secrets/tokens from istio-token (rw)
+      /var/run/secrets/workload-spiffe-credentials from workload-certs (rw)
+      /var/run/secrets/workload-spiffe-uds from workload-socket (rw)
+Containers:
+  pod-1:
+    Container ID:   containerd://27512e29cf0924bb12d8516a32e46311cc6dd9226f8c6fe41254f4bf18ed3ba3
+    Image:          nginx
+    Image ID:       docker.io/library/nginx@sha256:dec7a90bd0973b076832dc56933fe876bc014929e14b4ec49923951405370112
+    Port:           <none>
+    Host Port:      <none>
+    State:          Running
+      Started:      Sat, 21 Mar 2026 10:45:15 +0000
+    Ready:          True
+    Restart Count:  0
+    Requests:
+      cpu:        100m
+    Environment:  <none>
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-bk4cw (ro)
+Conditions:
+  Type                        Status
+  PodReadyToStartContainers   True 
+  Initialized                 True 
+  Ready                       True 
+  ContainersReady             True 
+  PodScheduled                True 
+Volumes:
+  workload-socket:
+    Type:       EmptyDir (a temporary directory that shares a pod's lifetime)
+    Medium:     
+    SizeLimit:  <unset>
+  credential-socket:
+    Type:       EmptyDir (a temporary directory that shares a pod's lifetime)
+    Medium:     
+    SizeLimit:  <unset>
+  workload-certs:
+    Type:       EmptyDir (a temporary directory that shares a pod's lifetime)
+    Medium:     
+    SizeLimit:  <unset>
+  istio-envoy:
+    Type:       EmptyDir (a temporary directory that shares a pod's lifetime)
+    Medium:     Memory
+    SizeLimit:  <unset>
+  istio-data:
+    Type:       EmptyDir (a temporary directory that shares a pod's lifetime)
+    Medium:     
+    SizeLimit:  <unset>
+  istio-podinfo:
+    Type:  DownwardAPI (a volume populated by information about the pod)
+    Items:
+      metadata.labels -> labels
+      metadata.annotations -> annotations
+  istio-token:
+    Type:                    Projected (a volume that contains injected data from multiple sources)
+    TokenExpirationSeconds:  43200
+  istiod-ca-cert:
+    Type:      ConfigMap (a volume populated by a ConfigMap)
+    Name:      istio-ca-root-cert
+    Optional:  false
+  istio-ca-crl:
+    Type:      ConfigMap (a volume populated by a ConfigMap)
+    Name:      istio-ca-crl
+    Optional:  true
+  kube-api-access-bk4cw:
+    Type:                    Projected (a volume that contains injected data from multiple sources)
+    TokenExpirationSeconds:  3607
+    ConfigMapName:           kube-root-ca.crt
+    Optional:                false
+    DownwardAPI:             true
+QoS Class:                   Burstable
+Node-Selectors:              <none>
+Tolerations:                 node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
+                             node.kubernetes.io/unreachable:NoExecute op=Exists for 300s
+Events:
+  Type    Reason     Age   From               Message
+  ----    ------     ----  ----               -------
+  Normal  Scheduled  58s   default-scheduler  Successfully assigned default/pod-1 to i-03fd4c95cf5071e1f
+  Normal  Pulled     56s   kubelet            spec.initContainers{istio-init}: Container image "docker.io/istio/proxyv2:1.29.1" already present on machine and can be accessed by the pod
+  Normal  Created    56s   kubelet            spec.initContainers{istio-init}: Container created
+  Normal  Started    56s   kubelet            spec.initContainers{istio-init}: Container started
+  Normal  Pulled     55s   kubelet            spec.initContainers{istio-proxy}: Container image "docker.io/istio/proxyv2:1.29.1" already present on machine and can be accessed by the pod
+  Normal  Created    55s   kubelet            spec.initContainers{istio-proxy}: Container created
+  Normal  Started    54s   kubelet            spec.initContainers{istio-proxy}: Container started
+  Normal  Pulling    52s   kubelet            spec.containers{pod-1}: Pulling image "nginx"
+  Normal  Pulled     48s   kubelet            spec.containers{pod-1}: Successfully pulled image "nginx" in 3.527s (3.527s including waiting). Image size: 62956815 bytes.
+  Normal  Created    48s   kubelet            spec.containers{pod-1}: Container created
+  Normal  Started    48s   kubelet            spec.containers{pod-1}: Container started
+[root@CANERYDEPLOYMENT istio-1.29.1]# 
+
+
+vim pod.yml
+
+---
+apiVersion: v1
+kind: Pod
+metadat:
+  name: mypod
+spec:
+  containers:
+    - name: cont1
+      image: httpd
+      ports:
+        - containerPort: 80
+
+:wq
+
+
+[root@CANERYDEPLOYMENT istio-1.29.1]# vim pod.yml
+[root@CANERYDEPLOYMENT istio-1.29.1]# kubectl create -f pod.yml 
+pod/mypod created
+[root@CANERYDEPLOYMENT istio-1.29.1]# 
+[root@CANERYDEPLOYMENT istio-1.29.1]# kubectl get pods
+NAME    READY   STATUS    RESTARTS   AGE
+mypod   2/2     Running   0          16s
+pod-1   2/2     Running   0          5m4s
+[root@CANERYDEPLOYMENT istio-1.29.1]# 
+
+As per the manifestation file there is 1 container
+
+but we got 2 containers 2 pods
+
+[root@CANERYDEPLOYMENT istio-1.29.1]# kubectl describe pod pod-1
+Name:             pod-1
+Namespace:        default
+Priority:         0
+Service Account:  default
+Node:             i-03fd4c95cf5071e1f/172.20.75.76
+Start Time:       Sat, 21 Mar 2026 10:45:05 +0000
+Labels:           run=pod-1
+
+
+
+
 
