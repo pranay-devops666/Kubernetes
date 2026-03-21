@@ -1,3 +1,116 @@
 Kubernetes Class -15
 
-TOPIC: DEPLOYMENT STRATEGY IN K8's
+TOPIC: DEPLOYMENT STRATEGY IN K8's , BLUE GREEN DEPLOYMENT(very very famous) in this we will create two identical environments,
+====================================================================================================================================
+
+
+launch instance 
+
+launch ---------->name:minikube--------->c7i-flex-large----->keypair-------->jenkins security group--------> 20ebs volume----> launch
+
+yum install docker -y && systemctl start docker
+
+curl -LO https://github.com/kubernetes/minikube/releases/latest/download/minikube-linux-amd64
+sudo install minikube-linux-amd64 /usr/local/bin/minikube && rm minikube-linux-amd64
+
+minikube version
+
+
+install kubectl
+
+https://kubernetes.io › docs › tasks › tools------->install tools
+
+Install kubectl on Linux
+
+curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+
+
+ll
+
+[root@ip-172-31-44-108 ~]# ll
+total 57228
+-rw-r--r--. 1 root root 58597560 Dec 30 13:24 kubectl
+
+for this file need to give full permissions
+
+[root@ip-172-31-44-108 ~]# chmod +x kubectl
+[root@ip-172-31-44-108 ~]# ll
+total 57228
+-rwxr-xr-x. 1 root root 58597560 Dec 30 13:24 kubectl
+[root@ip-172-31-44-108 ~]# 
+
+mv kubectl /usr/local/bin/
+
+
+minikube status
+
+minikube start --driver=docker
+
+minikube start --driver=docker --force
+
+minikube status
+
+[root@ip-172-31-25-132 ~]# minikube status
+minikube
+type: Control Plane
+host: Running
+kubelet: Running
+apiserver: Running
+kubeconfig: Configured
+
+
+now create a cluster
+
+aws s3 ls
+
+aws s3 mb s3://jaisri.2026.ram
+
+kops create cluster --name srirama.k8s.local --zones us-east-1a,us-east-1b --master-size c7i-flex.large --master-volume-size 30 --node-count 2 --node-volume-size 20 --node-size t3.micro --image=ami-0b6c6ebed2801a5cb
+
+kops delete cluster --name babu.k8s.local --yes -----------------> command to delete the cluster
+
+
+
+
+Suggestions:
+===================
+
+
+ * list clusters with: kops get cluster
+ * edit this cluster with: kops edit cluster rama.k8s.local
+ * edit your node instance group: kops edit ig --name=rama.k8s.local nodes-us-east-1a
+ * edit your control-plane instance group: kops edit ig --name=rama.k8s.local control-plane-us-east-1a
+
+Finally configure your cluster with: kops update cluster --name rama.k8s.local --yes --admin
+
+
+
+Suggestions:
+ * validate cluster: kops validate cluster --wait 10m
+ * list nodes: kubectl get nodes --show-labels
+ * ssh to a control-plane node: ssh -i ~/.ssh/id_rsa ubuntu@
+ * the ubuntu user is specific to Ubuntu. If not using Ubuntu please use the appropriate user based on your OS.
+ * read about installing addons at: https://kops.sigs.k8s.io/addons.
+
+
+
+TASK is there watch Recording video for to understand TASK
+==============================================================
+
+
+https://www.google.com/search?q=rolling+update+in+kubernetes+manifest&sca_esv=aa563a5fc25e091e&sxsrf=ANbL-n5ms47s3Pq7Ke66R4krFNh_Dc3cKw%3A1774080816917&ei=MFO-aaTaN9PjseMP_cD2sQM&biw=1536&bih=730&ved=0ahUKEwikspSHxrCTAxXTcWwGHX2gPTYQ4dUDCBE&uact=5&oq=rolling+update+in+kubernetes+manifest&gs_lp=Egxnd3Mtd2l6LXNlcnAiJXJvbGxpbmcgdXBkYXRlIGluIGt1YmVybmV0ZXMgbWFuaWZlc3QyBRAAGO8FMgUQABjvBTIIEAAYgAQYogQyCBAAGIAEGKIESMoSUL8GWNUJcAF4AZABAJgBvgGgAasEqgEDMC4zuAEDyAEA-AEBmAIDoALHA8ICChAAGLADGNYEGEfCAhcQLhiwAxi4BhjYAhjIAxjaBhjcBtgBAcICBxAjGLACGCeYAwCIBgGQBgy6BgQIARgZkgcFMS4xLjGgB8kPsgcFMC4xLjG4B5EDwgcJMi0xLjEuMC4xyAc_gAgA&sclient=gws-wiz-serp
+
+rolling update in kubernetes manifest
+
+
+TOPIC: BLUE GREEN DEPLOYMENT( in this we will create two identical environments,)
+=========================================================================================
+
+1. Blue Environment image as a Deployment
+2. Green Environment image as another Deployment
+
+Canvary Deployment
+====================
+
+Remaining Topics are Ingress & Probes etc like node afinity, pod efinity & Affinities, Taint & Tolerance
+
