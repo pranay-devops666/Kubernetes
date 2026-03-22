@@ -1,8 +1,8 @@
 Kubernetes Class -18
 
 
-TOPIC: AFFINITY, TAINT & TOLERANCE & JOBS
-============================================
+TOPIC: AFFINITY, TAINT & TOLERANCE & JOBS(Cron-Job)
+=====================================================
 
 
 Launch one Instance --------> name: minikube------> c7i-flex-large---------> jenkins security group ---------> 28 ebs volume ---------> launch instance
@@ -334,5 +334,291 @@ pod "logs-pod" deleted from default namespace
 [root@Affinity ~]# kubectl get po
 No resources found in default namespace.
 [root@Affinity ~]# 
+
+[root@AFFINITY ~]# kubectl get nodes
+NAME                  STATUS   ROLES           AGE   VERSION
+i-077ec01aa3e770002   Ready    node            11m   v1.35.2
+i-0bbe03145b19f06bc   Ready    node            12m   v1.35.2
+i-0cd1397cea1eaf41b   Ready    control-plane   12m   v1.35.2
+[root@AFFINITY ~]# kubectl taint node i-0cd1397cea1eaf41b env=prod:NoSchedule
+node/i-0cd1397cea1eaf41b tainted
+[root@AFFINITY ~]# 
+
+[root@AFFINITY ~]# kubectl describe node i-0cd1397cea1eaf41b | grep -i "taint"
+Taints:             env=prod:NoSchedule
+[root@AFFINITY ~]# 
+
+Taints:             env=prod:NoSchedule
+[root@AFFINITY ~]# kubectl describe node i-077ec01aa3e770002 | grep -i "taint"
+Taints:             <none>
+[root@AFFINITY ~]# 
+
+lets see for control-panel
+
+Taints:             <none>
+[root@AFFINITY ~]# kubectl describe node i-0cd1397cea1eaf41b | grep -i "taint"
+Taints:             env=prod:NoSchedule
+
+[root@AFFINITY ~]# vim pod.yml
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: babu
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app: swiggy
+
+  template:
+    metadata:
+      name: mytemplate
+      labels:
+        app: swiggy
+
+    spec:
+      containers:
+        - name: cont1
+          ports:
+            - containerPort: 80
+          image: nginx
+
+:wq
+
+[root@AFFINITY ~]# kubectl create -f pod.yml 
+deployment.apps/babu created
+
+[root@AFFINITY ~]# kubectl get po
+NAME                    READY   STATUS    RESTARTS   AGE
+babu-7694996f99-6v6cq   1/1     Running   0          64s
+babu-7694996f99-d4khr   1/1     Running   0          64s
+babu-7694996f99-dh55x   1/1     Running   0          64s
+babu-7694996f99-js2s7   1/1     Running   0          64s
+[root@AFFINITY ~]# kubectl get po -o wide
+NAME                    READY   STATUS    RESTARTS   AGE   IP             NODE                  NOMINATED NODE   READINESS GATES
+babu-7694996f99-6v6cq   1/1     Running   0          70s   100.96.2.82    i-077ec01aa3e770002   <none>           <none>
+babu-7694996f99-d4khr   1/1     Running   0          70s   100.96.1.250   i-0bbe03145b19f06bc   <none>           <none>
+babu-7694996f99-dh55x   1/1     Running   0          70s   100.96.1.44    i-0bbe03145b19f06bc   <none>           <none>
+babu-7694996f99-js2s7   1/1     Running   0          70s   100.96.2.153   i-077ec01aa3e770002   <none>           <none>
+[root@AFFINITY ~]# 
+
+[root@AFFINITY ~]# kubectl scale deploy babu --replicas=6
+deployment.apps/babu scaled
+[root@AFFINITY ~]# 
+
+
+[root@AFFINITY ~]# vim pranay.yml
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: mypod
+spec:
+  containers:
+    - name: cont1
+      image: nginx
+      ports:
+        - containerPort: 80
+        
+  tolerations:
+    - key: "env"
+      operator: "Equal"
+      value: "prod"
+      effect: "NoSchedule"
+
+:wq
+
+
+[root@AFFINITY ~]# vim pranay.yml
+[root@AFFINITY ~]# kubectl create -f pranay.yml 
+pod/mypod created
+[root@AFFINITY ~]# kubectl get po
+NAME                    READY   STATUS    RESTARTS   AGE
+babu-7694996f99-6v6cq   1/1     Running   0          6m34s
+babu-7694996f99-d4khr   1/1     Running   0          6m34s
+babu-7694996f99-dh55x   1/1     Running   0          6m34s
+babu-7694996f99-js2s7   1/1     Running   0          6m34s
+babu-7694996f99-l8k96   1/1     Running   0          4m31s
+babu-7694996f99-pgthj   1/1     Running   0          4m31s
+mypod                   1/1     Running   0          15s
+[root@AFFINITY ~]# kubectl get po -o wide
+NAME                    READY   STATUS    RESTARTS   AGE     IP             NODE                  NOMINATED NODE   READINESS GATES
+babu-7694996f99-6v6cq   1/1     Running   0          6m38s   100.96.2.82    i-077ec01aa3e770002   <none>           <none>
+babu-7694996f99-d4khr   1/1     Running   0          6m38s   100.96.1.250   i-0bbe03145b19f06bc   <none>           <none>
+babu-7694996f99-dh55x   1/1     Running   0          6m38s   100.96.1.44    i-0bbe03145b19f06bc   <none>           <none>
+babu-7694996f99-js2s7   1/1     Running   0          6m38s   100.96.2.153   i-077ec01aa3e770002   <none>           <none>
+babu-7694996f99-l8k96   1/1     Running   0          4m35s   100.96.2.135   i-077ec01aa3e770002   <none>           <none>
+babu-7694996f99-pgthj   1/1     Running   0          4m35s   100.96.1.24    i-0bbe03145b19f06bc   <none>           <none>
+mypod                   1/1     Running   0          19s     100.96.1.149   i-0bbe03145b19f06bc   <none>           <none>
+[root@AFFINITY ~]# 
+[root@AFFINITY ~]# kubectl get nodes
+NAME                  STATUS   ROLES           AGE   VERSION
+i-077ec01aa3e770002   Ready    node            34m   v1.35.2
+i-0bbe03145b19f06bc   Ready    node            34m   v1.35.2
+i-0cd1397cea1eaf41b   Ready    control-plane   35m   v1.35.2
+[root@AFFINITY ~]# kubectl describe node i-077ec01aa3e770002 | grep -i taint
+Taints:             <none>
+[root@AFFINITY ~]# kubectl describe node i-0bbe03145b19f06bc | grep -i taint
+Taints:             <none>
+[root@AFFINITY ~]# kubectl describe node i-0cd1397cea1eaf41b | grep -i taint
+Taints:             env=prod:NoSchedule
+[root@AFFINITY ~]# 
+[root@AFFINITY ~]# kubectl get deploy
+NAME   READY   UP-TO-DATE   AVAILABLE   AGE
+babu   6/6     6            6           11m
+[root@AFFINITY ~]# kubectl delete deploy --all
+deployment.apps "babu" deleted from default namespace
+[root@AFFINITY ~]# kubectl get deploy
+No resources found in default namespace.
+[root@AFFINITY ~]# 
+[root@AFFINITY ~]# kubectl delete pod --all
+pod "mypod" deleted from default namespace
+
+
+[root@AFFINITY ~]# vim job.yml
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: testjob
+spec:
+  template:
+    metadata:
+      name: mytemplate
+    spec:
+      containers:
+        - image: nginx
+          name: mycont
+          command: ["/bin/bash", "-c", "sudo apt update -y: sleep 20"]
+      restartPolicy: Never
+
+:wq
+
+
+[root@AFFINITY ~]# kubectl create -f job.yml 
+job.batch/testjob created
+[root@AFFINITY ~]# 
+
+The above manifest file got error means try this below manifest file below
+
+
+[root@AFFINITY ~]# vim job.yml 
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: testjob
+spec:
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: job-container
+          image: nginx
+          command: ["sh", "-c", "sleep 3600"]
+:wq
+
+[root@AFFINITY ~]# kubectl delete job testjob
+kubectl apply -f job.yml
+job.batch "testjob" deleted from default namespace
+job.batch/testjob created
+[root@AFFINITY ~]# kubectl get po
+NAME            READY   STATUS    RESTARTS   AGE
+testjob-fqb6v   1/1     Running   0          11s
+[root@AFFINITY ~]# kubectl get po -w
+NAME            READY   STATUS    RESTARTS   AGE
+testjob-fqb6v   1/1     Running   0          20s
+
+
+[root@AFFINITY ~]# vim cronjob.yml
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: mycron-job
+spec:
+  schedule: "* * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: cont1
+              image: httpd
+              command: ["/bin/bash", "-c" "sudo apt update -y; sudo apt install git -y; sleep 10"]
+              restartPolicy: Never
+:wq
+
+[root@AFFINITY ~]# kubectl delete pod --all
+pod "testjob-fqb6v" deleted from default namespace
+
+If the above manifest got failed means try the below manifest file
+
+[root@AFFINITY ~]# vim cronjob.yml
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: mycron-job
+spec:
+  schedule: "* * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: cont1
+              image: httpd
+              command: ["/bin/bash", "-c", "apt update -y && apt install git -y && sleep 10"]
+              restartPolicy: Never
+:wq
+[root@AFFINITY ~]# kubectl apply -f cronjob.yml
+cronjob.batch/mycron-job created
+
+[root@AFFINITY ~]# kubectl get cj
+NAME         SCHEDULE    TIMEZONE   SUSPEND   ACTIVE   LAST SCHEDULE   AGE
+mycron-job   * * * * *   <none>     False     0        <none>          39s
+[root@AFFINITY ~]# 
+[root@AFFINITY ~]# kubectl get po
+NAME                        READY   STATUS    RESTARTS   AGE
+mycron-job-29569831-l6vt2   1/1     Running   0          12s
+testjob-spvtz               1/1     Running   0          10m
+[root@AFFINITY ~]# kubectl get po -o
+error: flag needs an argument: 'o' in -o
+See 'kubectl get --help' for usage.
+[root@AFFINITY ~]# kubectl get po -w
+NAME                        READY   STATUS      RESTARTS   AGE
+mycron-job-29569831-l6vt2   0/1     Completed   0          21s
+testjob-spvtz               1/1     Running     0          10m
+
+[root@AFFINITY ~]# kubectl get po -w
+NAME                        READY   STATUS      RESTARTS   AGE
+mycron-job-29569831-l6vt2   0/1     Completed   0          57s
+testjob-spvtz               1/1     Running     0          11m
+mycron-job-29569832-rgw8r   0/1     Pending     0          0s
+mycron-job-29569832-rgw8r   0/1     Pending     0          0s
+mycron-job-29569832-rgw8r   0/1     ContainerCreating   0          0s
+mycron-job-29569832-rgw8r   1/1     Running             0          0s
+mycron-job-29569832-rgw8r   0/1     Completed           0          16s
+mycron-job-29569832-rgw8r   0/1     Completed           0          18s
+mycron-job-29569832-rgw8r   0/1     Completed           0          18s
+mycron-job-29569833-xzzrl   0/1     Pending             0          0s
+mycron-job-29569833-xzzrl   0/1     Pending             0          0s
+mycron-job-29569833-xzzrl   0/1     ContainerCreating   0          0s
+mycron-job-29569833-xzzrl   1/1     Running             0          1s
+mycron-job-29569833-xzzrl   0/1     Completed           0          17s
+mycron-job-29569833-xzzrl   0/1     Completed           0          18s
+mycron-job-29569833-xzzrl   0/1     Completed           0          19s
+mycron-job-29569834-j6plb   0/1     Pending             0          0s
+mycron-job-29569834-j6plb   0/1     Pending             0          0s
+mycron-job-29569834-j6plb   0/1     ContainerCreating   0          0s
+mycron-job-29569834-j6plb   1/1     Running             0          1s
+mycron-job-29569834-j6plb   0/1     Completed           0          17s
+mycron-job-29569834-j6plb   0/1     Completed           0          18s
+mycron-job-29569834-j6plb   0/1     Completed           0          19s
+mycron-job-29569831-l6vt2   0/1     Completed           0          3m19s
+mycron-job-29569831-l6vt2   0/1     Completed           0          3m19s
 
 
