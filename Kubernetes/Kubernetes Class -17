@@ -1,7 +1,7 @@
 Kubernetes Class -17
 
-TOPIC: CANERY DEPLOYMENT (using ISTIO)
-========================================
+TOPIC: CANERY DEPLOYMENT (using ISTIO) Routing the traffic in terms of Traffic we are using ISTIO Tool
+=======================================================================================================
 
 [root@CANVERYDEPLOYMENT ~]#
 
@@ -513,6 +513,559 @@ Service Account:  default
 Node:             i-03fd4c95cf5071e1f/172.20.75.76
 Start Time:       Sat, 21 Mar 2026 10:45:05 +0000
 Labels:           run=pod-1
+
+[root@CANERYDEPLOYMENT istio-1.29.1]# ll
+total 44
+-rw-r--r--.  1 root root 11357 Mar  6 19:06 LICENSE
+-rw-r--r--.  1 root root  7377 Mar  6 19:06 README.md
+drwxr-x---.  2 root root    22 Mar  6 19:06 bin
+-rw-r-----.  1 root root   924 Mar  6 19:06 manifest.yaml
+drwxr-xr-x.  4 root root    36 Mar  6 19:06 manifests
+-rw-r--r--.  1 root root   151 Mar 22 07:02 pod.yml
+drwxr-xr-x. 28 root root 16384 Mar  6 19:06 samples
+drwxr-xr-x.  3 root root    57 Mar  6 19:06 tools
+[root@CANERYDEPLOYMENT istio-1.29.1]# rm -rf pod.yml 
+[root@CANERYDEPLOYMENT istio-1.29.1]# ll
+total 40
+-rw-r--r--.  1 root root 11357 Mar  6 19:06 LICENSE
+-rw-r--r--.  1 root root  7377 Mar  6 19:06 README.md
+drwxr-x---.  2 root root    22 Mar  6 19:06 bin
+-rw-r-----.  1 root root   924 Mar  6 19:06 manifest.yaml
+drwxr-xr-x.  4 root root    36 Mar  6 19:06 manifests
+drwxr-xr-x. 28 root root 16384 Mar  6 19:06 samples
+drwxr-xr-x.  3 root root    57 Mar  6 19:06 tools
+[root@CANERYDEPLOYMENT istio-1.29.1]# 
+
+Now lets create one namespace and create one Pod in it
+
+[root@CANERYDEPLOYMENT istio-1.29.1]# kubectl create namespace dev
+namespace/dev created
+[root@CANERYDEPLOYMENT istio-1.29.1]# kubectl get po
+NAME    READY   STATUS    RESTARTS   AGE
+mypod   2/2     Running   0          12m
+pod-1   2/2     Running   0          18m
+[root@CANERYDEPLOYMENT istio-1.29.1]# kubectl run pod-1 --image=nginx -n dev
+pod/pod-1 created
+[root@CANERYDEPLOYMENT istio-1.29.1]# kubectl get po -n dev
+NAME    READY   STATUS    RESTARTS   AGE
+pod-1   1/1     Running   0          19s
+[root@CANERYDEPLOYMENT istio-1.29.1]# 
+
+[root@CANERYDEPLOYMENT istio-1.29.1]# kubectl get po
+NAME    READY   STATUS    RESTARTS   AGE
+mypod   2/2     Running   0          13m
+pod-1   2/2     Running   0          19m
+[root@CANERYDEPLOYMENT istio-1.29.1]# kubectl delete po --all
+pod "mypod" deleted from default namespace
+pod "pod-1" deleted from default namespace
+[root@CANERYDEPLOYMENT istio-1.29.1]# 
+
+[root@CANERYDEPLOYMENT istio-1.29.1]# ll
+total 40
+-rw-r--r--.  1 root root 11357 Mar  6 19:06 LICENSE
+-rw-r--r--.  1 root root  7377 Mar  6 19:06 README.md
+drwxr-x---.  2 root root    22 Mar  6 19:06 bin
+-rw-r-----.  1 root root   924 Mar  6 19:06 manifest.yaml
+drwxr-xr-x.  4 root root    36 Mar  6 19:06 manifests
+drwxr-xr-x. 28 root root 16384 Mar  6 19:06 samples
+drwxr-xr-x.  3 root root    57 Mar  6 19:06 tools
+[root@CANERYDEPLOYMENT istio-1.29.1]# ll samples/
+total 36
+-rw-r--r--. 1 root root    98 Mar  6 19:06 README.md
+drwxr-xr-x. 3 root root   134 Mar  6 19:06 addons
+drwxr-xr-x. 6 root root   122 Mar  6 19:06 ambient-argo
+drwxr-xr-x. 7 root root   158 Mar  6 19:06 bookinfo
+drwxr-xr-x. 2 root root    23 Mar  6 19:06 builder
+drwxr-xr-x. 2 root root 16384 Mar  6 19:06 certs
+drwxr-xr-x. 3 root root    22 Mar  6 19:06 cicd
+drwxr-xr-x. 2 root root    40 Mar  6 19:06 curl
+drwxr-xr-x. 2 root root    76 Mar  6 19:06 custom-bootstrap
+drwxr-xr-x. 4 root root    98 Mar  6 19:06 extauthz
+drwxr-xr-x. 2 root root    78 Mar  6 19:06 external
+drwxr-xr-x. 2 root root    45 Mar  6 19:06 grpc-echo
+drwxr-xr-x. 2 root root    71 Mar  6 19:06 health-check
+drwxr-xr-x. 4 root root   184 Mar  6 19:06 helloworld
+drwxr-xr-x. 4 root root   140 Mar  6 19:06 httpbin
+drwxr-xr-x. 4 root root    56 Mar  6 19:06 jwt-server
+drwxr-xr-x. 2 root root    43 Mar  6 19:06 kind-lb
+drwxr-xr-x. 2 root root    45 Mar  6 19:06 mtls-echo
+drwxr-xr-x. 2 root root   140 Mar  6 19:06 multicluster
+drwxr-xr-x. 5 root root    61 Mar  6 19:06 open-telemetry
+drwxr-xr-x. 2 root root    45 Mar  6 19:06 proxy-coredump
+drwxr-xr-x. 2 root root    74 Mar  6 19:06 ratelimit
+drwxr-xr-x. 5 root root    67 Mar  6 19:06 security
+drwxr-xr-x. 2 root root    41 Mar  6 19:06 sleep
+drwxr-xr-x. 4 root root 16384 Mar  6 19:06 tcp-echo
+drwxr-xr-x. 3 root root    46 Mar  6 19:06 wasm_modules
+drwxr-xr-x. 2 root root    57 Mar  6 19:06 websockets
+[root@CANERYDEPLOYMENT istio-1.29.1]# ll samples/bookinfo/
+total 48
+-rw-r--r--. 1 root root 16487 Mar  6 19:06 README.md
+-rw-r--r--. 1 root root   313 Mar  6 19:06 demo-profile-no-gateways.yaml
+drwxr-xr-x. 2 root root   182 Mar  6 19:06 gateway-api
+drwxr-xr-x. 2 root root 16384 Mar  6 19:06 networking
+drwxr-xr-x. 3 root root    18 Mar  6 19:06 platform
+drwxr-xr-x. 2 root root    46 Mar  6 19:06 policy
+drwxr-xr-x. 8 root root   123 Mar  6 19:06 src
+-rw-r--r--. 1 root root  6329 Mar  6 19:06 swagger.yaml
+[root@CANERYDEPLOYMENT istio-1.29.1]# ll
+total 40
+-rw-r--r--.  1 root root 11357 Mar  6 19:06 LICENSE
+-rw-r--r--.  1 root root  7377 Mar  6 19:06 README.md
+drwxr-x---.  2 root root    22 Mar  6 19:06 bin
+-rw-r-----.  1 root root   924 Mar  6 19:06 manifest.yaml
+drwxr-xr-x.  4 root root    36 Mar  6 19:06 manifests
+drwxr-xr-x. 28 root root 16384 Mar  6 19:06 samples
+drwxr-xr-x.  3 root root    57 Mar  6 19:06 tools
+[root@CANERYDEPLOYMENT istio-1.29.1]# ll samples/bookinfo/
+total 48
+-rw-r--r--. 1 root root 16487 Mar  6 19:06 README.md
+-rw-r--r--. 1 root root   313 Mar  6 19:06 demo-profile-no-gateways.yaml
+drwxr-xr-x. 2 root root   182 Mar  6 19:06 gateway-api
+drwxr-xr-x. 2 root root 16384 Mar  6 19:06 networking
+drwxr-xr-x. 3 root root    18 Mar  6 19:06 platform
+drwxr-xr-x. 2 root root    46 Mar  6 19:06 policy
+drwxr-xr-x. 8 root root   123 Mar  6 19:06 src
+-rw-r--r--. 1 root root  6329 Mar  6 19:06 swagger.yaml
+[root@CANERYDEPLOYMENT istio-1.29.1]# ll
+total 40
+-rw-r--r--.  1 root root 11357 Mar  6 19:06 LICENSE
+-rw-r--r--.  1 root root  7377 Mar  6 19:06 README.md
+drwxr-x---.  2 root root    22 Mar  6 19:06 bin
+-rw-r-----.  1 root root   924 Mar  6 19:06 manifest.yaml
+drwxr-xr-x.  4 root root    36 Mar  6 19:06 manifests
+drwxr-xr-x. 28 root root 16384 Mar  6 19:06 samples
+drwxr-xr-x.  3 root root    57 Mar  6 19:06 tools
+[root@CANERYDEPLOYMENT istio-1.29.1]# 
+
+[root@CANERYDEPLOYMENT istio-1.29.1]# ll samples/bookinfo/
+total 48
+-rw-r--r--. 1 root root 16487 Mar  6 19:06 README.md
+-rw-r--r--. 1 root root   313 Mar  6 19:06 demo-profile-no-gateways.yaml
+drwxr-xr-x. 2 root root   182 Mar  6 19:06 gateway-api
+drwxr-xr-x. 2 root root 16384 Mar  6 19:06 networking
+drwxr-xr-x. 3 root root    18 Mar  6 19:06 platform
+drwxr-xr-x. 2 root root    46 Mar  6 19:06 policy
+drwxr-xr-x. 8 root root   123 Mar  6 19:06 src
+-rw-r--r--. 1 root root  6329 Mar  6 19:06 swagger.yaml
+[root@CANERYDEPLOYMENT istio-1.29.1]# ll samples/platform/
+ls: cannot access 'samples/platform/': No such file or directory
+[root@CANERYDEPLOYMENT istio-1.29.1]# ll samples/bookinfo/platform/
+total 16
+drwxr-xr-x. 2 root root 16384 Mar  6 19:06 kube
+[root@CANERYDEPLOYMENT istio-1.29.1]# ll
+total 40
+-rw-r--r--.  1 root root 11357 Mar  6 19:06 LICENSE
+-rw-r--r--.  1 root root  7377 Mar  6 19:06 README.md
+drwxr-x---.  2 root root    22 Mar  6 19:06 bin
+-rw-r-----.  1 root root   924 Mar  6 19:06 manifest.yaml
+drwxr-xr-x.  4 root root    36 Mar  6 19:06 manifests
+drwxr-xr-x. 28 root root 16384 Mar  6 19:06 samples
+drwxr-xr-x.  3 root root    57 Mar  6 19:06 tools
+[root@CANERYDEPLOYMENT istio-1.29.1]# ll samples/bookinfo/platform/kube/
+total 104
+-rw-r--r--. 1 root root  137 Mar  6 19:06 README.md
+-rw-r--r--. 1 root root  914 Mar  6 19:06 bookinfo-certificate.yaml
+-rw-r--r--. 1 root root 1446 Mar  6 19:06 bookinfo-db.yaml
+-rw-r--r--. 1 root root 1530 Mar  6 19:06 bookinfo-details-dualstack.yaml
+-rw-r--r--. 1 root root 1358 Mar  6 19:06 bookinfo-details-v2.yaml
+-rw-r--r--. 1 root root 1468 Mar  6 19:06 bookinfo-details.yaml
+-rw-r--r--. 1 root root 8047 Mar  6 19:06 bookinfo-dualstack.yaml
+-rw-r--r--. 1 root root 1743 Mar  6 19:06 bookinfo-ingress.yaml
+-rw-r--r--. 1 root root 2009 Mar  6 19:06 bookinfo-mysql.yaml
+-rw-r--r--. 1 root root 8342 Mar  6 19:06 bookinfo-psa.yaml
+-rw-r--r--. 1 root root 1050 Mar  6 19:06 bookinfo-ratings-discovery-dualstack.yaml
+-rw-r--r--. 1 root root  988 Mar  6 19:06 bookinfo-ratings-discovery.yaml
+-rw-r--r--. 1 root root 1530 Mar  6 19:06 bookinfo-ratings-dualstack.yaml
+-rw-r--r--. 1 root root 1545 Mar  6 19:06 bookinfo-ratings-v2-mysql-vm.yaml
+-rw-r--r--. 1 root root 1774 Mar  6 19:06 bookinfo-ratings-v2-mysql.yaml
+-rw-r--r--. 1 root root 1876 Mar  6 19:06 bookinfo-ratings-v2.yaml
+-rw-r--r--. 1 root root 1468 Mar  6 19:06 bookinfo-ratings.yaml
+-rw-r--r--. 1 root root 1592 Mar  6 19:06 bookinfo-reviews-v2.yaml
+-rw-r--r--. 1 root root  920 Mar  6 19:06 bookinfo-versions.yaml
+-rw-r--r--. 1 root root 7799 Mar  6 19:06 bookinfo.yaml
+-rwxr-xr-x. 1 root root 2539 Mar  6 19:06 cleanup.sh
+-rw-r--r--. 1 root root 1026 Mar  6 19:06 productpage-nodeport.yaml
+[root@CANERYDEPLOYMENT istio-1.29.1]# 
+
+here we can see all manifest files related to Database MYSQL, Ingress etc all are related to Application manifest files
+
+
+https://istio.io/latest/docs/examples/bookinfo/
+
+[Requests] --> [Product page (Python)]
+  |
+  +--> [Reviews-v1 (Java)]
+  |
+  +--> [Reviews-v2 (Java)] --> [Ratings (Node)]
+  |
+  +--> [Reviews-v3 (Java)] --> [Ratings (Node)]
+  |
+  +--> [Details (Ruby)]
+
+
+
+In terms of providing percentage route traffic 
+
+Routing the traffic in terms of percetage we are using ISTIO
+
+how it will helpful is what the pods get created related to application inside of that pods with that application container it will used to get another
+container name called as enovy
+
+with the help of this Enovy container we can able to route the traffic in terms of percetage and it will decide should decide or not to allow this traffic
+
+lets implement in practically
+
+to implement it practically we need to deploy the application 3 deployments
+
+https://istio.io/latest/docs/examples/bookinfo/------------> go to this official website to get deploy commands like below
+
+[root@CANERYDEPLOYMENT istio-1.29.1]# kubectl apply -f samples/bookinfo/platform/kube/bookinfo.yaml
+service/details created
+serviceaccount/bookinfo-details created
+deployment.apps/details-v1 created
+service/ratings created
+serviceaccount/bookinfo-ratings created
+deployment.apps/ratings-v1 created
+service/reviews created
+serviceaccount/bookinfo-reviews created
+deployment.apps/reviews-v1 created
+deployment.apps/reviews-v2 created
+deployment.apps/reviews-v3 created
+service/productpage created
+serviceaccount/bookinfo-productpage created
+deployment.apps/productpage-v1 created
+[root@CANERYDEPLOYMENT istio-1.29.1]# 
+
+Now we need an expose for these versions and need sevice it has been created above
+
+[root@CANERYDEPLOYMENT istio-1.29.1]# kubectl get po
+NAME                              READY   STATUS            RESTARTS   AGE
+details-v1-6cc9f5cc44-l85qf       2/2     Running           0          97s
+productpage-v1-7f885b46fc-vj7vx   1/2     PodInitializing   0          97s
+ratings-v1-77b8b6df5b-mmqp5       2/2     Running           0          97s
+reviews-v1-fdbf79cd8-89b6w        1/2     PodInitializing   0          97s
+reviews-v2-674c6d8b4-6jcqn        2/2     Running           0          97s
+reviews-v3-7b775c7568-qzftg       2/2     Running           0          97s
+[root@CANERYDEPLOYMENT istio-1.29.1]# 
+
+[root@CANERYDEPLOYMENT istio-1.29.1]# kubectl get po
+NAME                              READY   STATUS        RESTARTS   AGE
+details-v1-6cc9f5cc44-l85qf       2/2     Running       0          7m22s
+productpage-v1-7f885b46fc-vj7vx   1/2     Terminating   0          7m22s
+ratings-v1-77b8b6df5b-mmqp5       2/2     Running       0          7m22s
+reviews-v1-fdbf79cd8-89b6w        1/2     Terminating   0          7m22s
+reviews-v2-674c6d8b4-6jcqn        2/2     Terminating   0          7m22s
+reviews-v3-7b775c7568-qzftg       2/2     Running       0          7m22s
+[root@CANERYDEPLOYMENT istio-1.29.1]# kubectl get po --field-selector=status.phase=Running
+NAME                          READY   STATUS        RESTARTS   AGE
+details-v1-6cc9f5cc44-l85qf   2/2     Running       0          8m21s
+ratings-v1-77b8b6df5b-mmqp5   2/2     Running       0          8m21s
+reviews-v2-674c6d8b4-6jcqn    2/2     Terminating   0          8m21s
+reviews-v3-7b775c7568-qzftg   2/2     Running       0          8m21s
+[root@CANERYDEPLOYMENT istio-1.29.1]# 
+
+Now ekkada create ayye prathi pod lopala 2/2 containers vochai like 1 continer is app container and another one is Enovy container
+
+[root@CANERYDEPLOYMENT istio-1.29.1]# kubectl get svc
+NAME          TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)    AGE
+details       ClusterIP   100.66.79.161    <none>        9080/TCP   3m25s
+kubernetes    ClusterIP   100.64.0.1       <none>        443/TCP    48m
+productpage   ClusterIP   100.69.185.180   <none>        9080/TCP   3m25s
+ratings       ClusterIP   100.69.25.71     <none>        9080/TCP   3m25s
+reviews       ClusterIP   100.66.221.74    <none>        9080/TCP   3m25s
+[root@CANERYDEPLOYMENT istio-1.29.1]# 
+
+Now we need to do expose product page service to access the application
+
+but this product page is havig with cluster IP by default, we can't access with that cluster IP, we need to change that LoadBalancer that means we need to patch
+
+[root@CANERYDEPLOYMENT istio-1.29.1]# kubectl patch svc productpage -p '{"spec": {"type": "LoadBalancer"}}'
+service/productpage patched
+[root@CANERYDEPLOYMENT istio-1.29.1]#
+
+[root@CANERYDEPLOYMENT istio-1.29.1]# kubectl get svc
+NAME          TYPE           CLUSTER-IP       EXTERNAL-IP                                                               PORT(S)          AGE
+details       ClusterIP      100.66.79.161    <none>                                                                    9080/TCP         10m
+kubernetes    ClusterIP      100.64.0.1       <none>                                                                    443/TCP          55m
+productpage   LoadBalancer   100.69.185.180   a866a3b0fda3642569bb1433071989fb-2067535196.us-east-1.elb.amazonaws.com   9080:31362/TCP   10m
+ratings       ClusterIP      100.69.25.71     <none>                                                                    9080/TCP         10m
+reviews       ClusterIP      100.66.221.74    <none>                                                                    9080/TCP         10m
+[root@CANERYDEPLOYMENT istio-1.29.1]# 
+
+Now we can able to access the application with (a866a3b0fda3642569bb1433071989fb-2067535196.us-east-1.elb.amazonaws.com) ---------> enter
+
+[root@CANERYDEPLOYMENT istio-1.29.1]# kubetcl get nodes
+-bash: kubetcl: command not found
+[root@CANERYDEPLOYMENT istio-1.29.1]# cd 
+[root@CANERYDEPLOYMENT ~]# kubectl get nodes
+NAME                  STATUS     ROLES           AGE   VERSION
+i-01ab1a2b2695a4b48   NotReady   node            64m   v1.35.2
+i-077ea7ae3dc8c38a0   NotReady   node            64m   v1.35.2
+i-0b2acb520caf7ea63   Ready      control-plane   66m   v1.35.2
+[root@CANERYDEPLOYMENT ~]# ll
+total 0
+drwxr-x---. 6 root root 115 Mar 22 07:13 istio-1.29.1
+[root@CANERYDEPLOYMENT ~]# cd istio-1.29.1/
+[root@CANERYDEPLOYMENT istio-1.29.1]# kubectl describe node i-01ab1a2b2695a4b48
+
+[root@CANERYDEPLOYMENT istio-1.29.1]# kubectl get nodes
+NAME                  STATUS     ROLES           AGE   VERSION
+i-01ab1a2b2695a4b48   NotReady   node            66m   v1.35.2
+i-077ea7ae3dc8c38a0   NotReady   node            65m   v1.35.2
+i-0b2acb520caf7ea63   Ready      control-plane   68m   v1.35.2
+[root@CANERYDEPLOYMENT istio-1.29.1]# kubectl get nodes -o wide
+NAME                  STATUS     ROLES           AGE   VERSION   INTERNAL-IP      EXTERNAL-IP      OS-IMAGE                        KERNEL-VERSION                    CONTAINER-RUNTIME
+i-01ab1a2b2695a4b48   NotReady   node            66m   v1.35.2   172.20.202.187   44.206.255.163   Amazon Linux 2023.10.20260302   6.1.163-186.299.amzn2023.x86_64   containerd://2.1.6
+i-077ea7ae3dc8c38a0   NotReady   node            66m   v1.35.2   172.20.97.35     44.199.244.74    Amazon Linux 2023.10.20260302   6.1.163-186.299.amzn2023.x86_64   containerd://2.1.6
+i-0b2acb520caf7ea63   Ready      control-plane   68m   v1.35.2   172.20.66.142    3.222.245.138    Amazon Linux 2023.10.20260302   6.1.163-186.299.amzn2023.x86_64   containerd://2.1.6
+[root@CANERYDEPLOYMENT istio-1.29.1]# 
+
+
+lets update the cluster
+
+
+
+[root@CANERYDEPLOYMENT istio-1.29.1]# kops edit ig --name=srirama.k8s.local nodes-us-east-1a
+[root@CANERYDEPLOYMENT istio-1.29.1]# 
+
+# Please edit the object below. Lines beginning with a '#' will be ignored,
+# and an empty file will abort the edit. If an error occurs while saving this file will be
+# reopened with the relevant failures.
+#
+apiVersion: kops.k8s.io/v1alpha2
+kind: InstanceGroup
+metadata:
+  creationTimestamp: "2026-03-22T06:46:18Z"
+  labels:
+    kops.k8s.io/cluster: srirama.k8s.local
+  name: nodes-us-east-1a
+spec:
+  image: ami-02dfbd4ff395f2a1b
+  machineType: c7i-flex.large
+  maxSize: 2
+  minSize: 2
+  role: Node
+  rootVolumeSize: 20
+  subnets:
+  - us-east-1a
+
+:wq
+
+
+[root@CANERYDEPLOYMENT istio-1.29.1]# kops get cluster
+NAME                    CLOUD   ZONES
+srirama.k8s.local       aws     us-east-1a,us-east-1b
+[root@CANERYDEPLOYMENT istio-1.29.1]# kops update cluster --name srirama.k8s.local --yes --admin
+I0322 08:06:41.074317   51323 executor.go:113] Tasks: 0 done / 126 total; 43 can run
+I0322 08:06:41.409674   51323 executor.go:113] Tasks: 43 done / 126 total; 23 can run
+I0322 08:06:41.731747   51323 executor.go:113] Tasks: 66 done / 126 total; 35 can run
+I0322 08:06:42.459103   51323 executor.go:113] Tasks: 101 done / 126 total; 5 can run
+I0322 08:06:43.545676   51323 executor.go:113] Tasks: 106 done / 126 total; 8 can run
+I0322 08:06:44.410796   51323 executor.go:113] Tasks: 114 done / 126 total; 3 can run
+I0322 08:06:44.660299   51323 executor.go:113] Tasks: 117 done / 126 total; 6 can run
+I0322 08:06:44.766148   51323 executor.go:113] Tasks: 123 done / 126 total; 3 can run
+I0322 08:06:44.808743   51323 executor.go:113] Tasks: 126 done / 126 total; 0 can run
+I0322 08:06:44.809175   51323 update_cluster.go:419] Exporting kubeconfig for cluster
+kOps has set your kubectl context to srirama.k8s.local
+
+Cluster changes have been applied to the cloud.
+
+
+Changes may require instances to restart: kops rolling-update cluster
+
+[root@CANERYDEPLOYMENT istio-1.29.1]# 
+
+Now lets recreate the cluster
+
+[root@CANERYDEPLOYMENT istio-1.29.1]# kops get cluster
+NAME                    CLOUD   ZONES
+srirama.k8s.local       aws     us-east-1a,us-east-1b
+[root@CANERYDEPLOYMENT istio-1.29.1]# aws s3 ls
+2026-03-17 05:39:11 jaisri.2026.ram
+[root@CANERYDEPLOYMENT istio-1.29.1]# export KOPS_STATE_STORE=s3://jaisri.2026.ram
+[root@CANERYDEPLOYMENT istio-1.29.1]# export KOPS_STATE_STORE=s3://jaisri.2026.ram
+[root@CANERYDEPLOYMENT istio-1.29.1]# kops delete cluster --name srirama.k8s.local --yes
+
+[root@CANERYDEPLOYMENT istio-1.29.1]# kops create cluster --name srirama.k8s.local --zones us-east-1a,us-east-1b --master-size m7i-flex.large --master-volume-size 30 --node-count 2 --node-volume-size 30 --node-size c7i-flex.large --image=ami-02dfbd4ff395f2a1b
+
+[root@CANERYDEPLOYMENT istio-1.29.1]# kops get cluster
+NAME                    CLOUD   ZONES
+srirama.k8s.local       aws     us-east-1a,us-east-1b
+
+[root@CANERYDEPLOYMENT istio-1.29.1]# kubectl get nodes
+NAME                  STATUS   ROLES           AGE    VERSION
+i-0488311980b769f03   Ready    node            17s    v1.35.2
+i-0b49410eb7fdb0c0d   Ready    node            18s    v1.35.2
+i-0ec1d1ad29947fd2a   Ready    control-plane   110s   v1.35.2
+[root@CANERYDEPLOYMENT istio-1.29.1]# 
+
+[root@CANERYDEPLOYMENT istio-1.29.1]# kubectl label namespace default istio-injection=enabled
+namespace/default labeled
+[root@CANERYDEPLOYMENT istio-1.29.1]# 
+
+[root@CANERYDEPLOYMENT istio-1.29.1]# istioctl install --set profile=demo -y
+        |\          
+        | \         
+        |  \        
+        |   \       
+      /||    \      
+     / ||     \     
+    /  ||      \    
+   /   ||       \   
+  /    ||        \  
+ /     ||         \ 
+/______||__________\
+____________________
+  \__       _____/  
+     \_____/        
+
+✔ Istio core installed ⛵️                                                                                                                                               
+✔ Istiod installed 🧠                                                                                                                                                   
+✔ Ingress gateways installed 🛬                                                                                                                                         
+✔ Egress gateways installed 🛫                                                                                                                                         
+✔ Installation complete                                                                                                                                                
+[root@CANERYDEPLOYMENT istio-1.29.1]# 
+
+[root@CANERYDEPLOYMENT istio-1.29.1]# kubectl apply -f samples/bookinfo/platform/kube/bookinfo.yaml
+service/details created
+serviceaccount/bookinfo-details created
+deployment.apps/details-v1 created
+service/ratings created
+serviceaccount/bookinfo-ratings created
+deployment.apps/ratings-v1 created
+service/reviews created
+serviceaccount/bookinfo-reviews created
+deployment.apps/reviews-v1 created
+deployment.apps/reviews-v2 created
+deployment.apps/reviews-v3 created
+service/productpage created
+serviceaccount/bookinfo-productpage created
+deployment.apps/productpage-v1 created
+[root@CANERYDEPLOYMENT istio-1.29.1]# 
+
+[root@CANERYDEPLOYMENT istio-1.29.1]# kubectl get po
+NAME                              READY   STATUS    RESTARTS   AGE
+details-v1-6cc9f5cc44-j66s6       2/2     Running   0          21s
+productpage-v1-7f885b46fc-pnn5h   2/2     Running   0          20s
+ratings-v1-77b8b6df5b-ntp8f       2/2     Running   0          21s
+reviews-v1-fdbf79cd8-pgbzc        2/2     Running   0          21s
+reviews-v2-674c6d8b4-bl6zt        2/2     Running   0          21s
+reviews-v3-7b775c7568-jg7x7       2/2     Running   0          21s
+[root@CANERYDEPLOYMENT istio-1.29.1]# 
+
+
+
+[root@CANERYDEPLOYMENT istio-1.29.1]# kubectl patch svc productpage -p '{"spec": {"type": "LoadBalancer"}}'
+service/productpage patched
+[root@CANERYDEPLOYMENT istio-1.29.1]# kubectl get svc
+NAME          TYPE           CLUSTER-IP      EXTERNAL-IP                                                               PORT(S)          AGE
+details       ClusterIP      100.67.225.87   <none>                                                                    9080/TCP         3m17s
+kubernetes    ClusterIP      100.64.0.1      <none>                                                                    443/TCP          15m
+productpage   LoadBalancer   100.65.90.86    a2e3f434c60bf4e0f8cbc74d2b0682df-1510046683.us-east-1.elb.amazonaws.com   9080:30109/TCP   3m17s
+ratings       ClusterIP      100.66.85.138   <none>                                                                    9080/TCP         3m17s
+reviews       ClusterIP      100.68.33.157   <none>                                                                    9080/TCP         3m17s
+[root@CANERYDEPLOYMENT istio-1.29.1]# 
+
+
+Now we can able to access the application with (a2e3f434c60bf4e0f8cbc74d2b0682df-1510046683.us-east-1.elb.amazonaws.com) ---------> enter
+
+http://a2e3f434c60bf4e0f8cbc74d2b0682df-1510046683.us-east-1.elb.amazonaws.com:9080/
+
+As of now this is Deployment-1
+
+[root@CANERYDEPLOYMENT istio-1.29.1]# kubectl get deploy
+NAME             READY   UP-TO-DATE   AVAILABLE   AGE
+details-v1       1/1     1            1           7m38s
+productpage-v1   1/1     1            1           7m38s
+ratings-v1       1/1     1            1           7m38s
+reviews-v1       1/1     1            1           7m38s
+reviews-v2       1/1     1            1           7m38s
+reviews-v3       1/1     1            1           7m38s
+[root@CANERYDEPLOYMENT istio-1.29.1]# 
+
+Version-2 Review also deployed here
+
+So, now i am not going to expose it at a time
+
+we need to do in terms of percentage here
+
+here some manifest files are here to do
+
+[root@CANERYDEPLOYMENT istio-1.29.1]# vim destinationrule.yml
+
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: reviews
+spec:
+  host: reviews
+  subsets:
+    - name: v1
+      labels:
+        version: v1
+    - name: v2
+      labels:
+        version: v2
+    - name: v3
+      labels:
+        version: v3
+:wq
+
+[root@CANERYDEPLOYMENT istio-1.29.1]# kubectl create -f destination-rule.yml 
+destinationrule.networking.istio.io/reviews created
+
+[root@CANERYDEPLOYMENT istio-1.29.1]# kubectl get deploy
+NAME             READY   UP-TO-DATE   AVAILABLE   AGE
+details-v1       1/1     1            1           23m
+productpage-v1   1/1     1            1           23m
+ratings-v1       1/1     1            1           23m
+reviews-v1       1/1     1            1           23m
+reviews-v2       1/1     1            1           23m
+reviews-v3       1/1     1            1           23m
+[root@CANERYDEPLOYMENT istio-1.29.1]# 
+
+Based on this label we will do route the traffic for that we need to write the virtual server manifest file like below
+
+
+
+[root@CANERYDEPLOYMENT istio-1.29.1]# vim vs.yml
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: reviews
+spec:
+  hosts:
+    - reviews
+  http:
+    - route:
+        - destination:
+            host: reviews
+            subset: v1
+          weight: 100
+        - destination:
+            host: reviews
+            subset: v3
+          weight: 0
+        - destination:
+            host: reviews
+            subset: v2
+          weight: 0
+
+:wq
+
+Total Deployments we have in reviews is 3
+
+v1: no stars
+v2: with black stars
+v3: with red stars
+
+Now present in live version is V1now 100% traffic will go to v1 only
+
+[root@CANERYDEPLOYMENT istio-1.29.1]# kubectl create -f vs.yml 
+virtualservice.networking.istio.io/reviews created
+
+
 
 
 
