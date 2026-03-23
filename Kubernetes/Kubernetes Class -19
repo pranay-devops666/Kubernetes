@@ -89,6 +89,8 @@ Suggestions:
  * read about installing addons at: https://kops.sigs.k8s.io/addons.
 
 
+yum install git -y ------------------------------------>
 
+git clone https://github.com/mustafaprojectsindevops
 
 
