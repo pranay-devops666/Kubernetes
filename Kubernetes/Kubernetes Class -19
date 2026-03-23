@@ -115,6 +115,234 @@ now access the application with dns name
 
 vim ingress.yml
 
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: k8s-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+spec:
+  ingressClassName: nginx
+  rules:
+  - http:
+      paths:
+      - path: /nginx(/|$)(.*)
+        pathType: Prefix
+        backend:
+          service:
+            name: nginx
+            port:
+              number: 80
+      - path: /httpd(/|$)(.*)
+        pathType: Prefix
+        backend:
+          service:
+            name: httpd
+            port:
+              number: 80
+      - path: /(.*)
+        pathType: Prefix
+        backend:
+          service:
+            name: nginx
+            port:
+              number: 80
+
+:wq
+
+
+cp two.yml three.ym
+
+vim three.yml
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: three
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: uber
+  template:
+    metadata:
+      labels:
+        app: uber
+    spec:
+      containers:
+      - name: cont-2
+        image: kalyanrunval/mobiloerepo:mobile
+        ports:
+        - containerPort: 80
+        env:
+        - name: TITLE
+          value: "APACHE APP2"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vamsi
+spec:
+  type: NodePort
+  ports:
+  - port: 80
+  selector:
+    app: uber
+
+
+:wq
+
+vim ingress.yml
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: k8s-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+spec:
+  ingressClassName: nginx
+  rules:
+  - http:
+      paths:
+      - path: /nginx(/|$)(.*)
+        pathType: Prefix
+        backend:
+          service:
+            name: nginx
+            port:
+              number: 80
+      - path: /httpd(/|$)(.*)
+        pathType: Prefix
+        backend:
+          service:
+            name: httpd
+            port:
+              number: 80
+      - path: /vamsi(/|$)(.*)
+        pathType: Prefix
+        backend:
+          service:
+            name: vamsi
+            port:
+              number: 80
+      - path: /(.*)
+        pathType: Prefix
+        backend:
+          service:
+            name: nginx
+            port:
+              number: 80
+
+:wq
+
+kubectl apply-f . ------------------->
+
+kubectl get deply ------------------------>
+
+kubectl get po ---------------------->
+
+kubectl delete deploy three ---------------->
+
+vim three.yml
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: three
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: uber
+  template:
+    metadata:
+      labels:
+        app: uber
+    spec:
+      containers:
+      - name: cont-2
+        image: mrmeaningless/myapp
+        ports:
+        - containerPort: 80
+        env:
+        - name: TITLE
+          value: "APACHE APP2"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vamsi
+spec:
+  type: NodePort
+  ports:
+  - port: 80
+  selector:
+    app: uber
+
+
+:wq
+
+kubectl apply -f three.yml
+
+kubectl get ing
+
+access the application by domain name
 
 
 
+PROBES
+===========
+
+
+vim probes.yml
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: liveness
+spec:
+  containers:
+    - name: cont1
+      image: nginx
+      ports:
+        - containerPort: 80
+      args:
+        - /bin/sh
+        - -c
+        - touch /tmp/babu; sleep 1000
+      livenessProbe:
+        exec:
+          command:
+            - cat
+            - /tmp/babu
+        initialDelaySeconds: 5
+        periodSeconds: 5
+        timeoutSeconds: 30
+
+:wq
+
+kubectl create -f probes.yml
+
+
+kubectl get po
+
+
+kubectl exec -it liveness -- bash
+
+ll /tmp
+
+rm -f tmp/babu
+
+exit
+
+kubectl describe pod liveness
+
+search in visualcodestudio like below
+
+#write a deploymentfile using shaikmustafa/dm image for production environment with 3 replicas for each service and appropriate resource limits and requests and 
+probes for each service and integrate configmaps and secrets where necessary
