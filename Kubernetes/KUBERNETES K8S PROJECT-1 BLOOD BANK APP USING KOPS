@@ -934,7 +934,16 @@ total 12
 NAME                    CLOUD   ZONES
 srirama.k8s.local       aws     us-east-1a,us-east-1b
 
+[root@ip-172-31-33-227 ~]# kubectl get nodes
+NAME                  STATUS   ROLES           AGE     VERSION
+i-0631bb18df5004399   Ready    node            2m38s   v1.35.2
+i-08e375037d5cec193   Ready    control-plane   3m32s   v1.35.2
+i-09b9301d564bdb4ad   Ready    node            2m22s   v1.35.2
+i-0cdc1449c02556331   Ready    node            2m38s   v1.35.2
+[root@ip-172-31-33-227 ~]# 
 
+For Manifest file we need
+1. ResourceQuota 2.Configmaps 3. Secrets 4. Deployment 5. HPA 6. App-Service 7. statefulset 8. db-service 9. Ingress 10. Network Polocies
 
 
 
