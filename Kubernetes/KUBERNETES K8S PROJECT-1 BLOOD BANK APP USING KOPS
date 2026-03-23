@@ -1078,4 +1078,184 @@ spec:
 vim statefulset.yml
 
 ---
-apiVersion:
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: bankapp-statefulset
+spec:
+  serviceName: "bankapp-service"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bankapp
+  template:
+    metadata:
+      labels:
+        app: bankapp
+    spec:
+      containers:
+      - name: bankapp-container
+        image: pranay419/bloody:dbimage
+        ports:
+        - containerPort: 3306
+        envFrom:
+        - secretRef:
+            name: bankapp-db-secret
+        - configMapRef:
+            name: bankapp-config
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "500m"
+            memory: "256Mi"
+        volumeMounts:
+        - name: mysql-persistent-storage
+          mountPath: /usr/share/nginx/html
+volumeClaimTemplates:
+- metadata:
+    name: mysql-persistant-storage
+  spec:
+    accessModes: ["ReadWriteOnce"]
+    resources:
+    storage: 1Gi
+
+:wq
+
+
+vim app-service.yml
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: bankapp-service
+spec:
+  selector:
+    app:
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  type: ClusterIP
+
+:wq
+
+vim db-svc.yml
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: bankapp-db-service
+spec:
+  ClusterIP: None
+  selector:
+    app: bankapp-db
+  ports:
+    - protocol: TCP
+      port: 3306
+      targetPort: 3306
+
+:wq
+
+vim ingress.yml
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: bankapp-ingress
+  annotation:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  ingressClassName: nginx
+  rules:
+    - http:
+        paths: /
+          - pathType: Prefix
+            backend:
+              service:
+                name: bankapp-service
+                port:
+                  number: 80
+
+:wq
+
+vim networkpolicy.yml
+
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: bankapp-network-policy
+spec:
+  podSelector:
+    matchLabels:
+      app: bankapp
+  policyTypes:
+    - Ingress
+    - Egress
+
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-nginx
+              podSelector:
+                matchLabels:
+                  app.kubernetes.io/component: controller
+      ports:
+        - protocol: TCP
+          port: 80
+  engress:
+     - to:
+        - podSelector:
+            matchLabels:
+               app: bankapp-db
+       ports:
+         - protocol: TCP
+           port: 3306
+         - to:
+            - namespaceSelector:
+                matchLabels:
+                  kubernetes.io/metadata.name: kube-system
+                  ports:
+                    - protocol: UDP
+                      port: 50
+
+:wq
+
+vim pdd.yml
+
+---
+apiVersion: policy/v1
+kind: PodDistruptionBudget
+metadata:
+  name: bankapp-pdb
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+        app: bankapp
+
+:wq
+
+
+vim secret.yml
+vim configmap.yml
+vim resource-quota.yml
+vim deploy.yml
+vim hpa.yml
+vim statefulset.yml
+vim app-svc.yml
+vim db-svc.yml
+vim ingress.yml
+vim networkpolicy.yml
+vim pdb.yml
+
+
+kubectl create -f .
+
+
