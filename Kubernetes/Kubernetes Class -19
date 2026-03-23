@@ -93,4 +93,28 @@ yum install git -y ------------------------------------>
 
 git clone https://github.com/mustafaprojectsindevops
 
+git clone https://github.com/mustafaprojectsindevops/kuernetes/tree/master/ingress ---------------------->
+
+cd kubernetes/ ------------->
+
+ll
+
+cd ingress/ ------------->
+
+ll
+
+ingress.yml
+one.yml
+two.yml
+
+kubectl apply -f . ------------->
+
+kubectl get ing -------------->
+
+now access the application with dns name
+
+vim ingress.yml
+
+
+
 
