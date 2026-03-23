@@ -948,6 +948,134 @@ For Manifest file we need
 1. ResourceQuota 2.Configmaps 3. Secrets 4. Deployment 5. HPA 6. App-Service 7. statefulset 8. db-service 9. Ingress 10. Network Polocies
 
 
+mkdir pranay
+cd pranay/
+
+echo -n "root" | base64 ----------> enter
+cm9vdA==
 
 
+echo -n "admin123" | base64 ----------> enter
+YWRtaW4xMjM=
 
+vim secrets.yml
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: bankapp-db-secret
+type: Opaque
+data:
+  DB_USER: cm9vdA==
+  DB_PASSWORD: YWRtaW4xMjM=
+
+:wq
+
+vim configmaps.yml
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: bankapp-config
+data:
+  DB_HOST: "mysqldb"
+  DB_PORT: "3306"
+
+:wq
+
+vim resource-quota.yml
+
+---
+apiVersion:v1
+kind: ResourceQuota
+metadata:
+  name: bankapp-quota
+spec:
+  hard:
+    pods: "10"
+    requests.cpu: "2"
+    requests.memory: 2Gi
+    limits.cpu: "4"
+    limits.memory: 4Gi
+
+:wq
+
+
+vim deployment.yml
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bankapp-deployment
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: bankapp
+  template:
+    metadata:
+      labels:
+        app: bankapp
+    spec:
+      containers:
+      - name: bankapp-container
+        image: pranay419/bloody:appimage
+        ports:
+        - containerPort: 80
+        envFrom:
+        - configMapRef:
+            name: bankapp-config
+
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+         limits:
+            cpu: "500m"
+            memory: "256Mi"
+       livenessProbe:
+         httpGet:
+            path: /
+            ports: 80
+         initialDelaySeconds: 10
+         periodSeconds: 5
+       readinessProbe:
+         httpGet:
+            path: /
+            ports: 80
+         initialDelaySeconds: 10
+         periodSeconds: 5
+
+
+vim hpa.yml
+
+---
+apiVersion: autoScaling/v2
+kind: HorizontalPodAutoScalar
+metadata:
+  name: bankapp-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: bankapp-deployment
+  minReplicas: 3
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target: 10
+        type: Utilization
+        averageUtilization: 50
+
+:wq
+
+
+vim statefulset.yml
+
+---
+apiVersion:
