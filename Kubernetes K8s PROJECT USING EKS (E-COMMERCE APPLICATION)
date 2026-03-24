@@ -265,5 +265,129 @@ Go to Manage Jenkins ----------> select credentials ------> selct global -------
 dockerhub credentials
 
 
+Global
+Add Credentials
+Credentials that should be available everywhere.
+docker-cred
+pranay419/******
+docker credentials
 
+Need to add Kubernetes credentials as well
+
+
+
+
+
+Now need to install SONARQUBE
+
+[root@ip-172-31-33-227 ~]# docker run -itd --name sonar -p 9000:9000 sonarqube:lts-community ------------------------>
+Unable to find image 'sonarqube:lts-community' locally
+lts-community: Pulling from library/sonarqube
+60d98d907669: Pull complete 
+e24a8b9e652f: Pull complete 
+f3929ce9ef98: Pull complete 
+1df735f481ad: Pull complete 
+5d5a1fad7028: Pull complete 
+eb27e3a98da1: Pull complete 
+c7ad1fe61e07: Pull complete 
+4f4fb700ef54: Pull complete 
+Digest: sha256:f709975ab31d2d08f5a3ae2dc73a31ee011afc8cf28845082c17c55d45df9df5
+Status: Downloaded newer image for sonarqube:lts-community
+11b6723b19d0d4fc6291ac14ab88664d3f8c6c5bbe80f4bd2617170b5380825b
  
+[root@MY-EKS ~]# kubectl create ns webapps
+namespace/webapps created
+
+
+[root@MY-EKS ~]# vim svc-account.yml
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: jenkins
+  namespace: webapps
+
+:wq
+
+for this we need to do role role-binding
+
+[root@MY-EKS ~]# vim role.yml
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+ name: app-role
+ namespace: webapps
+rules:
+- apiGroups:
+  - ""
+  - apps
+  - autoscaling
+  - batch
+  - extensions
+  - policy
+  - rbac.authorization.k8s.io
+  resources:
+  - pods
+  - componentstatuses
+  - configmaps
+  - daemonsets
+  - deployments
+  - events
+  - endpoints
+  - horizontalpodautoscalers
+  - ingress
+  - jobs
+  - limitranges
+  - namespaces
+  - nodes
+  - pods
+  - persistentvolumes
+  - persistentvolumeclaims
+  - resourcequotas
+  - replicasets
+  - replicationcontrollers
+  - serviceaccounts
+  - services
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+
+:wq
+
+
+[root@MY-EKS ~]# kubectl create -f role.yml 
+role.rbac.authorization.k8s.io/app-role created
+[root@MY-EKS ~]#
+
+Role has been created 
+
+Next is role binding
+
+[root@MY-EKS ~]# vim rolebinding.yml
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: app-rolebinding
+  namespace: webapps
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: app-role
+subjects:
+- kind: ServiceAccount
+  name: jenkins
+  namespace: webapps
+
+:wq
+
+[root@MY-EKS ~]# kubectl create -f rolebinding.yml 
+rolebinding.rbac.authorization.k8s.io/app-rolebinding created
+[root@MY-EKS ~]# 
+
+Now got permissions for jenkins
+
+Now we need to generate credentials that credentials need to be store in jenkins
+
+
