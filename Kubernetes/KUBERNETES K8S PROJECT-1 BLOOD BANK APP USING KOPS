@@ -950,7 +950,24 @@ i-0cdc1449c02556331   Ready    node            2m38s   v1.35.2
 [root@ip-172-31-33-227 ~]# 
 
 For Manifest file we need
-1. ResourceQuota 2.Configmaps 3. Secrets 4. Deployment 5. HPA 6. App-Service 7. statefulset 8. db-service 9. Ingress 10. Network Polocies
+1. ResourceQuota 2.Configmaps 3. Secrets 4. Deployment 5. HPA  6.App-Service  7.statefulset  8.db-service  9.Ingress  10.Network Polocies  11.pdb
+
+vim secret.yml
+vim configmap.yml
+vim resource-quota.yml
+vim deploy.yml
+vim hpa.yml
+vim statefulset.yml
+vim app-svc.yml
+vim db-svc.yml
+vim ingress.yml
+vim networkpolicy.yml
+vim pdb.yml
+
+
+Total 11 yaml manifestation files
+
+
 
 
 mkdir pranay
@@ -1261,6 +1278,10 @@ vim db-svc.yml
 vim ingress.yml
 vim networkpolicy.yml
 vim pdb.yml
+
+
+Total 11 yaml manifestation files
+
 
 
 kubectl apply -f .------------------------->
