@@ -194,8 +194,75 @@ we need to create an IAM role
 2026-03-24 09:01:56 [ℹ]  will create IAM Open ID Connect provider for cluster "EKS-1" in "us-east-1"
 2026-03-24 09:01:56 [✔]  created IAM Open ID Connect provider for cluster "EKS-1" in "us-east-1"
 [root@MY-EKS ~]# 
+[root@MY-EKS ~]# eksctl create nodegroup --cluster=EKS-1 --region=us-east-1 --name=node2 --node-type=c7i-flex.large --nodes=3 --nodes-min=2 --nodes-max=4 
+--node-volume-size=20 --ssh-access --ssh-public-key=Anjeneyakeypair --managed --asg-access --external-dns-access --full-ecr-access --appmesh-access 
+--alb-ingress-access ---------------------------------->
+2026-03-24 09:25:28 [ℹ]  will use version 1.34 for new nodegroup(s) based on control plane version
+2026-03-24 09:25:29 [ℹ]  nodegroup "node2" will use "" [AmazonLinux2023/1.34]
+2026-03-24 09:25:29 [ℹ]  using EC2 key pair "Anjeneyakeypair"
+2026-03-24 09:25:29 [ℹ]  1 nodegroup (node2) was included (based on the include/exclude rules)
+2026-03-24 09:25:29 [ℹ]  will create a CloudFormation stack for each of 1 managed nodegroups in cluster "EKS-1"
+2026-03-24 09:25:29 [ℹ]  
+2 sequential tasks: { fix cluster compatibility, 1 task: { 1 task: { create managed nodegroup "node2" } } 
+}
+2026-03-24 09:25:29 [ℹ]  checking cluster stack for missing resources
+2026-03-24 09:25:29 [ℹ]  cluster stack has all required resources
+2026-03-24 09:25:29 [ℹ]  building managed nodegroup stack "eksctl-EKS-1-nodegroup-node2"
+2026-03-24 09:25:30 [ℹ]  deploying stack "eksctl-EKS-1-nodegroup-node2"
+2026-03-24 09:25:30 [ℹ]  waiting for CloudFormation stack "eksctl-EKS-1-nodegroup-node2"
+2026-03-24 09:26:00 [ℹ]  waiting for CloudFormation stack "eksctl-EKS-1-nodegroup-node2"
+2026-03-24 09:26:38 [ℹ]  waiting for CloudFormation stack "eksctl-EKS-1-nodegroup-node2"
+2026-03-24 09:27:52 [ℹ]  waiting for CloudFormation stack "eksctl-EKS-1-nodegroup-node2"
+2026-03-24 09:27:52 [ℹ]  no tasks
+2026-03-24 09:27:52 [✔]  created 0 nodegroup(s) in cluster "EKS-1"
+2026-03-24 09:27:52 [ℹ]  nodegroup "node2" has 3 node(s)
+2026-03-24 09:27:52 [ℹ]  node "ip-192-168-24-0.ec2.internal" is ready
+2026-03-24 09:27:52 [ℹ]  node "ip-192-168-43-48.ec2.internal" is ready
+2026-03-24 09:27:52 [ℹ]  node "ip-192-168-56-52.ec2.internal" is ready
+2026-03-24 09:27:52 [ℹ]  waiting for at least 2 node(s) to become ready in "node2"
+2026-03-24 09:27:52 [ℹ]  nodegroup "node2" has 3 node(s)
+2026-03-24 09:27:52 [ℹ]  node "ip-192-168-24-0.ec2.internal" is ready
+2026-03-24 09:27:52 [ℹ]  node "ip-192-168-43-48.ec2.internal" is ready
+2026-03-24 09:27:52 [ℹ]  node "ip-192-168-56-52.ec2.internal" is ready
+2026-03-24 09:27:52 [✔]  created 1 managed nodegroup(s) in cluster "EKS-1"
+2026-03-24 09:27:52 [ℹ]  checking security group configuration for all nodegroups
+2026-03-24 09:27:52 [ℹ]  all nodegroups have up-to-date cloudformation templates
+[root@MY-EKS ~]# 
 
 
+[root@MY-EKS ~]# aws eks update-kubeconfig --name EKS-1 --region us-east-1 ----------------------------------> 
+Added new context arn:aws:eks:us-east-1:463766821376:cluster/EKS-1 to /root/.kube/config
+[root@MY-EKS ~]# 
+
+[root@MY-EKS ~]# kubectl get no
+NAME                            STATUS   ROLES    AGE   VERSION
+ip-192-168-24-0.ec2.internal    Ready    <none>   17m   v1.34.4-eks-f69f56f
+ip-192-168-43-48.ec2.internal   Ready    <none>   17m   v1.34.4-eks-f69f56f
+ip-192-168-56-52.ec2.internal   Ready    <none>   17m   v1.34.4-eks-f69f56f
+[root@MY-EKS ~]#  
+
+No wwe need to install the Jenkins
+
+[root@MY-EKS ~]# yum install java-17-amazon-corretto -y ---------------------------------------------->
+
+[root@MY-EKS ~]#sudo yum update –y
+sudo wget -O /etc/yum.repos.d/jenkins.repo https://pkg.jenkins.io/redhat-stable/jenkins.repo
+sudo rpm --import https://pkg.jenkins.io/redhat-stable/jenkins.io-2023.key
+sudo yum upgrade
+sudo yum install java-17-amazon-corretto -y
+sudo yum install jenkins git -y
+sudo systemctl enable jenkins
+sudo systemctl start jenkins
+sudo systemctl status jenkins
+
+http://52.91.36.8:8080/ -----------------------> Jenkins Dashboard has been created
+
+Go to Jenkins Dashboard and do some configurations like installing the plugins, and Adding Dockerhub credentials in it
+
+Go to Manage Jenkins ----------> select plugins----------> install plugins like pipeline stage view, docker pipeline, kubernetes--------> ok
+
+Go to Manage Jenkins ----------> select credentials ------> selct global ---------> add credentials -------> kind: usrename with passward----------> add here
+dockerhub credentials
 
 
 
