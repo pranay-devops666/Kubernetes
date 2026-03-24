@@ -1,0 +1,202 @@
+Kubernetes K8s PROJECT USING EKS (E-COMMERCE APPLICATION)
+==============================================================
+
+
+First Before going to start we will do setup an EKS Cluster
+
+why because while creating an EKS Cluster it will take minimum 40 minutes time to create it
+
+In this during particular time of 40 minutes we will do discuss project structure explanation
+
+As of now we just created self managed clusters are what we created is kops cluster and minikube
+
+these two are self managed type clusters
+
+Now EKS is completly relates to cloud managed cluster
+
+difference b/w both of them is kops & minikube comes under self managed clusters this both managed by us
+
+EKS (ELASTIC KUBERNETES SERVICE) comes under in this EKS control-planel is managed by AWS and control-planel will not be visible for us 
+only worker nodes we will do managed by us
+
+go to official document once of eks aws -------> eneter
+
+login to aws account
+
+launch an one Instance for to create EKS ----------> name:myeks ---------> instance type: m7i-flex.large------> with keypair------> security groups:jenkins----->
+attach IAM role o the instance ------------> ebs volume: 20 gb-------> launch instace and connect it
+
+here we are going to create EKS through CLI 
+
+go to aws Dashboard and search as EKS---------> select create cluster
+
+go to ec2-instance 
+
+need to instal aws cli version go to official page https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html
+
+select linux--------> 3 commands we will see simply copy & paste those 3 commands in ec2-instance 
+
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+unzip awscliv2.zip
+sudo ./aws/install
+
+Next need to install Kubectl
+
+search as install kubectl & eksctl ------> open official document ------> select linux
+
+[root@MY-EKS ~]# curl -O https://s3.us-west-2.amazonaws.com/amazon-eks/1.35.2/2026-02-27/bin/linux/amd64/kubectl
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100 57228k 100 57228k   0     0 30161k     0   0:00:01  0:00:01 --:--:-- 30151k
+[root@MY-EKS ~]# 
+[root@MY-EKS ~]# ll
+total 125080
+drwxr-xr-x. 3 root root       78 Mar 23 18:15 aws
+-rw-r--r--. 1 root root 69473464 Mar 24 06:50 awscliv2.zip
+-rw-r--r--. 1 root root 58601656 Mar 24 06:54 kubectl
+[root@MY-EKS ~]# chmod +x kubectl 
+[root@MY-EKS ~]# ll
+total 125080
+drwxr-xr-x. 3 root root       78 Mar 23 18:15 aws
+-rw-r--r--. 1 root root 69473464 Mar 24 06:50 awscliv2.zip
+-rwxr-xr-x. 1 root root 58601656 Mar 24 06:54 kubectl
+[root@MY-EKS ~]# mv kubectl /usr/local/bin/
+[root@MY-EKS ~]# ll
+total 67848
+drwxr-xr-x. 3 root root       78 Mar 23 18:15 aws
+-rw-r--r--. 1 root root 69473464 Mar 24 06:50 awscliv2.zip
+[root@MY-EKS ~]# 
+[root@MY-EKS ~]# kubectl version
+Client Version: v1.35.2-eks-f69f56f
+Kustomize Version: v5.7.1
+The connection to the server localhost:8080 was refused - did you specify the right host or port?
+[root@MY-EKS ~]# 
+
+
+Now need to Install EKS 
+
+search as install eksctl --------- select this github url https://github.com/eksctl-io/eksctl ---------> scroll down, select fr unix -------> copy all commands and
+paste in ec2-instance like below
+
+[root@MY-EKS ~]# # for ARM systems, set ARCH to: `arm64`, `armv6` or `armv7`
+ARCH=amd64
+PLATFORM=$(uname -s)_$ARCH
+
+curl -sLO "https://github.com/eksctl-io/eksctl/releases/latest/download/eksctl_$PLATFORM.tar.gz"
+
+# (Optional) Verify checksum
+curl -sL "https://github.com/eksctl-io/eksctl/releases/latest/download/eksctl_checksums.txt" | grep $PLATFORM | sha256sum --check
+
+tar -xzf eksctl_$PLATFORM.tar.gz -C /tmp && rm eksctl_$PLATFORM.tar.gz
+
+sudo install -m 0755 /tmp/eksctl /usr/local/bin && rm /tmp/eksctl
+
+EKSCTL also installed here
+
+[root@MY-EKS ~]# eksctl version
+0.224.0
+[root@MY-EKS ~]# aws --version
+aws-cli/2.34.15 Python/3.14.3 Linux/6.1.163-186.299.amzn2023.x86_64 exe/x86_64.amzn.2023
+[root@MY-EKS ~]# 
+
+Now all we need is cluster lets create an cluster now
+
+
+[root@MY-EKS ~]# eksctl create cluster --name=EKS-1 --region=us-east-1 --zones=us-east-1a,us-east-1b --without-nodegroup ----------------------------------------->
+2026-03-24 07:18:32 [ℹ]  eksctl version 0.224.0
+2026-03-24 07:18:32 [ℹ]  using region us-east-1
+2026-03-24 07:18:32 [ℹ]  subnets for us-east-1a - public:192.168.0.0/19 private:192.168.64.0/19
+2026-03-24 07:18:32 [ℹ]  subnets for us-east-1b - public:192.168.32.0/19 private:192.168.96.0/19
+2026-03-24 07:18:32 [!]  Auto Mode will be enabled by default in an upcoming release of eksctl. This means managed node groups and managed networking add-ons will no longer be created by default. To maintain current behavior, explicitly set 'autoModeConfig.enabled: false' in your cluster configuration. Learn more: https://eksctl.io/usage/auto-mode/
+2026-03-24 07:18:32 [ℹ]  using Kubernetes version 1.34
+2026-03-24 07:18:32 [ℹ]  creating EKS cluster "EKS-1" in "us-east-1" region with 
+2026-03-24 07:18:32 [ℹ]  if you encounter any issues, check CloudFormation console or try 'eksctl utils describe-stacks --region=us-east-1 --cluster=EKS-1'
+2026-03-24 07:18:32 [ℹ]  Kubernetes API endpoint access will use default of {publicAccess=true, privateAccess=false} for cluster "EKS-1" in "us-east-1"
+2026-03-24 07:18:32 [ℹ]  CloudWatch logging will not be enabled for cluster "EKS-1" in "us-east-1"
+2026-03-24 07:18:32 [ℹ]  you can enable it with 'eksctl utils update-cluster-logging --enable-types={SPECIFY-YOUR-LOG-TYPES-HERE (e.g. all)} --region=us-east-1 --cluster=EKS-1'
+2026-03-24 07:18:32 [ℹ]  default addons metrics-server, vpc-cni, kube-proxy, coredns were not specified, will install them as EKS addons
+2026-03-24 07:18:32 [ℹ]  
+2 sequential tasks: { create cluster control plane "EKS-1", 
+    2 sequential sub-tasks: { 
+        1 task: { create addons },
+        wait for control plane to become ready,
+    } 
+}
+2026-03-24 07:18:32 [ℹ]  building cluster stack "eksctl-EKS-1-cluster"
+2026-03-24 07:18:32 [ℹ]  deploying stack "eksctl-EKS-1-cluster"
+2026-03-24 07:19:02 [ℹ]  waiting for CloudFormation stack "eksctl-EKS-1-cluster"
+2026-03-24 07:19:32 [ℹ]  waiting for CloudFormation stack "eksctl-EKS-1-cluster"
+2026-03-24 07:20:32 [ℹ]  waiting for CloudFormation stack "eksctl-EKS-1-cluster"
+2026-03-24 07:21:32 [ℹ]  waiting for CloudFormation stack "eksctl-EKS-1-cluster"
+2026-03-24 07:22:33 [ℹ]  waiting for CloudFormation stack "eksctl-EKS-1-cluster"
+2026-03-24 07:23:33 [ℹ]  waiting for CloudFormation stack "eksctl-EKS-1-cluster"
+2026-03-24 07:24:33 [ℹ]  waiting for CloudFormation stack "eksctl-EKS-1-cluster"
+2026-03-24 07:25:33 [ℹ]  waiting for CloudFormation stack "eksctl-EKS-1-cluster"
+2026-03-24 07:26:33 [ℹ]  waiting for CloudFormation stack "eksctl-EKS-1-cluster"
+2026-03-24 07:27:33 [ℹ]  waiting for CloudFormation stack "eksctl-EKS-1-cluster"
+2026-03-24 07:27:34 [!]  recommended policies were found for "vpc-cni" addon, but since OIDC is disabled on the cluster, eksctl cannot configure the requested permissions; the recommended way to provide IAM permissions for "vpc-cni" addon is via pod identity associations; after addon creation is completed, add all recommended policies to the config file, under `addon.PodIdentityAssociations`, and run `eksctl update addon`
+2026-03-24 07:27:34 [ℹ]  creating addon: vpc-cni
+2026-03-24 07:27:34 [ℹ]  successfully created addon: vpc-cni
+2026-03-24 07:27:34 [ℹ]  creating addon: kube-proxy
+2026-03-24 07:27:35 [ℹ]  successfully created addon: kube-proxy
+2026-03-24 07:27:35 [ℹ]  creating addon: coredns
+2026-03-24 07:27:35 [ℹ]  successfully created addon: coredns
+2026-03-24 07:29:35 [ℹ]  waiting for the control plane to become ready
+2026-03-24 07:29:36 [✔]  saved kubeconfig as "/root/.kube/config"
+2026-03-24 07:29:36 [ℹ]  no tasks
+2026-03-24 07:29:36 [✔]  all EKS cluster resources for "EKS-1" have been created
+2026-03-24 07:29:36 [ℹ]  creating addon: metrics-server
+2026-03-24 07:29:37 [ℹ]  successfully created addon: metrics-server
+2026-03-24 07:29:38 [ℹ]  kubectl command should work with "/root/.kube/config", try 'kubectl get nodes'
+2026-03-24 07:29:38 [✔]  EKS cluster "EKS-1" in "us-east-1" region is ready
+[root@MY-EKS ~]# eksctl get cluster ------------------------------------------------------------------------>
+Error: AWS Region must be set, please set the AWS Region in AWS config file or as environment variable
+[root@MY-EKS ~]# export AWS_DEFAULT_REGION=us-east-1 ------------------------------------------------------------------------>
+[root@MY-EKS ~]# eksctl get cluster ------------------------------------------------------------------------>
+NAME    REGION          EKSCTL CREATED
+EKS-1   us-east-1       True
+[root@MY-EKS ~]# 
+
+
+
+It will take some time to create 
+
+In that during time we will discuss about an our project
+
+we are going to deploy an E-Commerce application like flipkart, Amazon etc
+
+In this E-Commerce there is a lot of applications are exist
+
+In this E-Commerce we have multiple branches for application code for combining allthose multiple branches we can say as E-Commerce application code
+
+By using Jenins in the inside Jenkins we will use multistage pipeline option to run all the multiple branches at a time 
+
+By writing Jenkins file like below
+
+pipeline {
+agent any
+  stages {
+    stage ("build") {
+      steps {
+        sh 'docker build -t fe-img .'
+        }
+      }
+  }
+}
+
+
+
+Now we need to create a Node Group
+
+we need to create an IAM role
+
+[root@MY-EKS ~]# eksctl utils associate-iam-oidc-provider --region us-east-1 --cluster EKS-1 --approve ---------------------------------->
+2026-03-24 09:01:56 [ℹ]  will create IAM Open ID Connect provider for cluster "EKS-1" in "us-east-1"
+2026-03-24 09:01:56 [✔]  created IAM Open ID Connect provider for cluster "EKS-1" in "us-east-1"
+[root@MY-EKS ~]# 
+
+
+
+
+
+ 
