@@ -42,7 +42,9 @@ first we will do in KOPS Custer for this project and later we will do in EKS clu
 
 lets login into an aws account-------------> In here overall we need servers for Jenkins, Docker & Kubernetes
 
-Lets take one server for Jenkins, Docker & sonarqube ---------------> name:myserver -------> instance type: m7i-flex.large --------> withkeypair ------> security groups:
+Lets take one server for Jenkins, Docker & sonarqube 
+
+Launch an one Instanece ---------------> name:myserver -------> instance type: m7i-flex.large --------> withkeypair ------> security groups:
 mysecuritygroups------------->ebs volume:28gb -------------> attach IAM role to the instance
 
 Need to be install now are jenkins, docker sonarqube & trivy
@@ -66,7 +68,7 @@ http://54.196.53.29:8080/ -----------------> Jenkins Dashboard has been launched
 
 Now need to install SONARQUBE
 
-[root@ip-172-31-33-227 ~]# docker run -itd --name sonar -p 9000:9000 sonarqube:lts-community
+[root@ip-172-31-33-227 ~]# docker run -itd --name sonar -p 9000:9000 sonarqube:lts-community ------------------------>
 Unable to find image 'sonarqube:lts-community' locally
 lts-community: Pulling from library/sonarqube
 60d98d907669: Pull complete 
@@ -89,7 +91,7 @@ sudo yum install -y wget && wget https://raw.githubusercontent.com/aquasecurity/
 
 trivy --version --------------------------->  command to check version of trivy
 
-[root@ip-172-31-33-227 ~]# trivy --version
+[root@ip-172-31-33-227 ~]# trivy --version -------------------------------------->
 Version: 0.69.3
 [root@ip-172-31-33-227 ~]# 
 
@@ -114,7 +116,7 @@ save & Build
 
 Build Got Success
 
-[root@ip-172-31-33-227 ~]# cd /var/lib/jenkins/workspace/MyDeployment
+[root@ip-172-31-33-227 ~]# cd /var/lib/jenkins/workspace/MyDeployment -------------------------------------->
 [root@ip-172-31-33-227 MyDeployment]# ll
 total 320
 -rw-r--r--. 1 jenkins jenkins    77 Mar 23 07:27 Dockerfile
@@ -282,7 +284,7 @@ Before going to build the below Job pipeline
 
 Give permissions like below
 
-[root@ip-172-31-33-227 ~]# chmod 777 /var/run/docker.sock
+[root@ip-172-31-33-227 ~]# chmod 777 /var/run/docker.sock -------------------------------------->
 [root@ip-172-31-33-227 ~]# 
 
 
@@ -326,7 +328,7 @@ Build Got Success
 
 Next stage is to scan the Images through Trivy
 
-[root@ip-172-31-33-227 ~]# trivy --version
+[root@ip-172-31-33-227 ~]# trivy --version -------------------------------------->
 Version: 0.69.3
 [root@ip-172-31-33-227 ~]#
 
@@ -508,7 +510,7 @@ Build Got Success
 
 
 
-[root@ip-172-31-33-227 ~]# docker ps
+[root@ip-172-31-33-227 ~]# docker ps -------------------------------------->
 CONTAINER ID   IMAGE                          COMMAND                  CREATED          STATUS          PORTS                                       NAMES
 948a326af496   pranay419/bloodyapp:appimage   "docker-php-entrypoi…"   34 minutes ago   Up 34 minutes   0.0.0.0:1111->80/tcp, :::1111->80/tcp       appcont
 11b6723b19d0   sonarqube:lts-community        "/opt/sonarqube/dock…"   3 hours ago      Up 3 hours      0.0.0.0:9000->9000/tcp, :::9000->9000/tcp   sonar
@@ -706,17 +708,17 @@ http://54.196.53.29:1111/index.html  ------------------> in here we will see cre
 
 Now we need to check created new account stored in dbcontainer or not 
 
-[root@ip-172-31-33-227 ~]# docker ps
+[root@ip-172-31-33-227 ~]# docker ps -------------------------------------->
 CONTAINER ID   IMAGE                          COMMAND                  CREATED          STATUS                    PORTS                                                  NAMES
 6443386853f5   pranay419/bloodyapp:appimage   "docker-php-entrypoi…"   10 minutes ago   Up 10 minutes             0.0.0.0:1111->80/tcp, :::1111->80/tcp                  appcont
 8d55dd460ff0   pranay419/bloodyapp:dbimage    "/entrypoint.sh mysq…"   10 minutes ago   Up 10 minutes (healthy)   0.0.0.0:3306->3306/tcp, :::3306->3306/tcp, 33060/tcp   mysqldb
 11b6723b19d0   sonarqube:lts-community        "/opt/sonarqube/dock…"   3 hours ago      Up 3 hours                0.0.0.0:9000->9000/tcp, :::9000->9000/tcp              sonar
-[root@ip-172-31-33-227 ~]# docker exec -it mysqldb -- bash
+[root@ip-172-31-33-227 ~]# docker exec -it mysqldb -- bash -------------------------------------->
 OCI runtime exec failed: exec failed: unable to start container process: exec: "--": executable file not found in $PATH: unknown
 [root@ip-172-31-33-227 ~]# docker exec -it mysqldb bash
 bash-4.2# 
-bash-4.2# mysql -u root -p
-Enter password: 
+bash-4.2# mysql -u root -p -------------------------------------->
+Enter password: admin123 -------------------------------------->
 Welcome to the MySQL monitor.  Commands end with ; or \g.
 Your MySQL connection id is 30
 Server version: 5.7.41 MySQL Community Server (GPL)
@@ -729,7 +731,7 @@ owners.
 
 Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
 
-mysql> show databases;
+mysql> show databases; -------------------------------------->
 +--------------------+
 | Database           |
 +--------------------+
@@ -741,12 +743,12 @@ mysql> show databases;
 +--------------------+
 5 rows in set (0.00 sec)
 
-mysql> use customers;
+mysql> use customers; -------------------------------------->
 Reading table information for completion of table and column names
 You can turn off this feature to get a quicker startup with -A
 
 Database changed
-mysql> show tables;
+mysql> show tables; -------------------------------------->
 +---------------------+
 | Tables_in_customers |
 +---------------------+
@@ -755,7 +757,7 @@ mysql> show tables;
 +---------------------+
 2 rows in set (0.01 sec)
 
-mysql> select * from users;
+mysql> select * from users; -------------------------------------->
 +-----------+-------------------+---------------+
 | username  | name              | password      |
 +-----------+-------------------+---------------+
@@ -767,7 +769,7 @@ mysql> select * from users;
 | pranay    | Pranay            | Pranay%401409 |
 +-----------+-------------------+---------------+
 6 rows in set (0.00 sec)
-mysql> select * from donors;
+mysql> select * from donors; -------------------------------------->
 +----+-----------+----------+------------+-----------+------------+------------+------------+------------+
 | id | fname     | lname    | mobileno   | city      | bfrom      | bto        | dob        | bloodgroup |
 +----+-----------+----------+------------+-----------+------------+------------+------------+------------+
@@ -782,7 +784,7 @@ mysql> select * from donors;
 +----+-----------+----------+------------+-----------+------------+------------+------------+------------+
 8 rows in set (0.00 sec)
 
-mysql> 
+mysql> -------------------------------------->
 
 those above all are default donors
 
@@ -819,18 +821,18 @@ Firstwe will create a cluster with kops & later we will do EKS
 lets start with kops
 =====================================================================================================================================================================================================================================================================
 
-yum install docker -y & systemctl start docker ------------> command to install & start docker
+yum install docker -y & systemctl start docker ------------> command to install & start docker -------------------------------------->
 
 install kubectl
 
 installe kubectl
 
-curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" -------------------------------------->
 
 
-chmod +x kubectl
+chmod +x kubectl -------------------------------------->
 
-mv kubectl /usr/local/bin/
+mv kubectl /usr/local/bin/ -------------------------------------->
 
 
 install minikube as well
@@ -844,19 +846,19 @@ What you’ll need
 Internet connection
 
 curl -LO https://github.com/kubernetes/minikube/releases/latest/download/minikube-linux-amd64
-sudo install minikube-linux-amd64 /usr/local/bin/minikube && rm minikube-linux-amd64
+sudo install minikube-linux-amd64 /usr/local/bin/minikube && rm minikube-linux-amd64 -------------------------------------->
 
-minikube version
+minikube version -------------------------------------->
 
-minikube status
+minikube status -------------------------------------->
 
-minikube start --driver=docker
+minikube start --driver=docker -------------------------------------->
 
-minikube start --driver=docker --force
+minikube start --driver=docker --force -------------------------------------->
 
-minikube status
+minikube status -------------------------------------->
 
-[root@ip-172-31-25-132 ~]# minikube status
+[root@ip-172-31-25-132 ~]# minikube status -------------------------------------->
 minikube
 type: Control Plane
 host: Running
@@ -866,11 +868,12 @@ kubeconfig: Configure
 
 now create a cluster
 
-aws s3 ls
+aws s3 ls -------------------------------------->
 
-aws s3 mb s3://jaisri.2026.ram
+aws s3 mb s3://jaisri.2026.ram -------------------------------------->
 
-kops create cluster --name srirama.k8s.local --zones us-east-1a,us-east-1b --master-size c7i-flex.large --master-volume-size 30 --node-count 2 --node-volume-size 20 --node-size t3.micro --image=ami-0b6c6ebed2801a5cb
+kops create cluster --name srirama.k8s.local --zones us-east-1a,us-east-1b --master-size c7i-flex.large --master-volume-size 30 --node-count 2 
+--node-volume-size 20 --node-size t3.micro --image=ami-0b6c6ebed2801a5cb -------------------------------------->
 
 kops delete cluster --name babu.k8s.local --yes -----------------> command to delete the cluster
 
@@ -900,9 +903,9 @@ Suggestions:
 =====================================================================================================================================================================================================================================================================
 
 
-[root@ip-172-31-33-227 ~]# aws s3 ls
-2026-03-17 05:39:11 jaisri.2026.ram
-[root@ip-172-31-33-227 ~]# curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+[root@ip-172-31-33-227 ~]# aws s3 ls -------------------------------------->
+2026-03-17 05:39:11 jaisri.2026.ram -------------------------------------->
+[root@ip-172-31-33-227 ~]# curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" -------------------------------------->
   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
                                  Dload  Upload   Total   Spent    Left  Speed
 100 57228k 100 57228k   0     0 279.5M     0  --:--:-- --:--:-- --:--:-- 279.4M
@@ -910,7 +913,7 @@ Suggestions:
 total 57244
 -rw-r--r--. 1 root root     9945 Mar 23 07:23 install.sh
 -rw-r--r--. 1 root root 58601656 Mar 23 10:51 kubectl
-[root@ip-172-31-33-227 ~]# chmod +x kubectl 
+[root@ip-172-31-33-227 ~]# chmod +x kubectl  -------------------------------------->
 [root@ip-172-31-33-227 ~]# ll
 total 57244
 -rw-r--r--. 1 root root     9945 Mar 23 07:23 install.sh
@@ -924,24 +927,25 @@ total 12
                                  Dload  Upload   Total   Spent    Left  Speed
   0     0   0     0   0     0     0     0  --:--:-- --:--:-- --:--:--     0
 100 256.8M 100 256.8M   0     0 416.0M     0  --:--:-- --:--:-- --:--:-- 516.8M
-[root@ip-172-31-33-227 ~]# chmod +x kops
-[root@ip-172-31-33-227 ~]# sudo mv kops /usr/local/bin/kops
+[root@ip-172-31-33-227 ~]# chmod +x kops -------------------------------------->
+[root@ip-172-31-33-227 ~]# sudo mv kops /usr/local/bin/kops -------------------------------------->
 [root@ip-172-31-33-227 ~]# ll
 total 12
 -rw-r--r--. 1 root root 9945 Mar 23 07:23 install.sh
 [root@ip-172-31-33-227 ~]# 
 
-[root@ip-172-31-33-227 ~]# aws s3 ls
+[root@ip-172-31-33-227 ~]# aws s3 ls -------------------------------------->
 2026-03-17 05:39:11 jaisri.2026.ram
-[root@ip-172-31-33-227 ~]# export KOPS_STATE_STORE=s3://jaisri.2026.ram
-[root@ip-172-31-33-227 ~]# kops create cluster --name srirama.k8s.local --zones us-east-1a,us-east-1b --master-count 1 --master-size m7i-flex.large --master-volume-size 30 --node-count 3 --node-size c7i-flex.large --node-volume-size 30 --image=ami-0ec10929233384c7f
-[root@ip-172-31-33-227 ~]#kops update cluster --name srirama.k8s.local --yes --admin
+[root@ip-172-31-33-227 ~]# export KOPS_STATE_STORE=s3://jaisri.2026.ram -------------------------------------->
+[root@ip-172-31-33-227 ~]# kops create cluster --name srirama.k8s.local --zones us-east-1a,us-east-1b --master-count 1 --master-size m7i-flex.large 
+--master-volume-size 30 --node-count 3 --node-size c7i-flex.large --node-volume-size 30 --image=ami-0ec10929233384c7f -------------------------------------->
+[root@ip-172-31-33-227 ~]#kops update cluster --name srirama.k8s.local --yes --admin -------------------------------------->
 
-[root@ip-172-31-33-227 ~]# kops get cluster
+[root@ip-172-31-33-227 ~]# kops get cluster -------------------------------------->
 NAME                    CLOUD   ZONES
 srirama.k8s.local       aws     us-east-1a,us-east-1b
 
-[root@ip-172-31-33-227 ~]# kubectl get nodes
+[root@ip-172-31-33-227 ~]# kubectl get nodes -------------------------------------->
 NAME                  STATUS   ROLES           AGE     VERSION
 i-0631bb18df5004399   Ready    node            2m38s   v1.35.2
 i-08e375037d5cec193   Ready    control-plane   3m32s   v1.35.2
@@ -970,17 +974,17 @@ Total 11 yaml manifestation files
 
 
 
-mkdir pranay
-cd pranay/
+mkdir pranay -------------------------------------->
+cd pranay/ -------------------------------------->
 
-echo -n "root" | base64 ----------> enter
+echo -n "root" | base64 --------------------------------------> enter
 cm9vdA==
 
 
-echo -n "admin123" | base64 ----------> enter
+echo -n "admin123" | base64 --------------------------------------> enter
 YWRtaW4xMjM=
 
-vim secrets.yml
+vim secrets.yml -------------------------------------->
 
 ---
 apiVersion: v1
@@ -994,7 +998,7 @@ data:
 
 :wq
 
-vim configmaps.yml
+vim configmaps.yml -------------------------------------->
 
 ---
 apiVersion: v1
@@ -1007,7 +1011,7 @@ data:
 
 :wq
 
-vim resource-quota.yml
+vim resource-quota.yml -------------------------------------->
 
 ---
 apiVersion: v1
@@ -1025,7 +1029,7 @@ spec:
 :wq
 
 
-vim deployment.yml
+vim deployment.yml -------------------------------------->
 
 ---
 apiVersion: apps/v1
@@ -1077,7 +1081,7 @@ spec:
 :wq
 
 
-vim hpa.yml
+vim hpa.yml -------------------------------------->
 
 ---
 apiVersion: autoscaling/v2
@@ -1101,7 +1105,7 @@ spec:
 :wq
 
 
-vim statefulset.yml
+vim statefulset.yml -------------------------------------->
 
 ---
 apiVersion: apps/v1
@@ -1154,7 +1158,7 @@ spec:
 :wq
 
 
-vim app-service.yml
+vim app-service.yml -------------------------------------->
 
 ---
 apiVersion: v1
@@ -1212,7 +1216,7 @@ spec:
                   number: 80
 :wq
 
-vim networkpolicy.yml
+vim networkpolicy.yml -------------------------------------->
 
 ---
 apiVersion: networking.k8s.io/v1
@@ -1248,7 +1252,7 @@ spec:
 
 :wq
 
-vim pdb.yml
+vim pdb.yml -------------------------------------->
 
 ---
 apiVersion: policy/v1
