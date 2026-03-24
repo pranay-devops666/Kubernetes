@@ -517,6 +517,8 @@ Now try to access the application with ec2-instance IP with port number 1111 lik
 
 http://54.196.53.29:1111/
 
+=====================================================================================================================================================================================================================================================================
+
 NOTE: FOR SUPPOSE IF WE GOT ANY ERROR LIKE BELOW FOLLOWING STEPS ARE BELOW
 =============================================================================
 
@@ -694,6 +696,9 @@ save & Build
 Build Got Success
 
 Now able to access the application
+
+=====================================================================================================================================================================================================================================================================
+
 
 http://54.196.53.29:1111/ ------------------> in here we will see login page
 
@@ -980,7 +985,7 @@ kind: ConfigMap
 metadata:
   name: bankapp-config
 data:
-  DB_HOST: "mysqldb"
+  DB_HOST: mysqldb
   DB_PORT: "3306"
 
 :wq
@@ -988,7 +993,7 @@ data:
 vim resource-quota.yml
 
 ---
-apiVersion:v1
+apiVersion: v1
 kind: ResourceQuota
 metadata:
   name: bankapp-quota
@@ -1021,40 +1026,45 @@ spec:
         app: bankapp
     spec:
       containers:
-      - name: bankapp-container
-        image: pranay419/bloody:appimage
-        ports:
-        - containerPort: 80
-        envFrom:
-        - configMapRef:
-            name: bankapp-config
+        - name: bankapp-container
+          image: pranay419/bloodyapp:appimage
+          ports:
+            - containerPort: 80
 
-        resources:
-          requests:
-            cpu: "100m"
-            memory: "128Mi"
-         limits:
-            cpu: "500m"
-            memory: "256Mi"
-       livenessProbe:
-         httpGet:
-            path: /
-            ports: 80
-         initialDelaySeconds: 10
-         periodSeconds: 5
-       readinessProbe:
-         httpGet:
-            path: /
-            ports: 80
-         initialDelaySeconds: 10
-         periodSeconds: 5
+          envFrom:
+            - configMapRef:
+                name: bankapp-config
+
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "256Mi"
+
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 10
+            periodSeconds: 5
+
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 10
+            periodSeconds: 5
+
+:wq
 
 
 vim hpa.yml
 
 ---
-apiVersion: autoScaling/v2
-kind: HorizontalPodAutoScalar
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
 metadata:
   name: bankapp-hpa
 spec:
@@ -1065,13 +1075,12 @@ spec:
   minReplicas: 3
   maxReplicas: 10
   metrics:
-  - type: Resource
-    resource:
-      name: cpu
-      target: 10
-        type: Utilization
-        averageUtilization: 50
-
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 50
 :wq
 
 
@@ -1083,44 +1092,48 @@ kind: StatefulSet
 metadata:
   name: bankapp-statefulset
 spec:
-  serviceName: "bankapp-service"
+  serviceName: bankapp-db-service
   replicas: 1
   selector:
     matchLabels:
-      app: bankapp
+      app: bankapp-db
   template:
     metadata:
       labels:
-        app: bankapp
+        app: bankapp-db
     spec:
       containers:
-      - name: bankapp-container
-        image: pranay419/bloody:dbimage
-        ports:
-        - containerPort: 3306
-        envFrom:
-        - secretRef:
-            name: bankapp-db-secret
-        - configMapRef:
-            name: bankapp-config
+        - name: db-container
+          image: pranay419/bloodyapp:dbimage
+          ports:
+            - containerPort: 3306
+
+          envFrom:
+            - secretRef:
+                name: bankapp-db-secret
+            - configMapRef:
+                name: bankapp-config
+
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "256Mi"
+
+          volumeMounts:
+            - name: mysql-persistent-storage
+              mountPath: /var/lib/mysql
+
+  volumeClaimTemplates:
+    - metadata:
+        name: mysql-persistent-storage
+      spec:
+        accessModes: ["ReadWriteOnce"]
         resources:
           requests:
-            cpu: "100m"
-            memory: "128Mi"
-          limits:
-            cpu: "500m"
-            memory: "256Mi"
-        volumeMounts:
-        - name: mysql-persistent-storage
-          mountPath: /usr/share/nginx/html
-volumeClaimTemplates:
-- metadata:
-    name: mysql-persistant-storage
-  spec:
-    accessModes: ["ReadWriteOnce"]
-    resources:
-    storage: 1Gi
-
+            storage: 1Gi
 :wq
 
 
@@ -1133,7 +1146,7 @@ metadata:
   name: bankapp-service
 spec:
   selector:
-    app:
+    app: bankapp
   ports:
     - protocol: TCP
       port: 80
@@ -1150,14 +1163,13 @@ kind: Service
 metadata:
   name: bankapp-db-service
 spec:
-  ClusterIP: None
+  clusterIP: None
   selector:
     app: bankapp-db
   ports:
     - protocol: TCP
       port: 3306
       targetPort: 3306
-
 :wq
 
 vim ingress.yml
@@ -1167,20 +1179,20 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: bankapp-ingress
-  annotation:
+  annotations:
     nginx.ingress.kubernetes.io/rewrite-target: /
 spec:
   ingressClassName: nginx
   rules:
     - http:
-        paths: /
-          - pathType: Prefix
+        paths:
+          - path: /
+            pathType: Prefix
             backend:
               service:
                 name: bankapp-service
                 port:
                   number: 80
-
 :wq
 
 vim networkpolicy.yml
@@ -1203,45 +1215,40 @@ spec:
         - namespaceSelector:
             matchLabels:
               kubernetes.io/metadata.name: ingress-nginx
-              podSelector:
-                matchLabels:
-                  app.kubernetes.io/component: controller
       ports:
         - protocol: TCP
           port: 80
-  engress:
-     - to:
+
+  egress:
+    - to:
         - podSelector:
             matchLabels:
-               app: bankapp-db
-       ports:
-         - protocol: TCP
-           port: 3306
-         - to:
-            - namespaceSelector:
-                matchLabels:
-                  kubernetes.io/metadata.name: kube-system
-                  ports:
-                    - protocol: UDP
-                      port: 50
+              app: bankapp-db
+      ports:
+        - protocol: TCP
+          port: 3306
+
 
 :wq
 
-vim pdd.yml
+vim pdb.yml
 
 ---
 apiVersion: policy/v1
-kind: PodDistruptionBudget
+kind: PodDisruptionBudget
 metadata:
   name: bankapp-pdb
 spec:
   minAvailable: 2
   selector:
     matchLabels:
-        app: bankapp
+      app: bankapp
+
 
 :wq
 
+
+kubectl apply -f .------------------------->
 
 vim secret.yml
 vim configmap.yml
@@ -1256,6 +1263,6 @@ vim networkpolicy.yml
 vim pdb.yml
 
 
-kubectl create -f .
+kubectl apply -f .------------------------->
 
 
