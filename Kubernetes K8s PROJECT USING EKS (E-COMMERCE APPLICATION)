@@ -460,6 +460,9 @@ metadata:
 
 :wq
 
+[root@MY-EKS ~]# kubectl create -f svc-account.yml
+serviceaccount/jenkins created
+
 for this we need to do role role-binding
 
 [root@MY-EKS ~]# vim role.yml
@@ -506,7 +509,7 @@ rules:
 :wq
 
 
-[root@MY-EKS ~]# kubectl create -f role.yml 
+[root@MY-EKS ~]# kubectl create -f role.yml  ------------------------------------>
 role.rbac.authorization.k8s.io/app-role created
 [root@MY-EKS ~]#
 
@@ -527,9 +530,10 @@ roleRef:
   kind: Role
   name: app-role
 subjects:
-- kind: ServiceAccount
+- namespace: webapps
+  kind: ServiceAccount
   name: jenkins
-  namespace: webapps
+ 
 
 :wq
 
@@ -537,8 +541,205 @@ subjects:
 rolebinding.rbac.authorization.k8s.io/app-rolebinding created
 [root@MY-EKS ~]# 
 
+[root@MY-EKS ~]# kubectl get rolebindings
+No resources found in default namespace.
+[root@MY-EKS ~]# kubectl get rolebindings -n webapps
+NAME              ROLE            AGE
+app-rolebinding   Role/app-role   13m
+[root@MY-EKS ~]# 
+
+[root@MY-EKS ~]# kubectl get rolebindings --all-namespaces
+NAMESPACE     NAME                                                ROLE                                                  AGE
+kube-public   system:controller:bootstrap-signer                  Role/system:controller:bootstrap-signer               48m
+kube-system   eks-vpc-resource-controller-rolebinding             Role/eks-vpc-resource-controller-role                 48m
+kube-system   eks:addon-manager                                   Role/eks:addon-manager                                48m
+kube-system   eks:authenticator                                   Role/eks:authenticator                                48m
+kube-system   eks:az-poller                                       Role/eks:az-poller                                    48m
+kube-system   eks:coredns-autoscaler                              Role/eks:coredns-autoscaler                           48m
+kube-system   eks:fargate-manager                                 Role/eks:fargate-manager                              48m
+kube-system   eks:network-policy-controller                       Role/eks:network-policy-controller                    48m
+kube-system   eks:node-manager                                    Role/eks:node-manager                                 48m
+kube-system   eks:service-operations                              Role/eks:service-operations-configmaps                48m
+kube-system   metrics-server-auth-reader                          Role/extension-apiserver-authentication-reader        43m
+kube-system   system::extension-apiserver-authentication-reader   Role/extension-apiserver-authentication-reader        48m
+kube-system   system::leader-locking-kube-controller-manager      Role/system::leader-locking-kube-controller-manager   48m
+kube-system   system::leader-locking-kube-scheduler               Role/system::leader-locking-kube-scheduler            48m
+kube-system   system:controller:bootstrap-signer                  Role/system:controller:bootstrap-signer               48m
+kube-system   system:controller:cloud-provider                    Role/system:controller:cloud-provider                 48m
+kube-system   system:controller:token-cleaner                     Role/system:controller:token-cleaner                  48m
+webapps       app-rolebinding                                     Role/app-role                                         15m
+[root@MY-EKS ~]# 
+
 Now got permissions for jenkins
 
 Now we need to generate credentials that credentials need to be store in jenkins
+
+
+
+[root@MY-EKS ~]# vim secret.yml
+
+---
+apiVersion: v1
+kind: Secret
+type: kubernetes.io/service-account-token
+metadata:
+  name: mysecretname
+  namespace: webapps
+  annotations:
+    kubernetes.io/service-account.name: jenkins
+
+:wq
+
+[root@MY-EKS ~]# kubectl create -f secret.yml 
+secret/mysecretname created
+
+[root@MY-EKS ~]# kubectl get secret -n webapps
+NAME           TYPE                                  DATA   AGE
+mysecretname   kubernetes.io/service-account-token   3      38s
+[root@MY-EKS ~]# kubectl describe secret mysecretname -n webapps
+Name:         mysecretname
+Namespace:    webapps
+Labels:       <none>
+Annotations:  kubernetes.io/service-account.name: jenkins
+              kubernetes.io/service-account.uid: 6d971dab-d4a9-4d5b-9fb3-895a40f2d211
+
+Type:  kubernetes.io/service-account-token
+
+Data
+====
+ca.crt:     1107 bytes
+namespace:  7 bytes
+token:      eyJhbGciOiJSUzI1NiIsImtpZCI6IkVkNHgzU1lvTVNLSnJMNUtvZlR0NG9hS2xUamlLM0hOSXhLaG51N0djZG8ifQ.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJ3ZWJhcHBzIiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZWNyZXQubmFtZSI6Im15c2VjcmV0bmFtZSIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50Lm5hbWUiOiJqZW5raW5zIiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZXJ2aWNlLWFjY291bnQudWlkIjoiNmQ5NzFkYWItZDRhOS00ZDViLTlmYjMtODk1YTQwZjJkMjExIiwic3ViIjoic3lzdGVtOnNlcnZpY2VhY2NvdW50OndlYmFwcHM6amVua2lucyJ9.na21P5IT3Ozdso8dvn3R8VQQYLAhVOka1bv2frsZY9on-iH85H24krBHW-4-sZoc0Zi324KyauPCkPGZXRSvkWu_HNZHdhLD_3GaGV8xM52SDLVNgJY6qXIMiPJIVeOIYm0PG4T5WV07m_uc0aehyvUKsZGf-wAyz0M7uTirluE3ovdwSTI8gf4YjVzwSZFnUsFkBumavOkbWfAWxkkiRuhRUzwkVDYg53uxK3ZxG4M1lMIDK4Lx4FURft5882hSgKVO1w7xU0uo-0cj_4xzLEWuCnBniYo3EvgLmaSvEQv77d9WP_0TE_GfwVGejhZFwx3U1v-85lWLyaSE_WMGBw 
+
+we will get encrypted data like this above
+
+
+
+copy this above token and give in jenkins 
+
+eyJhbGciOiJSUzI1NiIsImtpZCI6IkVkNHgzU1lvTVNLSnJMNUtvZlR0NG9hS2xUamlLM0hOSXhLaG51N0djZG8ifQ.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJ3ZWJhcHBzIiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZWNyZXQubmFtZSI6Im15c2VjcmV0bmFtZSIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50Lm5hbWUiOiJqZW5raW5zIiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZXJ2aWNlLWFjY291bnQudWlkIjoiNmQ5NzFkYWItZDRhOS00ZDViLTlmYjMtODk1YTQwZjJkMjExIiwic3ViIjoic3lzdGVtOnNlcnZpY2VhY2NvdW50OndlYmFwcHM6amVua2lucyJ9.na21P5IT3Ozdso8dvn3R8VQQYLAhVOka1bv2frsZY9on-iH85H24krBHW-4-sZoc0Zi324KyauPCkPGZXRSvkWu_HNZHdhLD_3GaGV8xM52SDLVNgJY6qXIMiPJIVeOIYm0PG4T5WV07m_uc0aehyvUKsZGf-wAyz0M7uTirluE3ovdwSTI8gf4YjVzwSZFnUsFkBumavOkbWfAWxkkiRuhRUzwkVDYg53uxK3ZxG4M1lMIDK4Lx4FURft5882hSgKVO1w7xU0uo-0cj_4xzLEWuCnBniYo3EvgLmaSvEQv77d9WP_0TE_GfwVGejhZFwx3U1v-85lWLyaSE_WMGBw
+
+go to manage jenkins -----------> select credentials---------> create new credentials ----------> kind: secret text--------> paste this above token in here secret place
+-----------> in Id:docker-cred ---------> in description: k8-token jenkins credentials----------> ok
+
+k8-token
+k8-token jenkins credentials
+
+we need to modify jenkins file in GitHub-----> main branch-------> jenkinsfile --------> edit here like below
+
+go to jenkinsfile in main branch github and do changes like below
+
+injenkins file serverurl: https://1159534B71685DB881C3BF390D18E085.gr7.us-east-1.eks.amazonaws.com---------->
+
+whwre we get this url is in created EKS-1 Cluster there will be this url as API server endpoint https://1159534B71685DB881C3BF390D18E085.gr7.us-east-1.eks.amazonaws.com
+
+save and do commits
+
+Now create a Job mltijobpipeline in Jenkins----------> Display Name: eks-project------------> Branch Sources:add source:select Git:Project Repository:
+paste here url of GitHub(https://github.com/pranay-devops666/microservices-project.git) ----------> save 
+
+Now it wil do scan every branch in this Job from GitHub branches like below
+
+Scan Multibranch Pipeline Log
+
+Started by user pranay babu gorantla
+[Wed Mar 25 11:01:18 UTC 2026] Starting branch indexing...
+ > git --version # timeout=10
+ > git --version # 'git version 2.50.1'
+ > git ls-remote --symref -- https://github.com/pranay-devops666/microservices-project.git # timeout=10
+Creating git repository in /var/lib/jenkins/caches/git-347129cc1b2afa61f2acb4d0795e8f64
+ > git init /var/lib/jenkins/caches/git-347129cc1b2afa61f2acb4d0795e8f64 # timeout=10
+Setting origin to https://github.com/pranay-devops666/microservices-project.git
+ > git config remote.origin.url https://github.com/pranay-devops666/microservices-project.git # timeout=10
+Fetching & pruning origin...
+Listing remote references...
+ > git config --get remote.origin.url # timeout=10
+ > git --version # timeout=10
+ > git --version # 'git version 2.50.1'
+ > git ls-remote -h -- https://github.com/pranay-devops666/microservices-project.git # timeout=10
+Fetching upstream changes from origin
+ > git config --get remote.origin.url # timeout=10
+ > git fetch --no-tags --force --progress --prune -- origin +refs/heads/*:refs/remotes/origin/* # timeout=10
+Checking branches...
+  Checking branch cartservice
+      ‘Jenkinsfile’ found
+    Met criteria
+Scheduled build for branch: cartservice
+  Checking branch checkoutservice
+      ‘Jenkinsfile’ found
+    Met criteria
+Scheduled build for branch: checkoutservice
+  Checking branch shippingservice
+      ‘Jenkinsfile’ found
+    Met criteria
+Scheduled build for branch: shippingservice
+  Checking branch adservice
+      ‘Jenkinsfile’ found
+    Met criteria
+Scheduled build for branch: adservice
+  Checking branch frontend
+      ‘Jenkinsfile’ found
+    Met criteria
+Scheduled build for branch: frontend
+  Checking branch emailservice
+      ‘Jenkinsfile’ found
+    Met criteria
+Scheduled build for branch: emailservice
+  Checking branch productcatalogservice
+      ‘Jenkinsfile’ found
+    Met criteria
+Scheduled build for branch: productcatalogservice
+  Checking branch main
+      ‘Jenkinsfile’ found
+    Met criteria
+Scheduled build for branch: main
+  Checking branch recommendationservice
+      ‘Jenkinsfile’ found
+    Met criteria
+Scheduled build for branch: recommendationservice
+  Checking branch loadgenerator
+      ‘Jenkinsfile’ found
+    Met criteria
+Scheduled build for branch: loadgenerator
+  Checking branch Infra-Steps
+      ‘Jenkinsfile’ not found
+    Does not meet criteria
+  Checking branch currencyservice
+      ‘Jenkinsfile’ found
+    Met criteria
+Scheduled build for branch: currencyservice
+  Checking branch paymentservice
+      ‘Jenkinsfile’ found
+    Met criteria
+Scheduled build for branch: paymentservice
+Processed 13 branches
+[Wed Mar 25 11:01:19 UTC 2026] Finished branch indexing. Indexing took 0.78 sec
+Finished: SUCCESS
+
+
+all jobs build got failure
+
+will do troubleshoot steps below
+
+issue is permission denied
+
+[root@MY-EKS ~]# chmod 777 /var/run/docker.sock
+[root@MY-EKS ~]# 
+
+Delete the Jenkins multibranch pipelin job and do create again
+
+
+if bUild JObs got failed means kindly refer this below chatgpt url 
+
+https://chatgpt.com/c/69c3b61a-a584-8324-a9d7-11be00b0213d
+
+
+
+
+
+
+
+
+
 
 
