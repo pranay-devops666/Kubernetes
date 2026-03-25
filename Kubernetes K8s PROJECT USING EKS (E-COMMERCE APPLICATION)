@@ -734,7 +734,21 @@ if bUild JObs got failed means kindly refer this below chatgpt url
 https://chatgpt.com/c/69c3b61a-a584-8324-a9d7-11be00b0213d
 
 
-
+[root@MY-EKS ~]# kubectl get po -n webapps
+NAME                                     READY   STATUS    RESTARTS   AGE
+adservice-64b9fb9f4c-lkcxv               1/1     Running   0          62m
+cartservice-57cb79fb84-sslpl             1/1     Running   0          62m
+checkoutservice-8c9c76dd7-rtzr7          1/1     Running   0          62m
+currencyservice-74c95ccdc9-2dk89         1/1     Running   0          62m
+emailservice-74f99858b5-59l2z            1/1     Running   0          62m
+frontend-6677954857-nbgj6                1/1     Running   0          62m
+loadgenerator-559598d8d8-z2hq6           1/1     Running   0          62m
+paymentservice-55cf65c6c9-qc2fp          1/1     Running   0          62m
+productcatalogservice-7ddc6b97fc-54dp5   1/1     Running   0          62m
+recommendationservice-67866f7655-gl4dx   1/1     Running   0          62m
+redis-cart-5cc6c9f86c-brm4c              1/1     Running   0          62m
+shippingservice-dff56d7f5-nd97t          1/1     Running   0          62m
+[root@MY-EKS ~]# 
 
 
 
