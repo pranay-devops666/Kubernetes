@@ -750,6 +750,171 @@ redis-cart-5cc6c9f86c-brm4c              1/1     Running   0          62m
 shippingservice-dff56d7f5-nd97t          1/1     Running   0          62m
 [root@MY-EKS ~]# 
 
+[root@MY-EKS ~]# kubectl get deploy -n webapps
+NAME                    READY   UP-TO-DATE   AVAILABLE   AGE
+adservice               1/1     1            1           63m
+cartservice             1/1     1            1           63m
+checkoutservice         1/1     1            1           63m
+currencyservice         1/1     1            1           63m
+emailservice            1/1     1            1           63m
+frontend                1/1     1            1           63m
+loadgenerator           1/1     1            1           63m
+paymentservice          1/1     1            1           63m
+productcatalogservice   1/1     1            1           63m
+recommendationservice   1/1     1            1           63m
+redis-cart              1/1     1            1           63m
+shippingservice         1/1     1            1           63m
+[root@MY-EKS ~]# kubectl get svc -n webapps
+NAME                    TYPE           CLUSTER-IP       EXTERNAL-IP                                                              PORT(S)        AGE
+adservice               ClusterIP      10.100.42.23     <none>                                                                   9555/TCP       63m
+cartservice             ClusterIP      10.100.213.18    <none>                                                                   7070/TCP       63m
+checkoutservice         ClusterIP      10.100.165.60    <none>                                                                   5050/TCP       63m
+currencyservice         ClusterIP      10.100.253.141   <none>                                                                   7000/TCP       63m
+emailservice            ClusterIP      10.100.107.89    <none>                                                                   5000/TCP       63m
+frontend                NodePort       10.100.253.162   <none>                                                                   80:31060/TCP   63m
+frontend-external       LoadBalancer   10.100.75.233    aafdf28090f7e4d8c836dc0647d95784-985218976.us-east-1.elb.amazonaws.com   80:32669/TCP   63m
+paymentservice          ClusterIP      10.100.173.235   <none>                                                                   50051/TCP      63m
+productcatalogservice   ClusterIP      10.100.127.195   <none>                                                                   3550/TCP       63m
+recommendationservice   ClusterIP      10.100.49.58     <none>                                                                   8080/TCP       63m
+redis-cart              ClusterIP      10.100.74.175    <none>                                                                   6379/TCP       63m
+shippingservice         ClusterIP      10.100.2.213     <none>                                                                   50051/TCP      63m
+[root@MY-EKS ~]# 
+
+copy the DNS name and paste in new tab
+
+aafdf28090f7e4d8c836dc0647d95784-985218976.us-east-1.elb.amazonaws.com--------------> access the application
+
+successfully access the application and running successfully
+
+now need to delete the cluster without fail like below
+
+
+[root@MY-EKS ~]# eksctl get cluster -------------->
+NAME    REGION          EKSCTL CREATED
+EKS-1   us-east-1       True
+[root@MY-EKS ~]# export AWS_DEFAULT_REGION=us-east-1 -------------->
+[root@MY-EKS ~]# eksctl delete cluster --name EKS-1 --region us-east-1---------------->
+
+
+
+
+
+[root@MY-EKS ~]# history
+    1  hostnamectl set-hostname "MY-EKS"
+    2  exit
+    3  curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+    4  unzip awscliv2.zip
+    5  sudo ./aws/install
+    6  curl -O https://s3.us-west-2.amazonaws.com/amazon-eks/1.35.2/2026-02-27/bin/linux/amd64/kubectl
+    7  ll
+    8  chmod +x kubectl 
+    9  ll
+   10  mv kubectl /usr/local/bin/
+   11  ll
+   12  kubectl version
+   13  # for ARM systems, set ARCH to: `arm64`, `armv6` or `armv7`
+   14  ARCH=amd64
+   15  PLATFORM=$(uname -s)_$ARCH
+   16  curl -sLO "https://github.com/eksctl-io/eksctl/releases/latest/download/eksctl_$PLATFORM.tar.gz"
+   17  # (Optional) Verify checksum
+   18  curl -sL "https://github.com/eksctl-io/eksctl/releases/latest/download/eksctl_checksums.txt" | grep $PLATFORM | sha256sum --check
+   19  tar -xzf eksctl_$PLATFORM.tar.gz -C /tmp && rm eksctl_$PLATFORM.tar.gz
+   20  sudo install -m 0755 /tmp/eksctl /usr/local/bin && rm /tmp/eksctl
+   21  eksctl version
+   22  aws --version
+   23  eksctl create cluster --name=EKS-1 --region=us-east-1 --zones=us-east-1a,us-east-1b --without-nodegroup
+   24  eksctl get cluster
+   25  export AWS_DEFAULT_REGION=us-east-1
+   26  eksctl get cluster
+   27  eksctl utils associate-iam-oidc-provider --region us-east-1 --cluster EKS-1 --approve
+   28  eksctl create nodegroup --cluster=EKS-1 --region=us-east-1 --name=node2 --node-type=c7i-flex.large --nodes=3 --nodes-min=2 --nodes-max=4 --node-volume-size=20 --ssh-access --ssh-public-key=Anjeneyakeypair --managed --asg-access --external-dns-access --full-ecr-access --appmesh-access --alb-ingress-access
+   29  kubectl get no
+   30  yum install java-17-amazon-corretto -y
+   31  sudo yum update –y
+   32  sudo wget -O /etc/yum.repos.d/jenkins.repo https://pkg.jenkins.io/redhat-stable/jenkins.repo
+[root@MY-EKS ~]# kubectl get deploy -n webapps
+[root@MY-EKS ~]# history
+    1  hostnamectl set-hostname "MY-EKS"
+    2  exit
+    3  curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+    4  unzip awscliv2.zip
+    5  sudo ./aws/install
+    6  curl -O https://s3.us-west-2.amazonaws.com/amazon-eks/1.35.2/2026-02-27/bin/linux/amd64/kubectl
+    7  ll
+    8  chmod +x kubectl 
+    9  ll
+   10  mv kubectl /usr/local/bin/
+   11  ll
+   12  kubectl version
+   13  # for ARM systems, set ARCH to: `arm64`, `armv6` or `armv7`
+   14  ARCH=amd64
+   15  PLATFORM=$(uname -s)_$ARCH
+   16  curl -sLO "https://github.com/eksctl-io/eksctl/releases/latest/download/eksctl_$PLATFORM.tar.gz"
+   17  # (Optional) Verify checksum
+   18  curl -sL "https://github.com/eksctl-io/eksctl/releases/latest/download/eksctl_checksums.txt" | grep $PLATFORM | sha256sum --check
+   19  tar -xzf eksctl_$PLATFORM.tar.gz -C /tmp && rm eksctl_$PLATFORM.tar.gz
+   20  sudo install -m 0755 /tmp/eksctl /usr/local/bin && rm /tmp/eksctl
+   21  eksctl version
+   22  aws --version
+   23  eksctl create cluster --name=EKS-1 --region=us-east-1 --zones=us-east-1a,us-east-1b --without-nodegroup
+   24  eksctl get cluster
+   25  export AWS_DEFAULT_REGION=us-east-1
+   26  eksctl get cluster
+   27  eksctl utils associate-iam-oidc-provider --region us-east-1 --cluster EKS-1 --approve
+   28  eksctl create nodegroup --cluster=EKS-1 --region=us-east-1 --name=node2 --node-type=c7i-flex.large --nodes=3 --nodes-min=2 --nodes-max=4 --node-volume-size=20 --ssh-access --ssh-public-key=Anjeneyakeypair --managed --asg-access --external-dns-access --full-ecr-access --appmesh-access --alb-ingress-access
+   29  kubectl get no
+   30  yum install java-17-amazon-corretto -y
+   31  sudo yum update –y
+   32  sudo wget -O /etc/yum.repos.d/jenkins.repo https://pkg.jenkins.io/redhat-stable/jenkins.repo
+   33  sudo rpm --import https://pkg.jenkins.io/redhat-stable/jenkins.io-2023.key
+   34  sudo yum upgrade
+   35  sudo yum install java-17-amazon-corretto -y
+   36  sudo yum install jenkins git -y
+   37  sudo systemctl enable jenkins
+   38  sudo systemctl start jenkins
+   39  sudo systemctl status jenkins
+   40  cat /var/lib/jenkins/secrets/initialAdminPassword
+   41  docker run -itd --name sonar -p 9000:9000 sonarqube:lts-community
+   42  yum install docker -y && systemctl start docker
+   43  docker run -itd --name sonar -p 9000:9000 sonarqube:lts-community
+   44  kubectl create ns webapps
+   45  vim svc-account.yml
+   46  vim role.yml
+   47  kubectl create -f role.yml
+   48  vim rolebinding.yml
+   49  kubectl create -f rolebinding.yml
+   50  vim rolebinding.yml
+   51  ll
+   52  kubectl create -f svc-account.yml 
+   53  vim rolebinding.yml 
+   54  kubectl create -f rolebinding.yml
+   55  kubectl get rolebinding
+   56  ll
+   57  history
+   58  kubectl create -f rolebinding.yml
+   59  kubectl get rolebindings
+   60  kubectl get rolebindings -n webapps
+   61  kubectl get rolebindings --all-namespaces
+   62  vim secret.yml
+   63  kubectl create -f secret.yml 
+   64  kubectl get secret -n webapps
+   65  kubectl describe secret mysecretname webapps
+   66  kubectl describe secret mysecretname -n webapps
+   67  yum install git -y
+   68  yum install docker -y && systemctl start docker
+   69  chmod 777 /var/rundocker.sock
+   70  chmod 777 /var/run/docker.sock
+   71  kubectl get secret -n webapps
+   72  kubectl describe secret mysecretname -n webapps
+   73  kubectl get secret -n webapps
+   74  kubetcl get po -n webapps
+   75* 
+   76  kubectl get po -n webapps
+   77*  
+   78  kubectl get deploy -n webapps
+   79  kubectl get svc -n webapps
+   80  history
+
 
 
 
