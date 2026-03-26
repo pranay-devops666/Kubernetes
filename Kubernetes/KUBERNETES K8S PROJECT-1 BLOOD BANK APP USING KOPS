@@ -437,6 +437,28 @@ pipeline {
 
 save & Build
 
+Incase for the above pipeline job if we got an error means follow below steps
+
+===============================================================================================================================================================================================================================================
+
+✅ Fix in ONE simple step
+
+👉 Create Docker Hub credentials in Jenkins with ID dockerhub
+
+Do this:
+Go to Jenkins Dashboard
+Click Manage Jenkins → Manage Credentials
+Select (global)
+Click Add Credentials
+Choose:
+Kind: Username with password
+Username: your Docker Hub username (e.g., pranay419)
+Password: your Docker Hub password or access token
+ID: dockerhub ✅ (VERY IMPORTANT — must match pipeline)
+Click Save
+
+===============================================================================================================================================================================================================================================
+
 Build Got Success
 
 Successfully the two Images dbimage & appimage got pushed into a DockerHub 
@@ -1006,7 +1028,7 @@ kind: ConfigMap
 metadata:
   name: bankapp-config
 data:
-  DB_HOST: mysqldb
+  DB_HOST: bankapp-db-service
   DB_PORT: "3306"
 
 :wq
@@ -1068,16 +1090,15 @@ spec:
             httpGet:
               path: /
               port: 80
-            initialDelaySeconds: 10
-            periodSeconds: 5
+            initialDelaySeconds: 60
+            periodSeconds: 10
 
           readinessProbe:
             httpGet:
               path: /
               port: 80
-            initialDelaySeconds: 10
-            periodSeconds: 5
-
+            initialDelaySeconds: 60
+            periodSeconds: 10
 :wq
 
 
@@ -1129,6 +1150,10 @@ spec:
           ports:
             - containerPort: 3306
 
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              value: root123
+
           envFrom:
             - secretRef:
                 name: bankapp-db-secret
@@ -1155,6 +1180,7 @@ spec:
         resources:
           requests:
             storage: 1Gi
+
 :wq
 
 
@@ -1283,6 +1309,34 @@ vim ingress.yml
 vim networkpolicy.yml
 vim pdb.yml
 
+[root@ip-172-31-27-27 pranay]# vim secrets.yml
+[root@ip-172-31-27-27 pranay]# vim configmap.yml
+[root@ip-172-31-27-27 pranay]# vim configmap.yml
+[root@ip-172-31-27-27 pranay]# vim resource-quota.yml
+[root@ip-172-31-27-27 pranay]# vim resource-quota.yml
+[root@ip-172-31-27-27 pranay]# vim deployment.yml
+[root@ip-172-31-27-27 pranay]# vim hpa.yml
+[root@ip-172-31-27-27 pranay]# vim hpa.yml
+[root@ip-172-31-27-27 pranay]# vim statefulset.yml
+[root@ip-172-31-27-27 pranay]# vim app-service.yml
+[root@ip-172-31-27-27 pranay]# vim db-svc.yml
+[root@ip-172-31-27-27 pranay]# vim ingress.yml
+[root@ip-172-31-27-27 pranay]# vim networkpolicy.yml
+[root@ip-172-31-27-27 pranay]# vim pdb.yml
+[root@ip-172-31-27-27 pranay]# kubectl apply -f .
+service/bankapp-service created
+configmap/bankapp-config created
+service/bankapp-db-service created
+deployment.apps/bankapp-deployment created
+horizontalpodautoscaler.autoscaling/bankapp-hpa created
+ingress.networking.k8s.io/bankapp-ingress created
+networkpolicy.networking.k8s.io/bankapp-network-policy created
+poddisruptionbudget.policy/bankapp-pdb created
+resourcequota/bankapp-quota created
+secret/bankapp-db-secret created
+statefulset.apps/bankapp-statefulset created
+[root@ip-172-31-27-27 pranay]# 
+
 
 Total 11 yaml manifestation files
 
@@ -1290,4 +1344,31 @@ Total 11 yaml manifestation files
 
 kubectl apply -f .------------------------->
 
+
+
+https://github.com/pranay-devops666/ltibbhackathon.git --------------> this repo is related to application
+
+https://github.com/pranay-devops666/bankapp-manifestfiles.git --------------> this repo is related to manifest files
+
+[root@ip-172-31-27-27 pranay]# kubectl get deploy
+NAME                 READY   UP-TO-DATE   AVAILABLE   AGE
+bankapp-deployment   0/3     3            0           4m46s
+
+[root@ip-172-31-27-27 pranay]# kubectl get deploy
+NAME                 READY   UP-TO-DATE   AVAILABLE   AGE
+bankapp-deployment   0/3     3            0           4m46s
+[root@ip-172-31-27-27 pranay]# kubectl get po
+NAME                                  READY   STATUS             RESTARTS       AGE
+bankapp-deployment-67bbdfd4d7-g4spd   0/1     CrashLoopBackOff   5 (45s ago)    5m18s
+bankapp-deployment-67bbdfd4d7-mrgm7   0/1     CrashLoopBackOff   5 (45s ago)    5m18s
+bankapp-deployment-67bbdfd4d7-pvczm   0/1     CrashLoopBackOff   5 (40s ago)    5m18s
+bankapp-statefulset-0                 0/1     CrashLoopBackOff   5 (2m8s ago)   5m18s
+[root@ip-172-31-27-27 pranay]# 
+
+Here got an error as CrashLoopBackOff 
+
+Need to do troubleshoot steps here 
+
+
+https://chatgpt.com/c/69c54d72-750c-8324-a04c-5e01440d47c9
 
