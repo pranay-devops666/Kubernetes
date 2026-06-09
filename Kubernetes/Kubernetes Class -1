@@ -77,28 +77,39 @@ first the request will goes to Control plane(means) in control plane it has 4 co
                                                                                              3. Scheduler
                                                                                              4. etcd
 
-For example as a user or operator i am giving request as to create a Pod the request will goes to API and requested Pod will get created in worker node in here 
+For example as a user(operator) i am giving request as to create a Pod that request will goes to API and requested Pod will get created in worker node in here 
 where Pod should get create ? is worker node 1 or NOde 2 ? that will get decide do is SCHEDULER(It will gonna decide on which worker node Pod should get create)
-API passed the request to Scheduler here SCHEDULER will decide on which worker nodes pod should get create here question is on which parametes it is going to decide
-how ? is for example having 4 pods in one worker node and having 2 pods in another worker node now SCHEDULER will get decide to create pods on which worker node
-having less Pods why because pods are less in another worker node so now lets talk about free resiurces for example one worker node having 2 cpus free & 4 gb of ram 
-is free and another worker node is having 1 cpu and 2 gb of ram is free now when SCHEDULER will decide to create a pod on which worker node ? 
-how SCHEDULER will know how many pods are exist in a particular worker nodes it will know component called kubelet kubelet work is to monitor the pods continously 
-and pass the information to SCHEDULER through API server like that way SCHEDULER will know how many pods are exist in a particular nodes
+API passed the request to Scheduler here SCHEDULER will decide on which worker nodes pod should get create 
+here question is on which parametes it is going to decide how ? 
+For example having 4 pods in one worker node and having 2 pods in another worker node now SCHEDULER will get decide to create pods on which worker node pods need 
+to be get created finally it will get created in where having less Pods why because pods are less in another worker node so 
+now lets talk about free resiurces for example one worker node having 2 cpus free & 4 gb of ram is free and another worker node is having 1 cpu and 2 gb of ram is free 
+now SCHEDULER will decide to create a pod on which worker node need to be get created  
+how SCHEDULER will know how many pods are exist in a particular worker nodes it will know component called kubelet. 
+kubelet work is to monitor the pods continously and pass the information to SCHEDULER through API server like that way SCHEDULER will know how many pods are exist 
+in a particular nodes
 next component is etcd. etcd its an entire database for your cluster completely Complete information of the cluster will store on etcd and its stores on key value
-format like yaml format 4.th component is Controller Manager means it has 3 types of controler managers 1. Replication Controller 2. Node controller 3. Service controller
+stores format like yaml format 
+4.th component is Controller Manager it means it has 3 types of controler managers 1. Replication Controller 2. Node controller 3. Service controller
 In Replication controler in the sence means if we created a pod in a random worker node now what this RC will do is it will keep an eye of created pods in a worker 
-node for every 5 seconds like pods are running or not for example in a worker node had 2 pods 1 is working fine and another pod went inactive when this RC watched 
-this inactive pod it will wait for 30 seconds, after 30 seconds also it is still in inactive means it will went to down state it will create a new pod for this 
-inactive pod place what is happening here is RC will automatically creates a new pod that means here we can called it as self-healing 2.Node controller is also 
-same for every 5 seconds it will do monitor and check server status in a cluster it is running or not for suppose if we didn't get any responses from any servers
-Node controller will wait upto 30 seconds after 30 seconds will create automatically a new node(server) in a cluster 3. Service Controller for expose a pods and access
-the application we will use services in kubernetes Service controller is also same for suppose any service got deleted means after 30 seconds it will get created 
-automatically to access the application successfully and to expose a pods successfully 
+node for every 5 seconds like pods are running or not for example in a worker node had 2 pods 1 is working fine and another pod went inactive at this moment
+this RC will do watched for this inactive pod it will wait for 30 seconds, after 30 seconds also it is still in inactive means it will went to down state, after that
+it will create a new pod for this inactive pod place what is happening here is RC will automatically creates a new pod that means here we can called it as self-healing 
+
+2.Node controller is also same for every 5 seconds it will do monitor and check every servers status in a cluster it is running or not for suppose if we didn't get 
+any responses from any servers means Node controller will wait upto 30 seconds, after 30 seconds will Node Controller will get create automatically a new node(server) 
+in a cluster 
+3. Service Controller is to expose a pods and access the application we will use services in kubernetes Service controller is also same for suppose any service got 
+deleted means after 30 seconds it will get created automatically to access the application successfully and to expose a pods successfully. 
 
 Finally overall review on above topic is 1. Replication Controller(RC) -----> PODS will get create automaticcally for this we are using Replication Controller(RC)
                                          2. Node Controller ----------------> Nodes will get create automaticcally for this we are using Node Controller
                                          3. Service Controller -------------> Services will get create automaticcally for this we are using Service Controller
+
+lets talk about Kubernetes Nodes kubelet means it will collect information  from a particular node how many pods are exist in it etc all information 
+Now kube-proxy it will maintain the network configurations of the cluster to maintain network policies we will use kube-proxy 
+
+
 
 Kubernetes Architecture detailed links below 
 
