@@ -138,7 +138,7 @@ kubectl create -f service.yml
 
 kubectl get svc-------> command to see services of pods cluster
 
-curl IP Address------->we can able to access application internal
+curl IP Address------->we can able to access application internal -----------------> this command need to give in worker-node to access the application internally
 
 if we want to access external means we can create node port
 
