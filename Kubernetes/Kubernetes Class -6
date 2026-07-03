@@ -196,12 +196,15 @@ as of now we created one deployment
 through that Deployment 2 ReplicaSet will be created this is we need to know
 
 
-kubectl rollback deployment pranay --to-revision=2----------------->command to rollback
+kubectl rollout undo deployment pranay --to-revision=2----------------->command to rollback means rollout
 
-kubectl rollout history deployment pranay-------------> command to view history of name created deployment pranay
+kubectl rollout undo history deployment pranay-------------> command to view history of name created deployment pranay
 
+kubectl rollout undo deployment mydeployment --to-revision=1 ------------> correct command and 
 
-kubectl rollback deployment pranay --to-revision=1----------------->command to rollback at version 1
+kubectl rollout history deployment mydeployment ------------> correct command and 
+
+kubectl rollout undo deployment pranay --to-revision=1----------------->command to rollback at version 1
 
 next feature is Scaling
 
