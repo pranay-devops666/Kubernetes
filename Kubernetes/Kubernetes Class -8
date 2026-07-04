@@ -357,6 +357,30 @@ spec:
               key: area
 
 
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod2
+spec:
+  containers:
+    - name: cont1
+      image: nginx
+      ports:
+        - containerPort: 80
+      env:
+        - name: env1
+          valueFrom:
+            configMapKeyRef:
+              name: company
+              key: company
+
+        - name: env2
+          valueFrom:
+            configMapKeyRef:
+              name: area
+              key: area
+
 :wq
 
 kubectl create -f pod.yml -------------> command to execute above file
