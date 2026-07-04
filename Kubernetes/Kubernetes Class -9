@@ -308,6 +308,18 @@ roleRef:
 
 :wq
 
-kubectl create cluster-role-binding.yml ------------------------>
+after saving the above file we need to go admin user config and need to perform the action below 
+
+
+kubectl config use-context minikube ---------------------->
+
+
+kubectl apply cluster-role.yml ------------------------>
+
+kubectl apply cluster-role-binding.yml ------------------------>
+
+kubectl config use-context minikube ---------------------->
+
+kubectl config use-context devops ----------------------> swith form one user to another user name with devops
 
 NEET TO BE PRACTICE VERY WELL
