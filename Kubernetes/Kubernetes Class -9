@@ -258,4 +258,56 @@ kubectl get rolebinding -n dev ---------------> command to view rolebinding
 
 kubectl config use-context devops -------------> command to switch user
 
+as of now we gave permissions to a particular namespaces for that we used Role Role Binding
+
+For now if we want to give permissions to all namespaces means we will use Cluster Role Cluster Role Binding like below
+
+manifest files are similar and same to this also like below
+
+cp role.yml cluster-role.yml
+
+vim cluster-role.yml
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cluster-role
+rules:
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "watch", "list", "create"]
+
+  - apiGroups: [""]
+    resources: ["services"]
+    verbs: ["get", "watch", "list"]
+
+:wq
+
+kubectl create cluster-role.yml -------------------->
+
+
+vim cluster-role-binding.yml
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: clusterrolebinding
+
+subjects:
+  - kind: User
+    name: pranay
+    apiGroup: rbac.authorization.k8s.io
+
+roleRef:
+  kind: Role
+  name: dev-role
+  apiGroup: rbac.authorization.k8s.io
+
+
+:wq
+
+kubectl create cluster-role-binding.yml ------------------------>
+
 NEET TO BE PRACTICE VERY WELL
