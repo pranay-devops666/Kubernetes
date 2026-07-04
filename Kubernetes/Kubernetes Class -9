@@ -1,7 +1,8 @@
 Kubernetes Class -9
 
 
-TOPIC RBAC(ROLE BASED ACCESS CONTROL)
+TOPIC RBAC(ROLE BASED ACCESS CONTROL) Creation of Role, Creation of Role Binding, Creation of Cluster Role, Creation of Cluster Role Binding 
+===================================================================================================================================================
 
 launch one instance-------> name:minikube-->c7i-flex-large--------> key pair--------> jenkins security group------->28gb ebs volume---------> launch instance
 
@@ -160,6 +161,21 @@ Context "devops" created. ------------> command to switch the context name devop
 Switched to context "minikube".
 [root@RBAC babu]#  ------------> command to switch to minikube
 
+NOw we need to create Role here to give permisiions to another user
+to create role for giving permissions first we need to switch to Admin like minikube or kubernetes admin need toswith first
+after switching to admin here we need to create role and give persissions 
+
+here have 4 methods
+1. Role                 2. Cluster role
+1.1 Role binding        2.1 Cluster Role binding
+
+means what ? -----> we need to give a permissions to a particular namespaces
+if we want to give only one namesapce we will use Role Role Binding
+if we want to give all existing namespaces we will use cluster cluster role binding
+
+first we will learn role role binding 
+after we will learn cluster role cluster role binding
+
 [root@RBAC babu]# kubectl create ns dev -------------> command to create namespace with name dev
 namespace/dev created
 [root@RBAC babu]# -------------> command to create namespace with name dev
@@ -168,7 +184,7 @@ namespace/dev created
 namespace/test created
 [root@RBAC babu]#  -------------> command to create namespace with name test
 
-will create some services here
+we already in admin so now will create some services here
 
 [root@RBAC babu]# kubectl run pod-1 --image=nginx -n dev -------------> command to create namespace with  pod 
 pod/pod-1 created
