@@ -4,6 +4,9 @@ TOPIC: Kubernetes VOLUMES PV(Persistance Volume) PVC(Persistance Volume Claim)
 =================================================================================
 
 
+Types of volume sin Kubernetes 
+1. EmptyDir 2. HostPath 3. Persistent volume(PV) 4. Persistent Volume Claim(PVC)
+
 
 if i want to see all the clusters  that means i wnat to see all the pods inside the namespace command is
 
@@ -202,6 +205,15 @@ kubectl exec -it pod name -c cont1 -- bash ------------> command to enter into a
 
 cd /opt/cont1/ 
 
+
+here pod delete ayna new pod create avtundhi but data lost avtundhi 
+
+pod delete ayna data delete avvakudadhu
+
+for that case we will use HostPath volume
+
+Types of volume sin Kubernetes 
+1. EmptyDir 2. HostPath 3. Persistent volume(PV) 4. Persistent Volume Claim(PVC)
 
 data still remains
 
