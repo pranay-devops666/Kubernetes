@@ -38,6 +38,12 @@ its working}
 
 kops delete cluster --name babu.k8s.local --yes -----------------> command to delete the cluster
 
+New Update command to create cluster
+=======================================
+
+kops create cluster --name rama.k8s.local --zones us-east-1a,us-east-1b --control-plane-size c7i-flex.large --control-plane-volume-size 30 --node-count 2 --node-volume-size 20 --node-size t3.micro --image=ami-0b6d9d3d33ba97d99
+
+
 
 
 
