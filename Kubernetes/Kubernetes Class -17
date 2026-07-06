@@ -1,6 +1,6 @@
 Kubernetes Class -17
 
-TOPIC: CANERY DEPLOYMENT (using ISTIO) Routing the traffic in terms of Traffic we are using ISTIO Tool
+TOPIC: CANARY DEPLOYMENT (using ISTIO) Routing the traffic in terms of Traffic we are using ISTIO Tool
 =======================================================================================================
 
 [root@CANVERYDEPLOYMENT ~]#
@@ -1066,7 +1066,33 @@ Now present in live version is V1now 100% traffic will go to v1 only
 virtualservice.networking.istio.io/reviews created
 
 
+[root@DEPLOYMENT-STRATEGY istio-1.30.2]# kubectl get deploy
+NAME             READY   UP-TO-DATE   AVAILABLE   AGE
+details-v1       1/1     1            1           11m
+productpage-v1   1/1     1            1           11m
+ratings-v1       1/1     1            1           11m
+reviews-v1       1/1     1            1           11m
+reviews-v2       1/1     1            1           11m
+reviews-v3       1/1     1            1           11m
+[root@DEPLOYMENT-STRATEGY istio-1.30.2]# kubectl get svc
+NAME          TYPE           CLUSTER-IP       EXTERNAL-IP                                                               PORT(S)          AGE
+details       ClusterIP      100.70.149.156   <none>                                                                    9080/TCP         11m
+kubernetes    ClusterIP      100.64.0.1       <none>                                                                    443/TCP          19m
+productpage   LoadBalancer   100.70.208.238   af51f9adc8fdc42aa9e7622cbb365311-1146880431.us-east-1.elb.amazonaws.com   9080:31616/TCP   11m
+ratings       ClusterIP      100.69.70.185    <none>                                                                    9080/TCP         11m
+reviews       ClusterIP      100.68.171.194   <none>                                                                    9080/TCP         11m
+[root@DEPLOYMENT-STRATEGY istio-1.30.2]# 
 
+now copy and paste the above dns name output and paste in new tab 
+now see difference the distrubition of traffic
+
+traffic is distributing equally this is the not way to distrube equally
+
+for my requiremt what i do is will create one virtual service, in this virtual service 100% traffic need to go v1: no stars
+
+just change in manifest file from weight: 100 in v1 stars  to weight: 50 in v2 stars weight: 0 in v3 stars 
+
+successfully traffic is distrubuting 
 
 
 
