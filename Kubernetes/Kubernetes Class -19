@@ -89,11 +89,14 @@ Suggestions:
  * read about installing addons at: https://kops.sigs.k8s.io/addons.
 
 
+types of routings we have 2 types. 1. Host-based routings 2.Path-based routings
+
 yum install git -y ------------------------------------>
 
 git clone https://github.com/mustafaprojectsindevops
 
-git clone https://github.com/mustafaprojectsindevops/kuernetes/tree/master/ingress ---------------------->
+git https://github.com/mustafaprojectsindevops/kubernetes.git -------------->
+
 
 cd kubernetes/ ------------->
 
