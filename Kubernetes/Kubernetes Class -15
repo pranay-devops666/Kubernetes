@@ -3,6 +3,8 @@ Kubernetes Class -15
 TOPIC: DEPLOYMENT STRATEGY IN K8's , BLUE GREEN DEPLOYMENT(very very famous) in this we will create two identical environments,
 ====================================================================================================================================
 
+In this class explainig Deployment strategy and talking about tasks how to do
+
 
 launch instance 
 
@@ -96,21 +98,101 @@ Suggestions:
 
 TASK is there watch Recording video for to understand TASK
 ==============================================================
+client asked me a new change is
+change background image to orange & also change the colour to blue again 
 
 
 https://www.google.com/search?q=rolling+update+in+kubernetes+manifest&sca_esv=aa563a5fc25e091e&sxsrf=ANbL-n5ms47s3Pq7Ke66R4krFNh_Dc3cKw%3A1774080816917&ei=MFO-aaTaN9PjseMP_cD2sQM&biw=1536&bih=730&ved=0ahUKEwikspSHxrCTAxXTcWwGHX2gPTYQ4dUDCBE&uact=5&oq=rolling+update+in+kubernetes+manifest&gs_lp=Egxnd3Mtd2l6LXNlcnAiJXJvbGxpbmcgdXBkYXRlIGluIGt1YmVybmV0ZXMgbWFuaWZlc3QyBRAAGO8FMgUQABjvBTIIEAAYgAQYogQyCBAAGIAEGKIESMoSUL8GWNUJcAF4AZABAJgBvgGgAasEqgEDMC4zuAEDyAEA-AEBmAIDoALHA8ICChAAGLADGNYEGEfCAhcQLhiwAxi4BhjYAhjIAxjaBhjcBtgBAcICBxAjGLACGCeYAwCIBgGQBgy6BgQIARgZkgcFMS4xLjGgB8kPsgcFMC4xLjG4B5EDwgcJMi0xLjEuMC4xyAc_gAgA&sclient=gws-wiz-serp
 
-rolling update in kubernetes manifest
+https://kubernetes.io/docs/concepts/workloads/controllers/deployment/ -----------------> to read Deployment Strategy(search as max using ctrl+d)
+
+
+rolling update in kubernetes manifest file below
+
+yamlapiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-app-deployment
+  labels:
+    app: web-app
+spec:
+  replicas: 4
+  # 1. Define the Rolling Update Strategy
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: web-app
+  template:
+    metadata:
+      labels:
+        app: web-app
+    spec:
+      containers:
+      - name: web-container
+        image: nginx:1.25.3  # Changing this tag triggers the rolling update
+        ports:
+        - containerPort: 80
+        # 2. Crucial for Zero Downtime: Ensure pods are actually ready before killing old ones
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 5
+
+=========================================================================================================================================================================================
+
+
+
 
 
 TOPIC: BLUE GREEN DEPLOYMENT( in this we will create two identical environments,)
 =========================================================================================
 
-1. Blue Environment image as a Deployment
+1. Blue Environment image as a Deployment (called as example version 1) 
 2. Green Environment image as another Deployment
+for version 1 we can called as blue deployment an example in here version 1 is running so generally we will give labels in here we will give env: blue in here 
+inside version 1 is running and our customers are happily accessible application
+
+Now time has come to deploy the version 2 in case here we will do implement i created another deployment called as Green Deployment and tag as env: green
+
+now present customers will access version 1 why because in version 2 didn't created any service to expose
+if we do update env: green in version 1 now customers request will go to green deployment and customers will accessible version 2 
+just changing the labels here 
+for suppose green deployment got fail means immediately we can do changes env: blue again customers will access again version 1 
+
+Instead of Rolling updates in kubernetes BLUE GREEN Deployment is best
+
+2. Green Environment image as another Deployment
+
 
 Canvary Deployment
 ====================
+
+canary deployment means if we get one update others will dont get, others will get means for us didn't got
+
+how canary deployment will work in background is for suppose we have 4 pods 
+
+pod1 pod2 pod3 pod3 each pod handles traffic equally 25% and maintaining version 1 running
+now i will do upgrate version 2 randomly like first i will do upgrade in pod4, in rest of pods version 1 will be run 
+if i have 100 customesr means i give upgraded version for some few customers only rest of them will access old only and taking feedback from customers whoare 
+successfully accessible for new upgraded version everyone gave good feedback means after 1 week i will do upgrade again in one random pod like pod3
+now having 100 customers 50% customers will accessible old version and 50% customers will accessible new  version 
+now again i will taking feedback from customers whoare successfully accessible for new upgraded version everyone gave good feedback means after 1 week i will do upgrade again in one random pod like pod3
+now having 100 customers 75% customers will accessible old version and 25% customers will accessible new  version 
+now again i will taking feedback from customers whoare successfully accessible for new upgraded version everyone gave good feedback means after 1 week i will do upgrade again in one random pod like pod3
+now having 100 customers 75% customers will accessible
+now everyone 100% will accessible ne updated upgraded version
+
+this is the workflow will work in abckground called as Canary Deployment
+
+1. Recreate 2. Rolling Updates 3.Blue-Green 
+those 3 above are tasks
+
 
 Remaining Topics are Ingress & Probes etc like node afinity, pod efinity & Affinities, Taint & Tolerance
 
