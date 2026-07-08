@@ -2,7 +2,272 @@ KUBERNETES K8S PROJECT-1 BLOOD BANK APP USING KOPS
 ======================================================
 
 
+[root@ip-172-31-39-64 pranay]# ll
+total 44
+-rw-r--r--. 1 root root 186 Jul  8 09:31 app-svc.yml
+-rw-r--r--. 1 root root 126 Jul  8 10:26 configmap.yml
+-rw-r--r--. 1 root root 196 Jul  8 08:42 db-svc.yml
+-rw-r--r--. 1 root root 877 Jul  8 09:31 deploy.yml
+-rw-r--r--. 1 root root 357 Jul  8 08:44 hpa.yml
+-rw-r--r--. 1 root root 370 Jul  8 09:47 ingress.yml
+-rw-r--r--. 1 root root 737 Jul  8 09:00 networkpolicy.yml
+-rw-r--r--. 1 root root 156 Jul  8 08:45 pdb.yml
+-rw-r--r--. 1 root root 191 Jul  8 08:46 resource-quota.yml
+-rw-r--r--. 1 root root 142 Jul  8 08:46 secret.yml
+-rw-r--r--. 1 root root 974 Jul  8 09:31 statefulset.yml
+[root@ip-172-31-39-64 pranay]# cat app-svc.yml 
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: bankapps-service
+spec:
+  selector:
+    app: bankapp
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  type: ClusterIP
+[root@ip-172-31-39-64 pranay]# cat configmap.yml 
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: bankapps-config
+data:
+  DB_HOST: "bankapps-db-service"
+  DB_PORT: "3306"
+[root@ip-172-31-39-64 pranay]# cat db-svc.yml 
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: bankapps-db-service
+spec:
+  clusterIP: None
+  selector:
+    app: bankapp-db
+  ports:
+    - protocol: TCP
+      port: 3306
+      targetPort: 3306
+[root@ip-172-31-39-64 pranay]# cat deploy.yml 
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bankapps-deployment
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: bankapps
+  template:
+    metadata:
+      labels:
+        app: bankapps
+    spec:
+      containers:
+      - name: bankapps
+        image: pranay419/bloodyapp:appimage
+        ports:
+        - containerPort: 80
 
+        envFrom:
+        - configMapRef:
+            name: bankapps-config
+
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "500m"
+            memory: "256Mi"
+
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 10
+          periodSeconds: 5
+
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 10
+          periodSeconds: 5
+[root@ip-172-31-39-64 pranay]# cat hpa.yml 
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: bankapps-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: bankapps-deployment
+  minReplicas: 3
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 50
+[root@ip-172-31-39-64 pranay]# cat ingress.yml 
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: bankapps-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  ingressClassName: nginx
+  rules:
+  - http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: bankapps-service
+            port:
+              number: 80
+[root@ip-172-31-39-64 pranay]# cat networkpolicy.yml 
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: bankapps-allow-policy
+spec:
+  podSelector:
+    matchLabels:
+      app: bankapps
+
+  policyTypes:
+  - Ingress
+  - Egress
+
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: ingress-nginx
+      podSelector:
+        matchLabels:
+          app.kubernetes.io/component: controller
+    ports:
+    - protocol: TCP
+      port: 80
+
+  egress:
+  - to:
+    - podSelector:
+        matchLabels:
+          app: bankapps-db
+    ports:
+    - protocol: TCP
+      port: 3306
+
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: kube-system
+    ports:
+    - protocol: UDP
+      port: 53
+[root@ip-172-31-39-64 pranay]# cat pdb.yml 
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: bankapps-pdb
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: bankapps
+[root@ip-172-31-39-64 pranay]# cat resource-quota.yml 
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: bankapps-quota
+spec:
+  hard:
+    pods: "10"
+    requests.cpu: "2"
+    requests.memory: 2Gi
+    limits.cpu: "4"
+    limits.memory: 4Gi
+[root@ip-172-31-39-64 pranay]# cat secret.yml 
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: bankapps-db-secret
+type: Opaque
+data:
+  DB_USERNAME: cm9vdA== 
+  DB_PASSWORD: YWRtaW4xMjM= 
+[root@ip-172-31-39-64 pranay]# cat statefulset.yml 
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: bankapps-statefulset
+spec:
+  serviceName: "bankservice"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bankapps
+  template:
+    metadata:
+      labels:
+        app: bankapps
+    spec:
+      containers:
+      - name: bankapps-container
+        image: pranay419/bloodyapp:dbimage
+        ports:
+        - containerPort: 3306
+        envFrom:
+        - secretRef:
+            name: bankapps-db-secret
+        - configMapRef:
+            name: bankapps-config
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "500m"
+            memory: "256Mi"
+
+        volumeMounts:
+        - name: mysql-persistent-storage
+          mountPath: /usr/share/nginx/html
+
+  volumeClaimTemplates:
+  - metadata:
+      name: mysql-persistent-storage
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 1Gi
+[root@ip-172-31-39-64 pranay]# 
+
+
+Project starts here
+========================
 
 Github url-1: https://github.com/devops0014/ltibbhackathon.git
 Github url-2 : https://github.com/devops0014/bankapp-manifestfiles.git
@@ -446,28 +711,6 @@ pipeline {
 
 save & Build
 
-Incase for the above pipeline job if we got an error means follow below steps
-
-===============================================================================================================================================================================================================================================
-
-✅ Fix in ONE simple step
-
-👉 Create Docker Hub credentials in Jenkins with ID dockerhub
-
-Do this:
-Go to Jenkins Dashboard
-Click Manage Jenkins → Manage Credentials
-Select (global)
-Click Add Credentials
-Choose:
-Kind: Username with password
-Username: your Docker Hub username (e.g., pranay419)
-Password: your Docker Hub password or access token
-ID: dockerhub ✅ (VERY IMPORTANT — must match pipeline)
-Click Save
-
-===============================================================================================================================================================================================================================================
-
 Build Got Success
 
 Successfully the two Images dbimage & appimage got pushed into a DockerHub 
@@ -563,10 +806,9 @@ Now try to access the application with ec2-instance IP with port number 1111 lik
 
 http://54.196.53.29:1111/
 
-=====================================================================================================================================================================================================================================================================
 
-NOTE: FOR SUPPOSE IF WE GOT ANY ERROR LIKE BELOW FOLLOWING STEPS ARE BELOW
-=============================================================================
+
+
 
 https://chatgpt.com/c/69c10dd6-cf34-8324-ab0a-5b9e6b629108
 
@@ -1388,10 +1630,468 @@ https://github.com/pranay-devops666/ltibbhackathon.git --------------> this repo
 https://github.com/pranay-devops666/bankapp-manifestfiles.git --------------> this repo is related to manifest files
 
 
-Here got an error as CrashLoopBackOff 
 
-Need to do troubleshoot steps here 
+Need to do troubleshoot steps here for not got DNS name under ADDRESS section when give an command as kubectl get ingress -------->
 
+[root@ip-172-31-39-64 pranay]# kubectl get ns ----------------------->
+NAME              STATUS   AGE
+default           Active   158m
+kube-node-lease   Active   158m
+kube-public       Active   158m
+kube-system       Active   158m
+[root@ip-172-31-39-64 pranay]# kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.13.2/deploy/static/provider/aws/deploy.yaml
+namespace/ingress-nginx created
+serviceaccount/ingress-nginx created
+serviceaccount/ingress-nginx-admission created
+role.rbac.authorization.k8s.io/ingress-nginx created
+role.rbac.authorization.k8s.io/ingress-nginx-admission created
+clusterrole.rbac.authorization.k8s.io/ingress-nginx created
+clusterrole.rbac.authorization.k8s.io/ingress-nginx-admission created
+rolebinding.rbac.authorization.k8s.io/ingress-nginx created
+rolebinding.rbac.authorization.k8s.io/ingress-nginx-admission created
+clusterrolebinding.rbac.authorization.k8s.io/ingress-nginx created
+clusterrolebinding.rbac.authorization.k8s.io/ingress-nginx-admission created
+configmap/ingress-nginx-controller created
+service/ingress-nginx-controller created
+service/ingress-nginx-controller-admission created
+deployment.apps/ingress-nginx-controller created
+job.batch/ingress-nginx-admission-create created
+job.batch/ingress-nginx-admission-patch created
+ingressclass.networking.k8s.io/nginx created
+validatingwebhookconfiguration.admissionregistration.k8s.io/ingress-nginx-admission created
+[root@ip-172-31-39-64 pranay]# kubectl get pods -n ingress-nginx
+NAME                                       READY   STATUS    RESTARTS   AGE
+ingress-nginx-controller-866c78d79-7jmnv   0/1     Running   0          11s
+[root@ip-172-31-39-64 pranay]# kubectl get svc -n ingress-nginx
+NAME                                 TYPE           CLUSTER-IP      EXTERNAL-IP                                                                     PORT(S)                      AGE
+ingress-nginx-controller             LoadBalancer   100.64.51.73    ac84c8ed52c7a40528466c6d25968e57-274376087ba00dc8.elb.us-east-1.amazonaws.com   80:31112/TCP,443:31603/TCP   25s
+ingress-nginx-controller-admission   ClusterIP      100.65.225.27   <none>                                                                          443/TCP                      25s
+[root@ip-172-31-39-64 pranay]# kubectl get ingress
+NAME               CLASS   HOSTS   ADDRESS                                                                         PORTS   AGE
+bankapps-ingress   nginx   *       ac84c8ed52c7a40528466c6d25968e57-274376087ba00dc8.elb.us-east-1.amazonaws.com   80      46m
+[root@ip-172-31-39-64 pranay]# vim ingress.yml 
+[root@ip-172-31-39-64 pranay]# kubectl get endpoints bankapps-service
+Warning: v1 Endpoints is deprecated in v1.33+; use discovery.k8s.io/v1 EndpointSlice
+NAME               ENDPOINTS   AGE
+bankapps-service   <none>      48m
+[root@ip-172-31-39-64 pranay]# 
+[root@ip-172-31-39-64 pranay]# kubectl get pods --show-labels
+NAME                                   READY   STATUS    RESTARTS   AGE   LABELS
+bankapps-deployment-54768cc5fb-b5dh7   1/1     Running   0          54m   app=bankapps,pod-template-hash=54768cc5fb,topology.kubernetes.io/region=us-east-1,topology.kubernetes.io/zone=us-east-1a
+bankapps-deployment-54768cc5fb-cjzcb   1/1     Running   0          54m   app=bankapps,pod-template-hash=54768cc5fb,topology.kubernetes.io/region=us-east-1,topology.kubernetes.io/zone=us-east-1a
+bankapps-deployment-54768cc5fb-nkbl7   1/1     Running   0          54m   app=bankapps,pod-template-hash=54768cc5fb,topology.kubernetes.io/region=us-east-1,topology.kubernetes.io/zone=us-east-1b
+bankapps-statefulset-0                 1/1     Running   0          54m   app=bankapps,apps.kubernetes.io/pod-index=0,controller-revision-hash=bankapps-statefulset-7cc7559588,statefulset.kubernetes.io/pod-name=bankapps-statefulset-0,topology.kubernetes.io/region=us-east-1,topology.kubernetes.io/zone=us-east-1b
+[root@ip-172-31-39-64 pranay]# kubectl get svc bankapps-service -o yaml
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"v1","kind":"Service","metadata":{"annotations":{},"name":"bankapps-service","namespace":"default"},"spec":{"ports":[{"port":80,"protocol":"TCP","targetPort":80}],"selector":{"app":"bankapp"},"type":"ClusterIP"}}
+  creationTimestamp: "2026-07-08T08:53:28Z"
+  name: bankapps-service
+  namespace: default
+  resourceVersion: "25951"
+  uid: fea92689-8c49-439e-abef-eecdcf94db0c
+spec:
+  clusterIP: 100.65.74.20
+  clusterIPs:
+  - 100.65.74.20
+  internalTrafficPolicy: Cluster
+  ipFamilies:
+  - IPv4
+  ipFamilyPolicy: SingleStack
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 80
+  selector:
+    app: bankapp
+  sessionAffinity: None
+  type: ClusterIP
+status:
+  loadBalancer: {}
+[root@ip-172-31-39-64 pranay]# kubectl describe svc bankapps-service
+Name:                     bankapps-service
+Namespace:                default
+Labels:                   <none>
+Annotations:              <none>
+Selector:                 app=bankapp
+Type:                     ClusterIP
+IP Family Policy:         SingleStack
+IP Families:              IPv4
+IP:                       100.65.74.20
+IPs:                      100.65.74.20
+Port:                     <unset>  80/TCP
+TargetPort:               80/TCP
+Endpoints:                
+Session Affinity:         None
+Internal Traffic Policy:  Cluster
+Events:                   <none>
+[root@ip-172-31-39-64 pranay]# 
+
+Step 1: Edit the Service
+
+Run:
+kubectl edit svc bankapps-service
+
+Step 2: Find this section
+
+selector:
+  app: bankapp
+
+Step 3: Change it to
+
+selector:
+  app: bankapps
+
+Step 4: Verify the endpoints
+
+Run:
+
+kubectl get endpoints bankapps-service
+
+Now you should see something like:
+
+NAME               ENDPOINTS
+bankapps-service   100.xx.xx.xx:80,100.xx.xx.xx:80,100.xx.xx.xx:80
+
+Instead of:
+
+<none>
+
+Step 5: Verify the Service
+
+Run:
+
+kubectl describe svc bankapps-service
+
+The Endpoints field should list the IP addresses of your three Pods.
+
+Step 6: About the Ingress ADDRESS
+
+Your Service selector mismatch is one problem, and you've now identified how to fix it.
+
+However, it is not the reason the ADDRESS field is empty.
+
+Earlier you ran:
+
+kubectl get pods -n ingress-nginx
+
+and got:
+
+No resources found in ingress-nginx namespace.
+
+That means you still do not have an NGINX Ingress Controller installed.
+
+Until you install an Ingress Controller (or another controller that watches Ingress resources), Kubernetes has nothing to process your Ingress object, so the ADDRESS column will remain empty.
+
+Summary
+
+You currently have two separate issues:
+
+Service selector mismatch ❌
+Change app: bankapp → app: bankapps.
+This will populate the Service endpoints.
+No Ingress Controller installed ❌
+Install the NGINX Ingress Controller.
+After it is running and its LoadBalancer service gets an AWS DNS name, the ADDRESS field in kubectl get ingress will be populated.
+
+Fixing the Service selector is necessary for traffic to reach your application, but you will also need a running Ingress Controller before the Ingress itself can be accessed externally.
+
+
+[root@ip-172-31-39-64 pranay]# kubectl edit svc bankapps-service
+service/bankapps-service edited
+[root@ip-172-31-39-64 pranay]# kubectl get endpoints bankapps-service
+Warning: v1 Endpoints is deprecated in v1.33+; use discovery.k8s.io/v1 EndpointSlice
+NAME               ENDPOINTS                                                   AGE
+bankapps-service   100.96.1.188:80,100.96.2.27:80,100.96.2.98:80 + 1 more...   64m
+[root@ip-172-31-39-64 pranay]# 
+
+[root@ip-172-31-39-64 pranay]# kubectl get ing
+NAME               CLASS   HOSTS   ADDRESS                                                                         PORTS   AGE
+bankapps-ingress   nginx   *       ac84c8ed52c7a40528466c6d25968e57-274376087ba00dc8.elb.us-east-1.amazonaws.com   80      70m
+[root@ip-172-31-39-64 pranay]# 
+
+http://ac84c8ed52c7a40528466c6d25968e57-274376087ba00dc8.elb.us-east-1.amazonaws.com/ -----------------------------------> trying to access this in browser
+
+NOw getting application error is in screenshot like below 
+
+Warning: mysqli_connect(): php_network_getaddresses: getaddrinfo failed: Name or service not known in /var/www/html/config.php on line 10
+
+Warning: mysqli_connect(): (HY000/2002): php_network_getaddresses: getaddrinfo failed: Name or service not known in /var/www/html/config.php on line 10
+Connection failed: php_network_getaddresses: getaddrinfo failed: Name or service not known
 
 https://chatgpt.com/c/69c54d72-750c-8324-a04c-5e01440d47c9
+
+Troubleshoot steps below
+
+The screenshot and your outputs point to a different problem now.
+
+✅ Good news
+
+These components are working correctly:
+
+✅ Application Pods: Running
+✅ Database Pod: Running
+
+✅ Service has endpoints:
+
+Endpoints: 100.96.3.66:80,100.96.2.27:80...
+✅ NGINX Ingress Controller: Running
+✅ Ingress has an AWS ELB DNS name.
+
+So your Kubernetes setup is now functioning.
+
+❌ Actual error
+
+The browser shows:
+
+php_network_getaddresses: getaddrinfo failed:
+Name or service not known
+
+This is not a Kubernetes Ingress problem.
+
+It means your PHP application cannot resolve the database hostname.
+
+Step 1: Check the database hostname your application is using
+
+Your application reads the database host from the ConfigMap.
+
+Run:
+
+kubectl get configmap bankapp-config -o yaml
+Step 2: Check what the application actually received
+
+Run:
+
+kubectl exec -it $(kubectl get pod -l app=bankapps -o jsonpath='{.items[0].metadata.name}') -- env | grep DB
+
+You should see something like:
+
+DB_HOST=...
+DB_PORT=3306
+Step 3: Verify the database Service name
+
+Run:
+
+kubectl get svc
+
+You should see something similar to:
+
+NAME
+bankapps-db-service
+
+or
+
+bankapp-db-service
+Step 4: Make sure DB_HOST exactly matches the Service name
+
+For example, if the Service is:
+
+bankapps-db-service
+
+then your ConfigMap should be:
+
+DB_HOST: bankapps-db-service
+
+Do not use:
+
+DB_HOST: mysqldb
+
+unless there is actually a Service named mysqldb.
+
+Step 5: Verify DNS from inside the application Pod
+
+Run:
+
+kubectl exec -it $(kubectl get pod -l app=bankapps -o jsonpath='{.items[0].metadata.name}') -- getent hosts bankapps-db-service
+
+Replace bankapps-db-service with whatever your actual database Service name is.
+
+If it returns an IP address, DNS is working.
+
+If it returns "Name or service not known", then the hostname is wrong.
+
+Most likely cause
+
+Earlier in the conversation, your ConfigMap contained:
+
+DB_HOST: mysqldb
+
+Then it was changed to another value.
+
+The error in your browser strongly suggests that the hostname your PHP code is trying to use does not exist in Kubernetes DNS.
+
+Please run these two commands and share the output:
+kubectl get configmap bankapp-config -o yaml
+
+and
+
+kubectl get svc
+
+With those outputs, I can tell you the exact DB_HOST value that should be used.
+
+[root@ip-172-31-39-64 pranay]# kubectl get configmap bankapp-config -o yaml
+Error from server (NotFound): configmaps "bankapp-config" not found
+[root@ip-172-31-39-64 pranay]# kubectl exec -it $(kubectl get pod -l app=bankapps -o jsonpath='{.items[0].metadata.name}') -- env | grep DB
+GPG_KEYS=1729F83938DA44E27BA0F4D3DBDB397470D12172 B1B44D8F021E4E2D6021E995DC9FF8D3EE5AF27F
+DB_HOST=mysqldb
+DB_PORT=3306
+[root@ip-172-31-39-64 pranay]# kubectl get svc
+NAME                  TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)    AGE
+bankapps-db-service   ClusterIP   None           <none>        3306/TCP   72m
+bankapps-service      ClusterIP   100.65.74.20   <none>        80/TCP     72m
+kubernetes            ClusterIP   100.64.0.1     <none>        443/TCP    3h5m
+[root@ip-172-31-39-64 pranay]# vim configmap.yml 
+[root@ip-172-31-39-64 pranay]# cat configmap.yml 
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: bankapps-config
+data:
+  DB_HOST: "bankapps-db-service"
+  DB_PORT: "3306"
+[root@ip-172-31-39-64 pranay]# kubectl exec -it $(kubectl get pod -l app=bankapps -o jsonpath='{.items[0].metadata.name}') -- getent hosts bankapps-db-service
+command terminated with exit code 2
+[root@ip-172-31-39-64 pranay]# kubectl get configmap bankapp-config -o yaml
+Error from server (NotFound): configmaps "bankapp-config" not found
+[root@ip-172-31-39-64 pranay]# kubectl get svc
+NAME                  TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)    AGE
+bankapps-db-service   ClusterIP   None           <none>        3306/TCP   74m
+bankapps-service      ClusterIP   100.65.74.20   <none>        80/TCP     74m
+kubernetes            ClusterIP   100.64.0.1     <none>        443/TCP    3h7m
+[root@ip-172-31-39-64 pranay]# 
+
+[root@ip-172-31-39-64 pranay]# kubectl apply -f configmap.yml
+configmap/bankapps-config configured
+[root@ip-172-31-39-64 pranay]# kubectl get configmap
+NAME               DATA   AGE
+bankapps-config    2      75m
+kube-root-ca.crt   1      3h8m
+[root@ip-172-31-39-64 pranay]# kubectl get deployment bankapps-deployment -o yaml | grep -A5 configMapRef
+      {"apiVersion":"apps/v1","kind":"Deployment","metadata":{"annotations":{},"name":"bankapps-deployment","namespace":"default"},"spec":{"replicas":3,"selector":{"matchLabels":{"app":"bankapps"}},"template":{"metadata":{"labels":{"app":"bankapps"}},"spec":{"containers":[{"envFrom":[{"configMapRef":{"name":"bankapps-config"}}],"image":"pranay419/bloodyapp:appimage","livenessProbe":{"httpGet":{"path":"/","port":80},"initialDelaySeconds":10,"periodSeconds":5},"name":"bankapps","ports":[{"containerPort":80}],"readinessProbe":{"httpGet":{"path":"/","port":80},"initialDelaySeconds":10,"periodSeconds":5},"resources":{"limits":{"cpu":"500m","memory":"256Mi"},"requests":{"cpu":"100m","memory":"128Mi"}}}]}}}}
+  creationTimestamp: "2026-07-08T08:53:28Z"
+  generation: 1
+  name: bankapps-deployment
+  namespace: default
+  resourceVersion: "26076"
+--
+        - configMapRef:
+            name: bankapps-config
+        image: pranay419/bloodyapp:appimage
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 3
+[root@ip-172-31-39-64 pranay]# kubectl get deployment bankapps-deployment -o yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    deployment.kubernetes.io/revision: "1"
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"apps/v1","kind":"Deployment","metadata":{"annotations":{},"name":"bankapps-deployment","namespace":"default"},"spec":{"replicas":3,"selector":{"matchLabels":{"app":"bankapps"}},"template":{"metadata":{"labels":{"app":"bankapps"}},"spec":{"containers":[{"envFrom":[{"configMapRef":{"name":"bankapps-config"}}],"image":"pranay419/bloodyapp:appimage","livenessProbe":{"httpGet":{"path":"/","port":80},"initialDelaySeconds":10,"periodSeconds":5},"name":"bankapps","ports":[{"containerPort":80}],"readinessProbe":{"httpGet":{"path":"/","port":80},"initialDelaySeconds":10,"periodSeconds":5},"resources":{"limits":{"cpu":"500m","memory":"256Mi"},"requests":{"cpu":"100m","memory":"128Mi"}}}]}}}}
+  creationTimestamp: "2026-07-08T08:53:28Z"
+  generation: 1
+  name: bankapps-deployment
+  namespace: default
+  resourceVersion: "26076"
+  uid: 7ccb6f28-8f90-4f2d-9ace-6b9ac090c87f
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 3
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: bankapps
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: bankapps
+    spec:
+      containers:
+      - envFrom:
+        - configMapRef:
+            name: bankapps-config
+        image: pranay419/bloodyapp:appimage
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /
+            port: 80
+            scheme: HTTP
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          successThreshold: 1
+          timeoutSeconds: 1
+        name: bankapps
+        ports:
+        - containerPort: 80
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /
+            port: 80
+            scheme: HTTP
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          successThreshold: 1
+          timeoutSeconds: 1
+        resources:
+          limits:
+            cpu: 500m
+            memory: 256Mi
+          requests:
+            cpu: 100m
+            memory: 128Mi
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+status:
+  availableReplicas: 3
+  conditions:
+  - lastTransitionTime: "2026-07-08T08:53:41Z"
+    lastUpdateTime: "2026-07-08T08:53:41Z"
+    message: Deployment has minimum availability.
+    reason: MinimumReplicasAvailable
+    status: "True"
+    type: Available
+  - lastTransitionTime: "2026-07-08T08:53:28Z"
+    lastUpdateTime: "2026-07-08T08:53:41Z"
+    message: ReplicaSet "bankapps-deployment-54768cc5fb" has successfully progressed.
+    reason: NewReplicaSetAvailable
+    status: "True"
+    type: Progressing
+  observedGeneration: 1
+  readyReplicas: 3
+  replicas: 3
+  terminatingReplicas: 0
+  updatedReplicas: 3
+[root@ip-172-31-39-64 pranay]# kubectl get deployment bankapps-deployment -o wide
+NAME                  READY   UP-TO-DATE   AVAILABLE   AGE   CONTAINERS   IMAGES                         SELECTOR
+bankapps-deployment   3/3     3            3           77m   bankapps     pranay419/bloodyapp:appimage   app=bankapps
+[root@ip-172-31-39-64 pranay]# kubectl get po
+NAME                                   READY   STATUS    RESTARTS   AGE
+bankapps-deployment-54768cc5fb-b5dh7   1/1     Running   0          77m
+bankapps-deployment-54768cc5fb-cjzcb   1/1     Running   0          77m
+bankapps-deployment-54768cc5fb-nkbl7   1/1     Running   0          77m
+bankapps-statefulset-0                 1/1     Running   0          77m
+[root@ip-172-31-39-64 pranay]# kubectl get pod bankapps-deployment-54768cc5fb-b5dh7 -o wide
+NAME                                   READY   STATUS    RESTARTS   AGE   IP            NODE                  NOMINATED NODE   READINESS GATES
+bankapps-deployment-54768cc5fb-b5dh7   1/1     Running   0          78m   100.96.3.66   i-0661518e2c500ad37   <none>           <none>
+[root@ip-172-31-39-64 pranay]# kubectl get pod bankapps-deployment-54768cc5fb-b5dh7 -o yaml
+
+
 
