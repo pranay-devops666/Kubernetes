@@ -21,6 +21,10 @@ developers will write the code for an application----------> run in manually----
 
 In CI/CD Pipeine stages are CODE, CAQ, Create DOCKER IMAGE, SCAN HE IMAGE, TAG AND PUSH INTO DOCKERHUB, RUN IN CONTAINERS
 
+CODE -------------> CQA -----------> IMAGE ----------> SCAN -------------> PUSH --------------> CONTAINERS
+
+CI/CD: JENKINS -------> DOCKER ----------> K8's ------------> PROMETHEUS & GRAFAN -------------> SONAR --------------> TRIVY
+
 Tools need
 ===========
 
@@ -238,8 +242,8 @@ Build Got Success
 Befor going to Build this above Job we need to get Integrate the webhooks for thhe pipeline Job
 
 Integrate the webhooks which present in Sonarqube----------> go to sonarqube dashboard-----------> select my account----------> select projects-------> select what 
-we created the project-----------> select project settings----------> select webhooks ---------> create name:jenkins-integration------> url:http://54.196.53.29:8080/sonarqube-webhook/
---------> create ------> ok
+we created the project-----------> select project settings----------> select webhooks ---------> create name:jenkins-integration------> give here url of jenkins url
+:http://54.196.53.29:8080/sonarqube-webhook/--------> create ------> ok
 
 ehh webhook untene manaku pipeline job lo Quality Gates enable avtai if not means it doesn't enable
 
@@ -471,6 +475,19 @@ Successfully the two Images dbimage & appimage got pushed into a DockerHub
 Now we need to test this application is working fine or not by using containers 
 
 
+NOTE: Here to remember always is
+=====================================
+
+when we are going to deploy application of having application and database 
+first we will need to create the container first for databse
+and next we need to create a container for application
+and next we need to connect that created database container to application container 
+But remember when are going to create a containers for databse and application we should not use "-itd" in a command should use only "-d" like below command
+
+sh 'docker run -d --name mysqldb -p 3306:3306 pranay419/bloodyapp:dbimage'
+sh 'docker run -d --name appcont -p 1111:80 --link mysqldb:mysqlcon pranay419/bloodyapp:appimage'
+
+
 pipeline {
     agent any
     environment {
@@ -524,8 +541,8 @@ pipeline {
         }
         stage ("Deploy") {
             steps {
-                sh 'docker run -itd --name mysqldb -p 3306:3306 pranay419/bloodyapp:dbimage'
-                sh 'docker run -itd --name appcont -p 1111:80 --link mysqldb:mysqlcon pranay419/bloodyapp:appimage'
+                sh 'docker run -d --name mysqldb -p 3306:3306 pranay419/bloodyapp:dbimage'
+                sh 'docker run -d --name appcont -p 1111:80 --link mysqldb:mysqlcon pranay419/bloodyapp:appimage'
             }
         }
     }
@@ -733,6 +750,8 @@ http://54.196.53.29:1111/ ------------------> in here we will see login page
 
 http://54.196.53.29:1111/index.html  ------------------> in here we will see create an account
 
+http://34.229.210.249:1111/index.html --------------> correct access link
+
 Now we need to check created new account stored in dbcontainer or not 
 
 [root@ip-172-31-33-227 ~]# docker ps -------------------------------------->
@@ -740,6 +759,24 @@ CONTAINER ID   IMAGE                          COMMAND                  CREATED  
 6443386853f5   pranay419/bloodyapp:appimage   "docker-php-entrypoi…"   10 minutes ago   Up 10 minutes             0.0.0.0:1111->80/tcp, :::1111->80/tcp                  appcont
 8d55dd460ff0   pranay419/bloodyapp:dbimage    "/entrypoint.sh mysq…"   10 minutes ago   Up 10 minutes (healthy)   0.0.0.0:3306->3306/tcp, :::3306->3306/tcp, 33060/tcp   mysqldb
 11b6723b19d0   sonarqube:lts-community        "/opt/sonarqube/dock…"   3 hours ago      Up 3 hours                0.0.0.0:9000->9000/tcp, :::9000->9000/tcp              sonar
+
+[root@ip-172-31-39-64 ~]# docker ps
+CONTAINER ID   IMAGE                          COMMAND                  CREATED             STATUS                   PORTS                                                            NAMES
+b5956b8a4aa4   pranay419/bloodyapp:appimage   "docker-php-entrypoi…"   5 minutes ago       Up 5 minutes             0.0.0.0:1111->80/tcp, :::1111->80/tcp                            appcont
+a21fb6cb4432   pranay419/bloodyapp:dbimage    "/entrypoint.sh mysq…"   5 minutes ago       Up 5 minutes (healthy)   3306/tcp, 33060/tcp, 0.0.0.0:3307->3307/tcp, :::3307->3307/tcp   mysqldb
+98dfff3aa4ee   sonarqube:lts-community        "/opt/sonarqube/dock…"   About an hour ago   Up About an hour         0.0.0.0:9000->9000/tcp, :::9000->9000/tcp                        sonar
+[root@ip-172-31-39-64 ~]# docker ps -a
+CONTAINER ID   IMAGE                          COMMAND                  CREATED             STATUS                   PORTS                                                            NAMES
+b5956b8a4aa4   pranay419/bloodyapp:appimage   "docker-php-entrypoi…"   5 minutes ago       Up 5 minutes             0.0.0.0:1111->80/tcp, :::1111->80/tcp                            appcont
+a21fb6cb4432   pranay419/bloodyapp:dbimage    "/entrypoint.sh mysq…"   5 minutes ago       Up 5 minutes (healthy)   3306/tcp, 33060/tcp, 0.0.0.0:3307->3307/tcp, :::3307->3307/tcp   mysqldb
+98dfff3aa4ee   sonarqube:lts-community        "/opt/sonarqube/dock…"   About an hour ago   Up About an hour         0.0.0.0:9000->9000/tcp, :::9000->9000/tcp                        sonar
+[root@ip-172-31-39-64 ~]# docker ps -a -q
+b5956b8a4aa4
+a21fb6cb4432
+98dfff3aa4ee
+[root@ip-172-31-39-64 ~]# 
+
+
 [root@ip-172-31-33-227 ~]# docker exec -it mysqldb -- bash -------------------------------------->
 OCI runtime exec failed: exec failed: unable to start container process: exec: "--": executable file not found in $PATH: unknown
 [root@ip-172-31-33-227 ~]# docker exec -it mysqldb bash
@@ -1004,198 +1041,20 @@ Total 11 yaml manifestation files
 mkdir pranay -------------------------------------->
 cd pranay/ -------------------------------------->
 
-echo -n "root" | base64 --------------------------------------> enter
+echo -n "root" | base64 --------------------------------------> why we give this command is to get credentials for secrets.yml of username & password
 cm9vdA==
 
 
 echo -n "admin123" | base64 --------------------------------------> enter
 YWRtaW4xMjM=
 
-vim secrets.yml -------------------------------------->
 
----
-apiVersion: v1
-kind: Secret
-metadata:
-  name: bankapp-db-secret
-type: Opaque
-data:
-  DB_USER: cm9vdA==
-  DB_PASSWORD: YWRtaW4xMjM=
-
-:wq
-
-vim configmaps.yml -------------------------------------->
-
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: bankapp-config
-data:
-  DB_HOST: bankapp-db-service
-  DB_PORT: "3306"
-
-:wq
-
-vim resource-quota.yml -------------------------------------->
-
----
-apiVersion: v1
-kind: ResourceQuota
-metadata:
-  name: bankapp-quota
-spec:
-  hard:
-    pods: "10"
-    requests.cpu: "2"
-    requests.memory: 2Gi
-    limits.cpu: "4"
-    limits.memory: 4Gi
-
-:wq
-
-
-vim deployment.yml -------------------------------------->
-
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: bankapp-deployment
-spec:
-  replicas: 3
-  selector:
-    matchLabels:
-      app: bankapp
-  template:
-    metadata:
-      labels:
-        app: bankapp
-    spec:
-      containers:
-        - name: bankapp-container
-          image: pranay419/bloodyapp:appimage
-          ports:
-            - containerPort: 80
-
-          envFrom:
-            - configMapRef:
-                name: bankapp-config
-
-          resources:
-            requests:
-              cpu: "100m"
-              memory: "128Mi"
-            limits:
-              cpu: "500m"
-              memory: "256Mi"
-
-          livenessProbe:
-            httpGet:
-              path: /
-              port: 80
-            initialDelaySeconds: 60
-            periodSeconds: 10
-
-          readinessProbe:
-            httpGet:
-              path: /
-              port: 80
-            initialDelaySeconds: 60
-            periodSeconds: 10
-:wq
-
-
-vim hpa.yml -------------------------------------->
-
----
-apiVersion: autoscaling/v2
-kind: HorizontalPodAutoscaler
-metadata:
-  name: bankapp-hpa
-spec:
-  scaleTargetRef:
-    apiVersion: apps/v1
-    kind: Deployment
-    name: bankapp-deployment
-  minReplicas: 3
-  maxReplicas: 10
-  metrics:
-    - type: Resource
-      resource:
-        name: cpu
-        target:
-          type: Utilization
-          averageUtilization: 50
-:wq
-
-
-vim statefulset.yml -------------------------------------->
-
----
-apiVersion: apps/v1
-kind: StatefulSet
-metadata:
-  name: bankapp-statefulset
-spec:
-  serviceName: bankapp-db-service
-  replicas: 1
-  selector:
-    matchLabels:
-      app: bankapp-db
-  template:
-    metadata:
-      labels:
-        app: bankapp-db
-    spec:
-      containers:
-        - name: db-container
-          image: pranay419/bloodyapp:dbimage
-          ports:
-            - containerPort: 3306
-
-          env:
-            - name: MYSQL_ROOT_PASSWORD
-              value: root123
-
-          envFrom:
-            - secretRef:
-                name: bankapp-db-secret
-            - configMapRef:
-                name: bankapp-config
-
-          resources:
-            requests:
-              cpu: "100m"
-              memory: "128Mi"
-            limits:
-              cpu: "500m"
-              memory: "256Mi"
-
-          volumeMounts:
-            - name: mysql-persistent-storage
-              mountPath: /var/lib/mysql
-
-  volumeClaimTemplates:
-    - metadata:
-        name: mysql-persistent-storage
-      spec:
-        accessModes: ["ReadWriteOnce"]
-        resources:
-          requests:
-            storage: 1Gi
-
-:wq
-
-
-vim app-service.yml -------------------------------------->
-
+[root@ip-172-31-39-64 pranay]# cat app-svc.yml 
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: bankapp-service
+  name: bankapps-service
 spec:
   selector:
     app: bankapp
@@ -1204,16 +1063,21 @@ spec:
       port: 80
       targetPort: 80
   type: ClusterIP
-
-:wq
-
-vim db-svc.yml
-
+[root@ip-172-31-39-64 pranay]# cat configmap.yml 
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: bankapps-config
+data:
+  DB_HOST: "mysqldb"
+  DB_PORT: "3306"
+[root@ip-172-31-39-64 pranay]# cat db-svc.yml 
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: bankapp-db-service
+  name: bankapps-db-service
 spec:
   clusterIP: None
   selector:
@@ -1222,97 +1086,219 @@ spec:
     - protocol: TCP
       port: 3306
       targetPort: 3306
-:wq
+[root@ip-172-31-39-64 pranay]# cat deploy.yml 
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bankapps-deployment
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: bankapps
+  template:
+    metadata:
+      labels:
+        app: bankapps
+    spec:
+      containers:
+      - name: bankapps
+        image: pranay419/bloodyapp:appimage
+        ports:
+        - containerPort: 80
 
-vim ingress.yml
+        envFrom:
+        - configMapRef:
+            name: bankapps-config
 
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "500m"
+            memory: "256Mi"
+
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 10
+          periodSeconds: 5
+
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 10
+          periodSeconds: 5
+[root@ip-172-31-39-64 pranay]# cat hpa.yml 
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: bankapps-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: bankapps-deployment
+  minReplicas: 3
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 50
+[root@ip-172-31-39-64 pranay]# cat ingress.yml 
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: bankapp-ingress
+  name: bankapps-ingress
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: /
 spec:
   ingressClassName: nginx
   rules:
-    - http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: bankapp-service
-                port:
-                  number: 80
-:wq
-
-vim networkpolicy.yml -------------------------------------->
-
+  - http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: bankapps-service
+            port:
+              number: 80
+[root@ip-172-31-39-64 pranay]# cat networkpolicy.yml 
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: bankapp-network-policy
+  name: bankapps-allow-policy
 spec:
   podSelector:
     matchLabels:
-      app: bankapp
+      app: bankapps
+
   policyTypes:
-    - Ingress
-    - Egress
+  - Ingress
+  - Egress
 
   ingress:
-    - from:
-        - namespaceSelector:
-            matchLabels:
-              kubernetes.io/metadata.name: ingress-nginx
-      ports:
-        - protocol: TCP
-          port: 80
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: ingress-nginx
+      podSelector:
+        matchLabels:
+          app.kubernetes.io/component: controller
+    ports:
+    - protocol: TCP
+      port: 80
 
   egress:
-    - to:
-        - podSelector:
-            matchLabels:
-              app: bankapp-db
-      ports:
-        - protocol: TCP
-          port: 3306
+  - to:
+    - podSelector:
+        matchLabels:
+          app: bankapps-db
+    ports:
+    - protocol: TCP
+      port: 3306
 
-
-:wq
-
-vim pdb.yml -------------------------------------->
-
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: kube-system
+    ports:
+    - protocol: UDP
+      port: 53
+[root@ip-172-31-39-64 pranay]# cat pdb.yml 
 ---
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
-  name: bankapp-pdb
+  name: bankapps-pdb
 spec:
   minAvailable: 2
   selector:
     matchLabels:
-      app: bankapp
+      app: bankapps
+[root@ip-172-31-39-64 pranay]# cat resource-quota.yml 
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: bankapps-quota
+spec:
+  hard:
+    pods: "10"
+    requests.cpu: "2"
+    requests.memory: 2Gi
+    limits.cpu: "4"
+    limits.memory: 4Gi
+[root@ip-172-31-39-64 pranay]# cat secret.yml 
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: bankapps-db-secret
+type: Opaque
+data:
+  DB_USERNAME: cm9vdA== 
+  DB_PASSWORD: YWRtaW4xMjM= 
+[root@ip-172-31-39-64 pranay]# cat statefulset.yml 
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: bankapps-statefulset
+spec:
+  serviceName: "bankservice"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bankapps
+  template:
+    metadata:
+      labels:
+        app: bankapps
+    spec:
+      containers:
+      - name: bankapps-container
+        image: pranay419/bloodyapp:dbimage
+        ports:
+        - containerPort: 3306
+        envFrom:
+        - secretRef:
+            name: bankapps-db-secret
+        - configMapRef:
+            name: bankapps-config
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "500m"
+            memory: "256Mi"
 
+        volumeMounts:
+        - name: mysql-persistent-storage
+          mountPath: /usr/share/nginx/html
 
-:wq
+  volumeClaimTemplates:
+  - metadata:
+      name: mysql-persistent-storage
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 1Gi
+[root@ip-172-31-39-64 pranay]# 
 
-
-kubectl apply -f .------------------------->
-
-vim secret.yml
-vim configmap.yml
-vim resource-quota.yml
-vim deploy.yml
-vim hpa.yml
-vim statefulset.yml
-vim app-svc.yml
-vim db-svc.yml
-vim ingress.yml
-vim networkpolicy.yml
-vim pdb.yml
 
 [root@ip-172-31-27-27 pranay]# vim secrets.yml
 [root@ip-172-31-27-27 pranay]# vim configmap.yml
@@ -1328,7 +1314,9 @@ vim pdb.yml
 [root@ip-172-31-27-27 pranay]# vim ingress.yml
 [root@ip-172-31-27-27 pranay]# vim networkpolicy.yml
 [root@ip-172-31-27-27 pranay]# vim pdb.yml
-[root@ip-172-31-27-27 pranay]# kubectl apply -f .
+
+
+[root@ip-172-31-27-27 pranay]# kubectl create -f . ------------------------------------------------>
 service/bankapp-service created
 configmap/bankapp-config created
 service/bankapp-db-service created
@@ -1342,33 +1330,63 @@ secret/bankapp-db-secret created
 statefulset.apps/bankapp-statefulset created
 [root@ip-172-31-27-27 pranay]# 
 
+[root@ip-172-31-39-64 pranay]# kubectl get svc
+NAME                  TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)    AGE
+bankapps-db-service   ClusterIP   None           <none>        3306/TCP   22m
+bankapps-service      ClusterIP   100.65.74.20   <none>        80/TCP     22m
+kubernetes            ClusterIP   100.64.0.1     <none>        443/TCP    135m
+[root@ip-172-31-39-64 pranay]# kubectl get cm
+NAME               DATA   AGE
+bankapps-config    2      22m
+kube-root-ca.crt   1      135m
+[root@ip-172-31-39-64 pranay]# kubectl get deploy
+NAME                  READY   UP-TO-DATE   AVAILABLE   AGE
+bankapps-deployment   3/3     3            3           22m
+[root@ip-172-31-39-64 pranay]# kubectl get hpa
+NAME           REFERENCE                        TARGETS              MINPODS   MAXPODS   REPLICAS   AGE
+bankapps-hpa   Deployment/bankapps-deployment   cpu: <unknown>/50%   3         10        3          22m
+[root@ip-172-31-39-64 pranay]# kubectl get ingress
+NAME               CLASS   HOSTS   ADDRESS   PORTS   AGE
+bankapps-ingress   nginx   *                 80      22m
+[root@ip-172-31-39-64 pranay]# kubectl get networkpolicy
+NAME                    POD-SELECTOR   AGE
+bankapps-allow-policy   app=bankapps   15m
+[root@ip-172-31-39-64 pranay]# kubectl get pdb
+NAME           MIN AVAILABLE   MAX UNAVAILABLE   ALLOWED DISRUPTIONS   AGE
+bankapps-pdb   2               N/A               2                     22m
+[root@ip-172-31-39-64 pranay]# kubectl get resourcequota
+NAME             REQUEST                                                        LIMIT                                     AGE
+bankapps-quota   pods: 4/10, requests.cpu: 400m/2, requests.memory: 512Mi/2Gi   limits.cpu: 2/4, limits.memory: 1Gi/4Gi   23m
+[root@ip-172-31-39-64 pranay]# kubectl get secret
+NAME                 TYPE     DATA   AGE
+bankapps-db-secret   Opaque   2      23m
+[root@ip-172-31-39-64 pranay]# kubectl get statefulset
+NAME                   READY   AGE
+bankapps-statefulset   1/1     23m
+[root@ip-172-31-39-64 pranay]# ll
+total 44
+-rw-r--r--. 1 root root 186 Jul  8 08:41 app-svc.yml
+-rw-r--r--. 1 root root 114 Jul  8 08:42 configmap.yml
+-rw-r--r--. 1 root root 196 Jul  8 08:42 db-svc.yml
+-rw-r--r--. 1 root root 877 Jul  8 08:43 deploy.yml
+-rw-r--r--. 1 root root 357 Jul  8 08:44 hpa.yml
+-rw-r--r--. 1 root root 370 Jul  8 08:45 ingress.yml
+-rw-r--r--. 1 root root 737 Jul  8 09:00 networkpolicy.yml
+-rw-r--r--. 1 root root 156 Jul  8 08:45 pdb.yml
+-rw-r--r--. 1 root root 191 Jul  8 08:46 resource-quota.yml
+-rw-r--r--. 1 root root 142 Jul  8 08:46 secret.yml
+-rw-r--r--. 1 root root 974 Jul  8 08:47 statefulset.yml
+[root@ip-172-31-39-64 pranay]# 
+
+
 
 Total 11 yaml manifestation files
-
-
-
-kubectl apply -f .------------------------->
-
 
 
 https://github.com/pranay-devops666/ltibbhackathon.git --------------> this repo is related to application
 
 https://github.com/pranay-devops666/bankapp-manifestfiles.git --------------> this repo is related to manifest files
 
-[root@ip-172-31-27-27 pranay]# kubectl get deploy
-NAME                 READY   UP-TO-DATE   AVAILABLE   AGE
-bankapp-deployment   0/3     3            0           4m46s
-
-[root@ip-172-31-27-27 pranay]# kubectl get deploy
-NAME                 READY   UP-TO-DATE   AVAILABLE   AGE
-bankapp-deployment   0/3     3            0           4m46s
-[root@ip-172-31-27-27 pranay]# kubectl get po
-NAME                                  READY   STATUS             RESTARTS       AGE
-bankapp-deployment-67bbdfd4d7-g4spd   0/1     CrashLoopBackOff   5 (45s ago)    5m18s
-bankapp-deployment-67bbdfd4d7-mrgm7   0/1     CrashLoopBackOff   5 (45s ago)    5m18s
-bankapp-deployment-67bbdfd4d7-pvczm   0/1     CrashLoopBackOff   5 (40s ago)    5m18s
-bankapp-statefulset-0                 0/1     CrashLoopBackOff   5 (2m8s ago)   5m18s
-[root@ip-172-31-27-27 pranay]# 
 
 Here got an error as CrashLoopBackOff 
 
