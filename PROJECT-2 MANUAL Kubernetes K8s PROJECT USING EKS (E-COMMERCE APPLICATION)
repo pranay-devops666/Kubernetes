@@ -195,7 +195,9 @@ Next need to install Kubectl
 
 search as install kubectl & eksctl ------> open official document ------> select linux
 
-[root@MY-EKS ~]# curl -O https://s3.us-west-2.amazonaws.com/amazon-eks/1.35.2/2026-02-27/bin/linux/amd64/kubectl
+curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+
+[root@MY-EKS ~]# curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
                                  Dload  Upload   Total   Spent    Left  Speed
 100 57228k 100 57228k   0     0 30161k     0   0:00:01  0:00:01 --:--:-- 30151k
@@ -226,7 +228,9 @@ The connection to the server localhost:8080 was refused - did you specify the ri
 
 Now need to Install EKS 
 
-search as install eksctl --------- select this github url https://github.com/eksctl-io/eksctl ---------> scroll down, select fr unix -------> copy all commands and
+go to this website --------------> https://github.com/eksctl-io/eksctl -----------> scroll down -------------> select unix 
+
+search as install eksctl --------- select this github url https://github.com/eksctl-io/eksctl ---------> scroll down, select for unix -------> copy all commands and
 paste in ec2-instance like below
 
 [root@MY-EKS ~]# # for ARM systems, set ARCH to: `arm64`, `armv6` or `armv7`
@@ -329,7 +333,7 @@ agent any
   stages {
     stage ("build") {
       steps {
-        sh 'docker build -t fe-img .'
+        sh 'docker build -t frontend-img .'
         }
       }
   }
@@ -425,9 +429,11 @@ docker credentials
 
 Need to add Kubernetes credentials as well
 
+Actually now here we are doing intregrating kubernetes with jenkins
 
+Install Docker 
 
-
+[root@ip-172-31-33-227 ~]# yum install docker -y && systemctl start docker ---------------------------->
 
 Now need to install SONARQUBE
 
@@ -446,7 +452,7 @@ Digest: sha256:f709975ab31d2d08f5a3ae2dc73a31ee011afc8cf28845082c17c55d45df9df5
 Status: Downloaded newer image for sonarqube:lts-community
 11b6723b19d0d4fc6291ac14ab88664d3f8c6c5bbe80f4bd2617170b5380825b
  
-[root@MY-EKS ~]# kubectl create ns webapps
+[root@MY-EKS ~]# kubectl create ns webapps----------------------------------> 
 namespace/webapps created
 
 
@@ -575,7 +581,6 @@ Now got permissions for jenkins
 Now we need to generate credentials that credentials need to be store in jenkins
 
 
-
 [root@MY-EKS ~]# vim secret.yml
 
 ---
@@ -609,7 +614,12 @@ Data
 ====
 ca.crt:     1107 bytes
 namespace:  7 bytes
-token:      eyJhbGciOiJSUzI1NiIsImtpZCI6IkVkNHgzU1lvTVNLSnJMNUtvZlR0NG9hS2xUamlLM0hOSXhLaG51N0djZG8ifQ.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJ3ZWJhcHBzIiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZWNyZXQubmFtZSI6Im15c2VjcmV0bmFtZSIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50Lm5hbWUiOiJqZW5raW5zIiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZXJ2aWNlLWFjY291bnQudWlkIjoiNmQ5NzFkYWItZDRhOS00ZDViLTlmYjMtODk1YTQwZjJkMjExIiwic3ViIjoic3lzdGVtOnNlcnZpY2VhY2NvdW50OndlYmFwcHM6amVua2lucyJ9.na21P5IT3Ozdso8dvn3R8VQQYLAhVOka1bv2frsZY9on-iH85H24krBHW-4-sZoc0Zi324KyauPCkPGZXRSvkWu_HNZHdhLD_3GaGV8xM52SDLVNgJY6qXIMiPJIVeOIYm0PG4T5WV07m_uc0aehyvUKsZGf-wAyz0M7uTirluE3ovdwSTI8gf4YjVzwSZFnUsFkBumavOkbWfAWxkkiRuhRUzwkVDYg53uxK3ZxG4M1lMIDK4Lx4FURft5882hSgKVO1w7xU0uo-0cj_4xzLEWuCnBniYo3EvgLmaSvEQv77d9WP_0TE_GfwVGejhZFwx3U1v-85lWLyaSE_WMGBw 
+token:      eyJhbGciOiJSUzI1NiIsImtpZCI6IkVkNHgzU1lvTVNLSnJMNUtvZlR0NG9hS2xUamlLM0hOSXhLaG51N0djZG8ifQ.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRl
+cy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJ3ZWJhcHBzIiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZWNyZXQubmFtZSI6Im15c2VjcmV0bmFtZSIsImt1YmVybmV0ZXMuaW8vc2VydmljZWF
+jY291bnQvc2VydmljZS1hY2NvdW50Lm5hbWUiOiJqZW5raW5zIiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZXJ2aWNlLWFjY291bnQudWlkIjoiNmQ5NzFkYWItZDRhOS00ZDViLTlmYjMtODk1YTQwZj
+JkMjExIiwic3ViIjoic3lzdGVtOnNlcnZpY2VhY2NvdW50OndlYmFwcHM6amVua2lucyJ9.na21P5IT3Ozdso8dvn3R8VQQYLAhVOka1bv2frsZY9on-iH85H24krBHW-4-sZoc0Zi324KyauPCkPGZXRSvkWu_HNZH
+dhLD_3GaGV8xM52SDLVNgJY6qXIMiPJIVeOIYm0PG4T5WV07m_uc0aehyvUKsZGf-wAyz0M7uTirluE3ovdwSTI8gf4YjVzwSZFnUsFkBumavOkbWfAWxkkiRuhRUzwkVDYg53uxK3ZxG4M1lMIDK4Lx4FURft5882h
+SgKVO1w7xU0uo-0cj_4xzLEWuCnBniYo3EvgLmaSvEQv77d9WP_0TE_GfwVGejhZFwx3U1v-85lWLyaSE_WMGBw 
 
 we will get encrypted data like this above
 
@@ -617,10 +627,16 @@ we will get encrypted data like this above
 
 copy this above token and give in jenkins 
 
-eyJhbGciOiJSUzI1NiIsImtpZCI6IkVkNHgzU1lvTVNLSnJMNUtvZlR0NG9hS2xUamlLM0hOSXhLaG51N0djZG8ifQ.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJ3ZWJhcHBzIiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZWNyZXQubmFtZSI6Im15c2VjcmV0bmFtZSIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50Lm5hbWUiOiJqZW5raW5zIiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZXJ2aWNlLWFjY291bnQudWlkIjoiNmQ5NzFkYWItZDRhOS00ZDViLTlmYjMtODk1YTQwZjJkMjExIiwic3ViIjoic3lzdGVtOnNlcnZpY2VhY2NvdW50OndlYmFwcHM6amVua2lucyJ9.na21P5IT3Ozdso8dvn3R8VQQYLAhVOka1bv2frsZY9on-iH85H24krBHW-4-sZoc0Zi324KyauPCkPGZXRSvkWu_HNZHdhLD_3GaGV8xM52SDLVNgJY6qXIMiPJIVeOIYm0PG4T5WV07m_uc0aehyvUKsZGf-wAyz0M7uTirluE3ovdwSTI8gf4YjVzwSZFnUsFkBumavOkbWfAWxkkiRuhRUzwkVDYg53uxK3ZxG4M1lMIDK4Lx4FURft5882hSgKVO1w7xU0uo-0cj_4xzLEWuCnBniYo3EvgLmaSvEQv77d9WP_0TE_GfwVGejhZFwx3U1v-85lWLyaSE_WMGBw
+eyJhbGciOiJSUzI1NiIsImtpZCI6IkVkNHgzU1lvTVNLSnJMNUtvZlR0NG9hS2xUamlLM0hOSXhLaG51N0djZG8ifQ.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2a
+WNlYWNjb3VudC9uYW1lc3BhY2UiOiJ3ZWJhcHBzIiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZWNyZXQubmFtZSI6Im15c2VjcmV0bmFtZSIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2Vyd
+mljZS1hY2NvdW50Lm5hbWUiOiJqZW5raW5zIiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZXJ2aWNlLWFjY291bnQudWlkIjoiNmQ5NzFkYWItZDRhOS00ZDViLTlmYjMtODk1YTQwZjJkMjExIiwic3ViI
+joic3lzdGVtOnNlcnZpY2VhY2NvdW50OndlYmFwcHM6amVua2lucyJ9.na21P5IT3Ozdso8dvn3R8VQQYLAhVOka1bv2frsZY9on-iH85H24krBHW-4-sZoc0Zi324KyauPCkPGZXRSvkWu_HNZHdhLD_3GaGV8xM52S
+DLVNgJY6qXIMiPJIVeOIYm0PG4T5WV07m_uc0aehyvUKsZGf-wAyz0M7uTirluE3ovdwSTI8gf4YjVzwSZFnUsFkBumavOkbWfAWxkkiRuhRUzwkVDYg53uxK3ZxG4M1lMIDK4Lx4FURft5882hSgKVO1w7xU0uo-0cj
+_4xzLEWuCnBniYo3EvgLmaSvEQv77d9WP_0TE_GfwVGejhZFwx3U1v-85lWLyaSE_WMGBw
 
-go to manage jenkins -----------> select credentials---------> create new credentials ----------> kind: secret text--------> paste this above token in here secret place
------------> in Id:docker-cred ---------> in description: k8-token jenkins credentials----------> ok
+go to manage jenkins -----------> select credentials---------> select system ------> select global -------------> select create new credentials ------------------->
+----------->create new credentials ----------> kind: secret text--------> paste this above token in here secret place-----------> in Id:docker-cred ---------------> 
+in description: k8-token jenkins credentials----------> ok
 
 k8-token
 k8-token jenkins credentials
@@ -728,10 +744,63 @@ issue is permission denied
 
 Delete the Jenkins multibranch pipelin job and do create again
 
+here Incase all jobs buids got error means kindly check with these below commands first
 
-if bUild JObs got failed means kindly refer this below chatgpt url 
+ps -ef | grep jenkins
+ groups jenkins
+ ls -l /var/run/docker.sock
+ usermod -aG docker jenkins
+  ls -l /var/run/docker.sock
+  groups jenkins
 
-https://chatgpt.com/c/69c3b61a-a584-8324-a9d7-11be00b0213d
+================================================================================================================================================================================================================================
+Step 1
+
+Check which user Jenkins is running as:
+
+ps -ef | grep jenkins
+
+[root@MYEKS-INSTANCE ~]# ps -ef | grep jenkins 
+jenkins 30400 1 3 07:11 ? 00:01:55 /usr/bin/java -Djava.awt.headless=true -jar /usr/share/java/jenkins.war --webroot=/var/cache/jenkins/war --httpPort=8080 
+root 38716 3170 0 08:01 pts/1 00:00:00 grep --color=auto jenkins [root@MYEKS-INSTANCE ~]#
+
+Step 2
+
+Check whether Jenkins belongs to the docker group:
+
+[root@MYEKS-INSTANCE ~]# groups jenkins
+jenkins : jenkins
+
+If everything were configured correctly, you would see something like:
+
+Output will show like this below
+
+jenkins : jenkins docker
+
+Step 3
+
+Check Docker socket permissions:
+
+[root@MYEKS-INSTANCE ~]# ls -l /var/run/docker.sock 
+srwxrwxrwx. 1 root docker 0 Jul 9 07:28 /var/run/docker.sock [root@MYEKS-INSTANCE ~]#
+
+After followed above steps outputs will come like this below and and jobs build get successfully
+
+
+[root@MYEKS-INSTANCE ~]# ps -ef | grep jenkins -------------------------->
+jenkins    30400       1  3 07:11 ?        00:02:19 /usr/bin/java -Djava.awt.headless=true -jar /usr/share/java/jenkins.war --webroot=/var/cache/jenkins/war --httpPort=80
+80
+root       54202    3170  0 08:22 pts/1    00:00:00 grep --color=auto jenkins
+[root@MYEKS-INSTANCE ~]# groups jenkins -------------------------->
+jenkins : jenkins docker
+[root@MYEKS-INSTANCE ~]# ls -l /var/run/docker.sock -------------------------->
+srwxrwxrwx. 1 root docker 0 Jul  9 07:28 /var/run/docker.sock
+[root@MYEKS-INSTANCE ~]# usermod -aG docker jenkins
+
+================================================================================================================================================================================================================================
+
+
+Now builds are builds successfully
 
 
 [root@MY-EKS ~]# kubectl get po -n webapps
