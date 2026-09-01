@@ -45,6 +45,10 @@ kops create cluster --name rama.k8s.local --zones us-east-1a,us-east-1b --contro
 
 
 
+kops create cluster --name srirama.k8s.local --zones=us-east-1a,us-east-1b --master-size c7i-flex.large --master-count 1 --master-volume-size 30 --node-size t3.micro --node-count 2 --node-volume-size 20 --image=ami-0b6d9d3d33ba97d99
+
+THE ABOVE COMMAND WORKED ON 01-09-2026
+===========================================
 
 
 Suggestions:
