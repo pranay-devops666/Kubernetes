@@ -1,9 +1,16 @@
 Kubernetes Class -01 
 =========================
 
-Docker vs Kubernetes K8's Architecture, Types of Clusters, Installing Minikube, Installing kubectl, minikube cluster setup creating pods through Imperative way & Decarative way
+Docker vs Kubernetes K8's Architecture, Types of Clusters, Installing Minikube, Installing kubectl, minikube cluster setup creating pods through Imperative way & 
+==================================================================================================================================================================
+Decarative way
+====================
 
+KUBERNETES -----------------> can be called as K8's 
 
+why because in kubernetes word have 10 letters removing 8 letters in middle of the kuberneets word oa 10 letters
+
+Considering fisrt letter K and last letters S we can called it as K8's
 
 
 Docker vs Kubernetes K8's Architecture, 
@@ -15,6 +22,7 @@ Minikube cluster setup creating pods through Imperative way & Decarative way
 Kubernetes can be officially called as k8's
 
 Docker logo looks like its a ship that contains the containers
+---------------------------------------------------------------
 
 In Docker we craetd the containers and we deployed the applications but we didn't used the auto-scaling
 
@@ -29,6 +37,7 @@ In Docker we craetd the containers and we deployed the applications but we didn'
 
 
 Kubernetes  logo looks like a controlling the ship with wheel
+-----------------------------------------------------------------
 
 Technically called as ship wheel 
 
@@ -77,8 +86,9 @@ first the request will goes to Control plane(means) in control plane it has 4 co
                                                                                              3. Scheduler
                                                                                              4. etcd
 
-For example as a user(operator) i am giving request as to create a Pod that request will goes to API and requested Pod will get created in worker node in here 
-where Pod should get create ? is worker node 1 or NOde 2 ? that will get decide do is SCHEDULER(It will gonna decide on which worker node Pod should get create)
+For example as a user(operator) i am giving request as to create a Pod that request will goes to (API)
+and requested Pod will get created in worker node in here where Pod should get create ? is worker node 1 or NOde 2 ? 
+that will get decide do is SCHEDULER(It will gonna decide on which worker node Pod should be get create)
 API passed the request to Scheduler here SCHEDULER will decide on which worker nodes pod should get create 
 here question is on which parametes it is going to decide how ? 
 For example having 4 pods in one worker node and having 2 pods in another worker node now SCHEDULER will get decide to create pods on which worker node pods need 
@@ -88,9 +98,9 @@ now SCHEDULER will decide to create a pod on which worker node need to be get cr
 how SCHEDULER will know how many pods are exist in a particular worker nodes it will know component called kubelet. 
 kubelet work is to monitor the pods continously and pass the information to SCHEDULER through API server like that way SCHEDULER will know how many pods are exist 
 in a particular nodes
-next component is etcd. etcd its an entire database for your cluster completely Complete information of the cluster will store on etcd and its stores on key value
+next component is (etcd). etcd its an entire database for your cluster completely Complete information of the cluster will store on etcd and its stores on key value
 stores format like yaml format 
-4.th component is Controller Manager it means it has 3 types of controler managers 1. Replication Controller 2. Node controller 3. Service controller
+4.th component is (Controller Manager) it means it has 3 types of controler managers 1. Replication Controller 2. Node controller 3. Service controller
 In Replication controler in the sence means if we created a pod in a random worker node now what this RC will do is it will keep an eye of created pods in a worker 
 node for every 5 seconds like pods are running or not for example in a worker node had 2 pods 1 is working fine and another pod went inactive at this moment
 this RC will do watched for this inactive pod it will wait for 30 seconds, after 30 seconds also it is still in inactive means it will went to down state, after that
