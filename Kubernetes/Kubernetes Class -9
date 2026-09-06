@@ -323,3 +323,108 @@ kubectl config use-context minikube ---------------------->
 kubectl config use-context devops ----------------------> swith form one user to another user name with devops
 
 NEET TO BE PRACTICE VERY WELL
+
+
+
+yum install docker -y && systemctl start docker
+    2  systemctl status docker
+    3  curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+    4  ll
+    5  chmod +x kubectl
+    6  mv kubectl /usr/local/bin/
+    7  ll
+    8  curl -LO https://github.com/kubernetes/minikube/releases/latest/download/minikube-linux-amd64
+    9  sudo install minikube-linux-amd64 /usr/local/bin/minikube && rm minikube-linux-amd64
+   10  miikube version
+   11  minikube version
+   12  minikube start --driver=docker --force
+   13  minikube status
+   14  kubectl config view
+   15  mkdir pranay
+   16  cd pranay/
+   17  ll
+   18  openssl genrsa -out pranay.key 2026
+   19  ll
+   20  openssl req -new -key pranay.key -out pranay.csr -subj "/CN=pranay/O=group1"
+   21  ll
+   22  openssl x509 -req -in pranay.csr -CA ~/.minikube/ca.crt -CAkey ~/.minikube/ca.key -CAcreateserial -out pranay.crt -days 500
+   23  ll
+   24  kubectl config set-credentials pranay \
+   25  kubectl config set-credentials pranay \ --client-certificate=pranay.crt \ --client-key=pranay.key
+   26  kubectl config set-credentials pranay --client-certificate=pranay.crt --client-key=pranay.key
+   27  kubectl view context
+   28  kubectl config use-context pranay-context
+   29  ll
+   30  kubectl view context
+   31  kubectl config view
+   32  kubectl config set-context babu --cluster=minikube --user=pranay
+   33  ll
+   34  kubectl config view
+   35  kubectl config use-context minikube
+   36  ll
+   37  kubectl config view
+   38  kubectl config use-context pranay
+   39  kubectl config use-context babu
+   40  kubectl config view
+   41  kubectl config use-context minikube
+   42  kubectl get ns
+   43  kubectl create ns dev
+   44  kubectl create ns test
+   45  kubectl get ns
+   46  kubectl run pod-1 --image=nginx -n dev
+   47  kubectl run pod-2 --image=nginx -n test
+   48  kubectl get po
+   49  kubectl get ns test po
+   50  vim role.yml
+   51  cat role.yml 
+   52  kubectl create -f role.yml
+   53  kubectl get role
+   54  kubectl get po
+   55  kubectl get ns
+   56  kubectl get pod pod-1
+   57  kubectl get role -n dev
+   58  kubectl get pod -n dev
+   59  vim rolebinding.yml
+   60  kubectl get role -n dev
+   61  vim rolebinding.yml
+   62  kubectl create -f rolebinding.yml
+   63  vim rolebinding.yml
+   64  kubectl create -f rolebinding.yml
+   65  vim rolebinding.yml
+   66  kubectl create -f rolebinding.yml
+   67  kubectl get rolebinding -n dev
+   68  kubectl config use-context babu
+   69  ll
+   70  cat role.yml 
+   71  kubectl get po
+   72  kubectl get pod -n dev
+   73  kubectl get po -n dev
+   74  kubectl get po -n test
+   75  kubectl apply -f role.yml
+   76  kubectl apply -f rolebinding.yml
+   77  kubectl auth can-i list pods -n dev
+   78  kubectl get pods -n dev
+   79  kubectl config get-contexts
+   80  kubectl config current-context
+   81  kubectl config use-context minikube
+   82  kubectl get po -n dev
+   83  kubectl get po -n test
+   84  kubectl run pod-2 --image=httpd -n dev
+   85  kubectl get po -n dev
+   86  kubectl delete pod pod-1
+   87  kubectl get po -n dev
+   88  kubectl delete pod pod-1
+   89  kubectl config use-context babu
+   90  kubectl get po -n dev
+   91  kubectl config use-context minikube
+   92  ll
+   93  vim role.yml
+   94  kubetl apply -f role.yml
+   95  kubectl apply -f role.yml
+   96  kubectl config get-contexts
+   97  kubectl config current-context
+   98  kubectl config use-context babu
+   99  kubectl config current-context
+  100  kubectl config get-contexts
+  101  history
+[root@ip-172-31-32-77 pranay]# 
