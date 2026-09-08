@@ -1,6 +1,10 @@
 Kubernetes Class -12
 
 TOPIC: Kubernetes HELM 
+============================
+
+HELM = FROENTED YAML MANIFEST FILES + BACKEND YAML MANIFEST FILES + DATABASE YAML MANIFEST FILES
+=====================================================================================================
 
 we need kops cluster setup for this HELM
 
@@ -112,37 +116,260 @@ cd babu/
 
 ll
 
-vim values.yml
+[root@ip-172-31-47-96 babu]# ll
+total 12
+-rw-r--r--. 1 root root 1137 Sep  8 13:08 Chart.yaml
+drwxr-xr-x. 2 root root    6 Sep  8 13:02 charts
+drwxr-xr-x. 3 root root  184 Sep  8 13:07 templates
+-rw-r--r--. 1 root root 5286 Sep  8 13:09 values.yaml
+[root@ip-172-31-47-96 babu]# helm install release-1 .
+NAME: release-1
+LAST DEPLOYED: Tue Sep  8 13:09:45 2026
+NAMESPACE: default
+STATUS: deployed
+REVISION: 1
+DESCRIPTION: Install complete
+NOTES:
+1. Get the application URL by running these commands:
+     NOTE: It may take a few minutes for the LoadBalancer IP to be available.
+           You can watch its status by running 'kubectl get --namespace default svc -w release-1-babu'
+  export SERVICE_IP=$(kubectl get svc --namespace default release-1-babu --template "{{ range (index .status.loadBalancer.ingress 0) }}{{.}}{{ end }}")
+  echo http://$SERVICE_IP:80
+[root@ip-172-31-47-96 babu]#
 
+[root@ip-172-31-47-96 babu]# kubectl get deploy
+NAME             READY   UP-TO-DATE   AVAILABLE   AGE
+my-app           3/3     3            3           174m
+release-1-babu   2/2     2            2           2m10s
+[root@ip-172-31-47-96 babu]# kubectl get svc
+NAME             TYPE           CLUSTER-IP       EXTERNAL-IP                                                              PORT(S)        AGE
+kubernetes       ClusterIP      100.64.0.1       <none>                                                                   443/TCP        4h10m
+mustafa          LoadBalancer   100.66.191.29    a4a343febcf8a43028a6b65f8a98c242-442792977.us-east-1.elb.amazonaws.com   80:30642/TCP   175m
+release-1-babu   LoadBalancer   100.65.109.157   a617709c6f32446a1a42c99bcbb7d941-873291715.us-east-1.elb.amazonaws.com   80:32676/TCP   2m55s
+[root@ip-172-31-47-96 babu]#
 
-here we need to give repository name 
+NOW DO ACCESS THE APPLICATION LIKE BELOW
 
-repository: pranay
+a617709c6f32446a1a42c99bcbb7d941-873291715.us-east-1.elb.amazonaws.com -----> hit enter
+
+http://a617709c6f32446a1a42c99bcbb7d941-873291715.us-east-1.elb.amazonaws.com/ -------> hit enter
+
+[root@ip-172-31-47-96 babu]# helm ls
+NAME            NAMESPACE       REVISION        UPDATED                                 STATUS          CHART           APP VERSION
+release-1       default         1               2026-09-08 13:09:45.868120576 +0000 UTC deployed        babu-0.1.0      bus        
+[root@ip-172-31-47-96 babu]# helm uninstall release-1
+release "release-1" uninstalled
+[root@ip-172-31-47-96 babu]# kubect get deploy
+-bash: kubect: command not found
+[root@ip-172-31-47-96 babu]# kubect get svc
+-bash: kubect: command not found
+[root@ip-172-31-47-96 babu]# 
+
+[root@ip-172-31-47-96 babu]# ll
+total 12
+-rw-r--r--. 1 root root 1137 Sep  8 13:08 Chart.yaml
+drwxr-xr-x. 2 root root    6 Sep  8 13:02 charts
+drwxr-xr-x. 3 root root  184 Sep  8 13:07 templates
+-rw-r--r--. 1 root root 5286 Sep  8 13:16 values.yaml
+[root@ip-172-31-47-96 babu]# cd templates/
+[root@ip-172-31-47-96 templates]# ll
+total 32
+-rw-r--r--. 1 root root 2806 Sep  8 13:02 NOTES.txt
+-rw-r--r--. 1 root root 1752 Sep  8 13:02 _helpers.tpl
+-rw-r--r--. 1 root root 2365 Sep  8 13:07 deployment.yaml
+-rw-r--r--. 1 root root  982 Sep  8 13:02 hpa.yaml
+-rw-r--r--. 1 root root  947 Sep  8 13:02 httproute.yaml
+-rw-r--r--. 1 root root 1079 Sep  8 13:02 ingress.yaml
+-rw-r--r--. 1 root root  352 Sep  8 13:02 service.yaml
+-rw-r--r--. 1 root root  383 Sep  8 13:02 serviceaccount.yaml
+drwxr-xr-x. 2 root root   34 Sep  8 13:02 tests
+[root@ip-172-31-47-96 templates]# rm -rf *
+[root@ip-172-31-47-96 templates]# ll
+total 0
+[root@ip-172-31-47-96 templates]# ls
+[root@ip-172-31-47-96 templates]# 
+
+[root@ip-172-31-47-96 babu]# ll
+total 12
+-rw-r--r--. 1 root root 1137 Sep  8 13:08 Chart.yaml
+drwxr-xr-x. 2 root root    6 Sep  8 13:02 charts
+drwxr-xr-x. 2 root root    6 Sep  8 13:16 templates
+-rw-r--r--. 1 root root 5286 Sep  8 13:16 values.yaml
+[root@ip-172-31-47-96 babu]# cd templates/
+[root@ip-172-31-47-96 templates]# ll
+total 0
+[root@ip-172-31-47-96 templates]# vim deployment.yml
+[root@ip-172-31-47-96 templates]#
+
+cat deployment.yml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+	name: nginx
+	labels:
+		app: nginx
+spec:
+	replicas: 2
+	selector:
+		matchLabels:
+			app: nginx
+	template:
+		metadata:
+			labels:
+				app: nginx
+		spec:
+			containers:
+				- name: nginx
+					image: nginx:stable
+					ports:
+						- name: http
+							containerPort: 80
+					resources:
+						requests:
+							cpu: 100m
+							memory: 128Mi
+						limits:
+							cpu: 500m
+							memory: 256Mi
+					readinessProbe:
+						httpGet:
+							path: /
+							port: http
+						initialDelaySeconds: 5
+						periodSeconds: 10
+					livenessProbe:
+						httpGet:
+							path: /
+							port: http
+						initialDelaySeconds: 15
+						periodSeconds: 20
 
 
 :wq
 
-
-helm install release-1 .  ------------> command to install helm release
-
-helm install release-1 . -n dev ------------> command to install helm release in particular namespace with name dev
-
-kubectl get deploy --------> command to view deploy 
-
-kubectl get rs -------> command to view rs
-
-kubectl get po ---------> command to view pods 
-
-kubectl get svc -------> command to view svc svc means service
-
-helm ls -----------> command to view list of helm
-
-helm uninstall releae-1 -------------> command to uninstall 
+vim svc.yml
 
 
+---
+apiVersion: v1
+kind: Service
+metadata:
+	name: nginx
+spec:
+	selector:
+		app: nginx
+	ports:
+		- name: http
+			port: 80
+			targetPort: http
+	type: ClusterIP
+
+:wq
+
+do write whatever the files we need write here all manifest files
+====================================================================
+
+[root@ip-172-31-47-96 templates]# helm install release-1 .
+
+NAME: release-1
+LAST DEPLOYED: Tue Sep  8 13:09:45 2026
+NAMESPACE: default
+STATUS: deployed
+REVISION: 1
+DESCRIPTION: Install complete
+NOTES:
+1. Get the application URL by running these commands:
+     NOTE: It may take a few minutes for the LoadBalancer IP to be available.
+           You can watch its status by running 'kubectl get --namespace default svc -w release-1-babu'
+  export SERVICE_IP=$(kubectl get svc --namespace default release-1-babu --template "{{ range (index .status.loadBalancer.ingress 0) }}{{.}}{{ end }}")
+  echo http://$SERVICE_IP:80
+[root@ip-172-31-47-96 babu]#
+
+[root@ip-172-31-47-96 kubectl get deploy ----------------------------------------->
+
+[root@ip-172-31-47-96 kubectl get rs ----------------------------------------->
+
+[root@ip-172-31-47-96 kubectl get svc ----------------------------------------->
+
+now do access application with dns name
+
+[root@ip-172-31-47-96 helm upgrade release-name -----------------------------------------> if we done any changes in deployment.yml next we need to upgrage here 
+
+same if we done any changes like changed image also in deployment.yml next we need to upgrage here
+
+for suppose if we have 3 version means we can rollback to any of the version like below
+
+we need to know helm history previousy how many versions we entered 
+
+helm history release-name ----------------------------------------->
+
+helm rollback release-name 1 -----------------------------------------> 1 means version 1
+
+helm uninstall release-name -----------------------------------------> commnad to delete/uninstall created helm
+
+By using this helm we can also do host in github as well
+========================================================================
+
+helm create helm-name ---------------------> command to create helm
+
+now here do write whatever the yaml manifest files do we need write here
+
+vim deploymentyml
+vim svc.yml
+vim statefulset.yml
+
+etc etc do wrote here
 
 
+here we need to import from here to github
 
+cd 
+
+helm lint helm-name ------------------------------->
+
+helm package  helm-name ------------------------------->
+
+one tar zip file come here
+
+here we need to get one index.yml file also but there is a issue here is uanble to delete chart and save dit means
+
+helm repo index helm-name -------------------------->
+cd helm-name/ ----------------------->
+
+vim index.yml
+
+
+now install git 
+
+yum install git -y ----------------------------------->
+
+helm package helm-name ----------------------->
+
+git clone git-repo-url ----------------------------------->
+
+
+mv tar.tgz helm-name inside of/index.yml
+
+mv tar.tgz helm-name inside of/index.yml github-repo ---------------------->
+
+now go to empty repo
+
+git add * =------------------->
+
+git commit -m "all files re ready to track" ------------------------------------------>
+
+git push origin branch-name ------------------------------->
+
+username:
+password:
+
+as of now we pushed to github
+
+go to github select the repo -----------> select settings ------> select pages  ----------> select main --------------> save
+
+after saving this one url get generate here
+
+for using that url we can access 
 
 
 
