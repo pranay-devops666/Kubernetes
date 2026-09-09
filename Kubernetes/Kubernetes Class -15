@@ -173,7 +173,7 @@ Instead of Rolling updates in kubernetes BLUE GREEN Deployment is best
 Canvary Deployment
 ====================
 
-canary deployment means if we get one update others will dont get, others will get means for us didn't got
+canary deployment means if we get one update others will dont get, best example (Whatsapp) others will get means for us didn't got
 
 how canary deployment will work in background is for suppose we have 4 pods 
 
