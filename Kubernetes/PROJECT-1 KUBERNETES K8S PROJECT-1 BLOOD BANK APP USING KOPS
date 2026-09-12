@@ -77,6 +77,8 @@ spec:
         envFrom:
         - configMapRef:
             name: bankapps-config
+        - secretRef:
+            name: bankapp-db-secret
 
         resources:
           requests:
@@ -1353,6 +1355,8 @@ spec:
         envFrom:
         - configMapRef:
             name: bankapps-config
+        - secretRef:
+            name: bankapp-db-secret
 
         resources:
           requests:
