@@ -77,9 +77,7 @@ spec:
         envFrom:
         - configMapRef:
             name: bankapps-config
-        - secretRef:
-            name: bankapp-db-secret
-
+        
         resources:
           requests:
             cpu: "100m"
@@ -1355,8 +1353,6 @@ spec:
         envFrom:
         - configMapRef:
             name: bankapps-config
-        - secretRef:
-            name: bankapp-db-secret
 
         resources:
           requests:
