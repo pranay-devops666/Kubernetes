@@ -134,5 +134,175 @@ Go to sonarqube Dashboard---------> create a new project
 Go to Jenkins Dashboard and do configurations on system for sonarqube-----> go to manage jenkins -----------> select systems-------> and do configurations type
 secret text
 
-Go to Jenkins Dashboard and do configurations on tools for sonarqube
+
+
+=====================================================================================================================================================================================================================================
+=====================================================================================================================================================================================================================================
+
+
+FRESHLY PRACTICED PROJECT ON 17th SEPTEMBER 2026
+
+
+Launch one ec2-instance -----------------> 
+
+do install and setup Jenkins, install docker(do give docker permissions as well)
+
+[root@ip-172-31-21-180 ~]# yum install docker -y && systemctl start docker ------------------------>
+
+[root@ip-172-31-21-180 ~]# chmod 777 /var/run//docker.sock ------------------------------> giving permissions to docker
+[root@ip-172-31-21-180 ~]# 
+
+pipeline {
+    agent any
+    stages {
+        stage('Code') {
+            steps {
+                git branch: 'main', url: 'https://github.com/pranay-devops666/3-Tier-Full-Stack-yelp-camp.git'
+            }
+        }
+    }
+}
+
+
+next stage is CQA for this need to create a container 
+
+[root@ip-172-31-21-180 ~]# docker run -itd --name sonar -p 9000:9000 sonarqube:lts-community ------------------------------------------------------------->
+Unable to find image 'sonarqube:lts-community' locally
+lts-community: Pulling from library/sonarqube
+60d98d907669: Pull complete 
+e24a8b9e652f: Pull complete 
+f3929ce9ef98: Pull complete 
+1df735f481ad: Pull complete 
+5d5a1fad7028: Pull complete 
+eb27e3a98da1: Pull complete 
+c7ad1fe61e07: Pull complete 
+4f4fb700ef54: Pull complete 
+Digest: sha256:f709975ab31d2d08f5a3ae2dc73a31ee011afc8cf28845082c17c55d45df9df5
+Status: Downloaded newer image for sonarqube:lts-community
+b7cae36d6ea22e335c2341ceac5c2c0f0d2dd038a6a96f17beda1df0bf90edea
+[root@ip-172-31-21-180 ~]# 
+
+
+http://100.52.237.84:9000/ -------------------------> access to sonarqube
+
+pipeline {
+    agent any
+    environment {
+        scannerHome = tool 'mysonar';
+    }
+    stages {
+        stage('Code') {
+            steps {
+                git branch: 'main', url: 'https://github.com/pranay-devops666/3-Tier-Full-Stack-yelp-camp.git'
+            }
+        }
+        stage('SONARQUBE CQA') {
+            steps {
+                withSonarQubeEnv('mysonar') {
+                    sh "${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=MyProject"
+                }
+            }
+        }
+    }
+}
+
+
+next stage is QualityGates means need to create a webhooks in sonarqube
+
+select created project in sonarqube--------------> select project settings -------------> select webhook -------------------> create webhook ---------> name: jenkins
+URL: http://100.52.237.84:8080/sonarqube-webhook/ --------------------> create
+
+pipeline {
+    agent any
+    environment {
+        scannerHome = tool 'mysonar';
+    }
+    stages {
+        stage('Code') {
+            steps {
+                git branch: 'main', url: 'https://github.com/pranay-devops666/3-Tier-Full-Stack-yelp-camp.git'
+            }
+        }
+        stage('SONARQUBE CQA') {
+            steps {
+                withSonarQubeEnv('mysonar') {
+                    sh "${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=MyProject"
+                }
+            }
+        }
+        stage('QualityGates') {
+            steps {
+                script {
+                    waitForQualityGate abortPipeline: false, credentialsId: 'sonar-id'
+                }
+            }
+        }
+    }
+}
+
+
+
+Next stage is OSWASP(OpenSourceWebAppliationSecureProject)
+
+for OWSAP need to create one token
+
+go to this website and create one token https://owasp.org/
+
+go to this website and create one token https://nvd.nist.gov/developers/request-an-api-key
+Organization Name: our wish
+EMmail Address: our email
+Organization Type: Academia
+ do Submit
+
+Go to manage jenkins --------------> select tools ------------> scroll to last down ---------> select Dependency-Check installations name: DP-Check do tick install
+automatically -------> Install from github.com --------> select latest version ----------> save
+
+go to pipeline syntax --------> select depency check -----------> it will automatically come what we done configuration
+
+Arguments: --scan ./ --disableYarnAudi --disableNodeAudit ------------> generate pipeline pipeline will come like below
+
+dependencyCheck additionalArguments: '--scan ./ --disableYarnAudi --disableNodeAudit', nvdCredentialsId: 'oswap-id', odcInstallation: 'DP-Check'
+
+go to pipeline syntax --------> select dependencyCheckPublisher pattern -----------> it will automatically come what we done configuration
+
+dependencyCheckPublisher pattern: '**/dependency-check-report.xml'  ------------> generate pipeline pipeline will come like below
+
+dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
+
+
+
+pipeline {
+    agent any
+    environment {
+        scannerHome = tool 'mysonar';
+    }
+    stages {
+        stage('Code') {
+            steps {
+                git branch: 'main', url: 'https://github.com/pranay-devops666/3-Tier-Full-Stack-yelp-camp.git'
+            }
+        }
+        stage('SONARQUBE CQA') {
+            steps {
+                withSonarQubeEnv('mysonar') {
+                    sh "${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=MyProject"
+                }
+            }
+        }
+        stage('QualityGates') {
+            steps {
+                script {
+                    waitForQualityGate abortPipeline: false, credentialsId: 'sonar-id'
+                }
+            }
+        }
+        stage('OWSAP') {
+            steps {
+                dependencyCheck additionalArguments: '--scan ./ --disableYarnAudi --disableNodeAudit', nvdCredentialsId: 'oswap-id', odcInstallation: 'DP-Check'
+                dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
+            }
+        }
+    }
+}
+
 
