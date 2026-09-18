@@ -746,5 +746,396 @@ CONTAINER ID   IMAGE                     COMMAND                  CREATED       
 [root@ip-172-31-22-217 ~]# 
 
 now the container is up 
-now we can do access
+now we can do access with public ip & port number 1234
+
+Now we need to deploy our application with  EKS 
+
+for EKS we need an cluster
+
+Do Install Terraform on ec2-instance
+
+[root@ip-172-31-22-217 ~]# sudo yum install -y yum-utils shadow-utils
+sudo yum-config-manager --add-repo https://rpm.releases.hashicorp.com/AmazonLinux/hashicorp.repo
+sudo yum install terraform-------------------------------------------------------------------------------------->
+
+CREATE EKS CLUSTER USING TERRAFORM
+=========================================
+
+1. Launch one ec2-instance and install terraform in it
+2. install AWS CLI in it
+   curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+  unzip awscliv2.zip
+  sudo ./aws/install
+3. Install Kubectl in it
+4. Install EKS CTL in it
+  # for ARM systems, set ARCH to: `arm64`, `armv6` or `armv7`
+ARCH=$(uname -m | sed 's/x86_64/amd64/' | sed 's/aarch64/arm64/')
+PLATFORM=$(uname -s)_$ARCH
+
+curl -sLO "https://github.com/eksctl-io/eksctl/releases/latest/download/eksctl_$PLATFORM.tar.gz"
+
+# (Optional) Verify checksum
+curl -sL "https://github.com/eksctl-io/eksctl/releases/latest/download/eksctl_checksums.txt" | grep $PLATFORM | sha256sum --check
+
+tar -xzf eksctl_$PLATFORM.tar.gz -C /tmp && rm eksctl_$PLATFORM.tar.gz
+
+sudo install -m 0755 /tmp/eksctl /usr/local/bin && rm /tmp/eksctl
+
+5. Write the Terraform code as per the requirement
+  get the files from here: https://github.com/devops001/k8s-project/tree/master/Eks-terraform
+Note: change the bucket-name on backend.tf file and add the subnets-id's on main.tf
+
+6. EXECUTE THE CODE
+  * terraform init
+  * terraform validate
+  * terraform plan
+  * terraform apply -auto-approve
+7. VERIFY THE CLUSTER: awseks list-cluster --region us-east-1
+8. DESCRIBE THE CLUSTER: aws eks describe-cluster --name EKS_CLOUD --region us-east-1 
+9. ATTACH THIS INFRA TO OUR CLUSTER: aws eks update-kubeconfig --region us-east-1 --name EKS_CLOUD
+9. Verify the nodes: kubectl get no
+
+
+[root@ip-172-31-22-217 ~]# curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" -------------------------------------------------------------------------------------->
+  unzip awscliv2.zip
+  sudo ./aws/install-------------------------------------------------------------------------------------->
+
+[root@ip-172-31-22-217 ~]# curl -O https://s3.us-west-2.amazonaws.com/amazon-eks/1.36.2/2026-07-05/bin/darwin/amd64/kubectl ------------------------------------>
+
+[root@ip-172-31-22-217 ~]# chmod +x kubectl -------------------------------------------->
+[root@ip-172-31-22-217 ~]# mv kubectl /usr/local/bin/ -------------------------------------------->
+[root@ip-172-31-22-217 ~]# # for ARM systems, set ARCH to: `arm64`, `armv6` or `armv7` -------------------------------------------->
+ARCH=$(uname -m | sed 's/x86_64/amd64/' | sed 's/aarch64/arm64/')
+PLATFORM=$(uname -s)_$ARCH
+
+curl -sLO "https://github.com/eksctl-io/eksctl/releases/latest/download/eksctl_$PLATFORM.tar.gz"
+
+# (Optional) Verify checksum
+curl -sL "https://github.com/eksctl-io/eksctl/releases/latest/download/eksctl_checksums.txt" | grep $PLATFORM | sha256sum --check
+
+tar -xzf eksctl_$PLATFORM.tar.gz -C /tmp && rm eksctl_$PLATFORM.tar.gz
+
+sudo install -m 0755 /tmp/eksctl /usr/local/bin && rm /tmp/eksctl
+
+[root@ip-172-31-22-217 ~]#
+
+[root@ip-172-31-22-217 ~]# eksctl version --------------------------------------------->
+
+[root@ip-172-31-22-217 ~]# git clone https://github.com/devops0014/k8s-project.git ---------------------------------------->
+
+[root@ip-172-31-22-217 ~]# cd k8s-project ------------------------------------------>
+
+[root@ip-172-31-22-217 ~]# git checkout master ----------------------------------------->
+
+[root@ip-172-31-22-217 ~]# cd Eks-terraform/ --------------------------------------->
+
+Inside this Folder terraform files will be exist here
+
+[root@ip-172-31-22-217 ~]# backend.tf, main.tf, provider.tf 
+
+[root@ip-172-31-22-217 ~]# vim backend.tf
+
+In here we need to change our bucket name
+
+[root@ip-172-31-22-217 ~]# vim main.tf
+
+In here we need o give subnets-id's at line no: 32 
+
+value = ["subnet-id-1", "subnet-id-2"]
+
+and do change in vpc config at line no:41 
+subnet-ids = ["subnet-id-1", "subnet-id-2"]
+
+and alos do changes in line no: 86
+
+subnet-ids = ["subnet-id-1", "subnet-id-2"]
+
+at line no: 88 do changes like below
+
+scaling_config {
+  desrired_size = 2
+  max_size = 4
+  min_size = 2
+}
+instance_tyoe = ["c7i-flex.large"]
+
+[root@ip-172-31-22-217 ~]# vim provider.tf ------------------------------------------->
+
+do region-zone here
+
+region = "us-east-1"
+
+:wq
+
+:wq ------------------------------------------------------------------->
+
+[root@ip-172-31-22-217 ~]# terraform init ----------------------------------------->
+
+[root@ip-172-31-22-217 ~]# terraform plan ------------------------------------------->
+
+
+overall 8 resources will be get created
+
+[root@ip-172-31-22-217 ~]# terraform apply --auto-approve  ------------------------------------------->
+
+Cluser created with Terraform is Done
+
+[root@ip-172-31-22-217 ~]# eksctl get cluster --region us-east-1 --------------------------------------------> command to know list of eks cluster
+
+
+[root@ip-172-31-22-217 ~]# aws eks update-kubeconfig --region us-east-1 --name EKS_CLOUD --------------------------------->
+
+[root@ip-172-31-22-217 ~]# kubectl get no -------------------------------->
+
+Now we need do integrate this cluster with jenkins
+
+[root@ip-172-31-22-217 ~]# kubetcl create ns webapps ------------------------>
+
+vim service-account.yml ------------------>
+
+---
+apiVersion: v1
+kind: erviceAccount
+metadata:
+  name: jenkins
+  namespace: webapps
+
+:wq
+
+[root@ip-172-31-22-217 ~]# kubectl create -f service-account.yml ---------------------------->
+
+Now we need to do role-binding for this service-account.yml means giving permissions
+
+
+vim role.yml
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+ name: app-role
+ namespace: webapps
+rules:
+ - apiGroups:
+ - ""
+ - apps
+ - autoscaling
+ - batch
+ - extensions
+ - policy
+ - rbac.authorization.k8s.io
+resources
+- pods
+ - componentstatuses
+ - configmaps
+ - daemonsets
+ - deployments
+ - events
+ - endpoints
+ - horizontalpodautoscalers
+ - ingress
+ - jobs
+ - limitranges
+ - namespaces
+ - nodes
+ - pods
+ - persistentvolumes
+ - persistentvolumeclaims
+ - resourcequotas
+ - replicasets
+ - replicationcontrollers
+ - serviceaccounts
+ - services
+ verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+
+
+:wq
+
+
+kubectl create -f role.yml ---------------------------->
+
+we ara attaching this role to the service technically we can called as role-binding
+
+vim rol-binding.yml
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+ name: app-rolebinding
+ namespace: webapps
+roleRef:
+ apiGroup: rbac.authorization.k8s.io
+ kind: Role
+ name: app-role
+subjects:
+- namespace: webapps
+ kind: ServiceAccount
+ name: jenkins
+
+
+:wq
+
+kubectl create -f role-binding.yml ---------------------------->
+
+we need secret to integrate with jenkins
+
+vim secret.yml
+
+---
+apiVersion: v1
+kind: Secret
+type: kubernetes.io/service-account-token
+metadata:
+ name: mysecretname
+namespace: webapps
+ annotations:
+ kubernetes.io/service-account.name: jenkins
+
+
+
+:wq
+
+kubectl create secret.yml ------------------------------------>
+
+Now it will generate a token, Copy this token and create the credential in jenkins named k8-
+token.
+
+
+[root@ip-172-31-22-217 ~]# kubectl describe secret mysecretname -n webapps ----------------------------------------------->
+
+now one token will get generate here
+
+go to manage jenkins ------------------> credentials ----------> system--------> global -------------> add credentials --------> secret: copy and paste the above 
+token here ------------> svae
+
+go to jenkins pipeline and do deploy with Kubernetes by adding the pipeline below
+
+before going to build install kubernetes plugins
+1. install plugin kubernetes
+2. install plugin kubernetes credentials
+3. install plugin kubernetes cli
+
+do configure with pipeline syntax
+
+withkubeconfig configure kubernetes CLI (kubectl)
+in crdentials select k8s credential
+do copy and paste eks cluster END POINT here
+cluster name: eks cluster
+namespace: webapps
+generate pipeline
+do paste here belwo
+
+pipeline {
+    agent any
+    environment {
+        scannerHome = tool 'mysonar';
+        CCN = credentials('CLOUDINARY_CLOUD_NAME')
+        CK = credentials('CLOUDINARY_KEY')
+        CS = credentials('CLOUDINARY_SECRET')
+        MT = credentials('MAPBOX_TOKEN')
+        DB = credentials('DB_URL')
+    }
+    stages {
+        stage('Code') {
+            steps {
+                git branch: 'main', url: 'https://github.com/pranay-devops666/3-Tier-Full-Stack-yelp-camp.git'
+            }
+        }
+        stage('SONARQUBE CQA') {
+            steps {
+                withSonarQubeEnv('mysonar') {
+                    sh "${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=MyProject"
+                }
+            }
+        }
+        stage('Quality Gates') {
+            steps {
+                script {
+                    waitForQualityGate abortPipeline: false, credentialsId: 'sonar-iid'
+                }
+            }
+        }
+        stage('OSWASP') {
+            steps {
+                dependencyCheck additionalArguments: '--scan ./ --disableYarnAudi --disableNodeAudit', nvdCredentialsId: 'OSWASP-id', odcInstallation: 'DP-Check'
+                dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
+            }
+        }
+        stage('Build Image') {
+            steps {
+                sh 'docker build -t appimage .'
+            }
+        }
+        stage('Scan image') {
+            steps {
+                sh 'trivy image appimage'
+            }
+        }
+        stage('Docker Registry') {
+            steps {
+                script {
+                    withDockerRegistry(credentialsId: 'dockerhud-id') {
+                        sh 'docker tag appimage pranay419/sep:appimage'
+                        sh 'docker push pranay419/sep:appimage'
+                    }
+                }
+            }
+        }
+        stage('Deploy') {
+            steps {
+                withkubeConfigCertificate: "EKS_CLOUD", contextname: "", credentialsid: 'eks-token', namespace: 'webapps', restrtictKubeConfigAccess: "false", serverURL: "url here"
+                  sh 'kubectl create -f Manifests'
+            }
+        }
+    }
+}
+
+
+go to Manifest folder in github repo -----------> select Manifests folder ----------> inside select open secrets file and do changes here
+do remove all the value data here
+
+we nee dto import the secrets like below
+
+CLOUDINARY_CLOUD_NAME=djdim5rli
+
+[root@ip-172-31-22-217 ~]# echo -n "djdim5rli" | base64 -------------------->
+one token will come here paste it on secret file
+
+CLOUDINARY_KEY=245858558853583 
+
+[root@ip-172-31-22-217 ~]# echo -n "245858558853583" | base64 -------------------->
+one token will come here paste it on secret file
+
+
+CLOUDINARY_SECRET=1IpXlg39e9Hty0gmTXm3Z-5Bwyc
+
+[root@ip-172-31-22-217 ~]# echo -n "1IpXlg39e9Hty0gmTXm3Z-5Bwyc" | base64 -------------------->
+one token will come here paste it on secret file
+
+MAPBOX_TOKEN=
+
+[root@ip-172-31-22-217 ~]# echo -n "
+" | base64 -------------------->
+one token will come here paste it on secret file
+
+DB_URL="mongodb+srv://gorantlapranay8_db_user:Pranay@1409@mycluster.hlwgr2g.mongodb.net/?appName=MyCluster"
+
+[root@ip-172-31-22-217 ~]# echo -n "mongodb+srv://gorantlapranay8_db_user:Pranay@1409@mycluster.hlwgr2g.mongodb.net/?appName=MyCluster" | base64 -------------------->
+one token will come here paste it on secret file
+
+before going to build install kubernetes plugins
+1. install plugin kubernetes
+2. install plugin kubernetes credentials
+3. install plugin kubernetes cli
+
+
+save and Build the Job Now
+
+
+kubectl get secrets -n webapps ---------------------------------->
+
+[root@ip-172-31-22-217 ~]# kubectl get secrets -n webapps -------------------------->
+
+got DNS name here ready to access it
 
