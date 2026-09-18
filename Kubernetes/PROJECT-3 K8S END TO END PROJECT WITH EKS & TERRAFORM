@@ -306,3 +306,76 @@ pipeline {
 }
 
 
+
+The above stage BUild will take upto 30 minutes to BUild the Job
+
+Next stage is to bUild the Image, Scan the Image, to do the Docker Registry
+
+Next stage is Build the Image & Scan that Image as well with using Docker, DockerFile to build the Image Trivy to scan the Image and Docker Registry 
+
+Need to install Trivy on ec2-instance like below
+
+sudo yum install -y wget && wget https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh && sudo sh install.sh -b /usr/local/bin
+aquasecurity/trivy info checking GitHub for tag 'v0.67.2'
+aquasecurity/trivy info found version: 0.67.2 for v0.67.2/Linux/64bit
+aquasecurity/trivy info installed /usr/local/bin/trivy --------------------------------------------->
+
+chmod 777 /var/run//docker.sock --------------------------------------------------->
+
+pipeline {
+    agent any
+    environment {
+        scannerHome = tool 'mysonar';
+    }
+    stages {
+        stage('Code') {
+            steps {
+                git branch: 'main', url: 'https://github.com/pranay-devops666/3-Tier-Full-Stack-yelp-camp.git'
+            }
+        }
+        stage('SONARQUBE CQA') {
+            steps {
+                withSonarQubeEnv('mysonar') {
+                    sh "${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=MyProject"
+                }
+            }
+        }
+        stage('QualityGates') {
+            steps {
+                script {
+                    waitForQualityGate abortPipeline: false, credentialsId: 'sonar-id'
+                }
+            }
+        }
+        stage('OWSAP') {
+            steps {
+                dependencyCheck additionalArguments: '--scan ./ --disableYarnAudi --disableNodeAudit', nvdCredentialsId: 'oswap-id', odcInstallation: 'DP-Check'
+                dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
+            }
+        }
+        stage('Build Image') {
+            steps {
+                sh 'docker build -t appimage .'
+            }
+        }
+        stage('Scan image') {
+            steps {
+                sh 'trivy image appimage'
+            }
+        }
+        stage('Docker Registry') {
+            steps {
+                script {
+                    withDockerRegistry(credentialsId: 'docker-hub-id') {
+                        sh 'docker tag appimage pranay419/sep:appimage'
+                        sh 'docker push pranay419/sep:appimage'
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+
+
